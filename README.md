@@ -4,7 +4,7 @@
 
 ## 3 - Tier Architecture
 
-<img src="./diagrams/3-tier-architecture.png" src="3-tier-architecture" />
+<img src="./diagrams/3-tier-architecture.png" alt="3-tier-architecture-diagram" />
 
 - **Frontend**: VueJS/Vuetify.
 - **Backend**: Golang API.

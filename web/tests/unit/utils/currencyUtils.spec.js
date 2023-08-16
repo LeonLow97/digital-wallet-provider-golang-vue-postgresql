@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currencyConversion } from "../../src/utils/currencyUtils";
+import { currencyConversion } from "@/utils/currencyUtils";
 
 describe("Currency Conversion", () => {
   it("should convert amount correctly when currencies are different", () => {

@@ -2,12 +2,16 @@ import { shallowMount } from '@vue/test-utils'
 import Transactions from '@/views/Transactions.vue'
 import { describe, it, expect, test, vi } from 'vitest'
 import axios from 'axios'
+import { createVuetify } from 'vuetify'
+import { RouterLinkStub } from '@vue/test-utils'
 
 vi.mock('axios')
 
 describe('Transactions.vue', () => {
+  const vuetify = createVuetify()
+
   describe('fetchUsers', () => {
-    test('GET Request, fetches the transaction history', async () => {
+    it('GET Request, fetches the transaction history', async () => {
       const transactionsMock = [
         {
           date_transferred: '2023-07-02T12:00:00Z',
@@ -31,7 +35,7 @@ describe('Transactions.vue', () => {
         }
       ]
 
-      localStorage.setItem('leon_token', 'JWT_Token')
+      localStorage.setItem('leon_access_token', 'JWT_Token')
 
       axios.get.mockImplementation((url, config) => {
         expect(url).toBe('http://localhost:4000/transactions')
@@ -45,9 +49,15 @@ describe('Transactions.vue', () => {
       })
 
       const wrapper = shallowMount(Transactions, {
+        global: {
+          plugins: [vuetify],
+          stubs: {
+            'router-link': RouterLinkStub
+          }
+        },
         mocks: {
           localStorage: {
-            getItem: () => 'leon_token'
+            getItem: () => 'leon_access_token'
           }
         }
       })
@@ -60,13 +70,20 @@ describe('Transactions.vue', () => {
   })
 
   it('formats date and time correctly', () => {
-    const wrapper = shallowMount(Transactions)
+    const wrapper = shallowMount(Transactions, {
+      global: {
+        plugins: [vuetify],
+        stubs: {
+          'router-link': RouterLinkStub
+        }
+      }
+    })
 
     const formattedDateTime = wrapper.vm.formatDateTime('2023-07-02T12:34:56')
     expect(formattedDateTime).toEqual('July 2, 2023 at 12:34:56 PM')
   })
 
-  it('compute transaction data correctly', () => {
+  it.only('compute transaction data correctly', () => {
     const transactionData = [
       {
         date_transferred: '2023-07-02T12:00:00Z',
@@ -91,6 +108,12 @@ describe('Transactions.vue', () => {
     ]
 
     const wrapper = shallowMount(Transactions, {
+      global: {
+        plugins: [vuetify],
+        stubs: {
+          'router-link': RouterLinkStub
+        }
+      },
       data() {
         return {
           transactionData

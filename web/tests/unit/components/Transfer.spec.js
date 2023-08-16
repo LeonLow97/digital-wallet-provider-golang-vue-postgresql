@@ -2,6 +2,7 @@ import { shallowMount } from '@vue/test-utils'
 import Transfer from '@/views/Transfer.vue'
 import { describe, expect, test, vi } from 'vitest'
 import axios from 'axios'
+import { createVuetify } from 'vuetify'
 
 vi.mock('axios')
 
@@ -37,14 +38,20 @@ const fetchUserResponse = {
 
 describe('Transfer.vue', () => {
   describe('fetchUser', () => {
-    test('fetches logged in user details', async () => {
-      localStorage.setItem('leon_token', 'JWT_Token')
+    const vuetify = createVuetify()
+
+    it('fetches logged in user details', async () => {
+      localStorage.setItem('leon_access_token', 'JWT_Token')
 
       axios.get
         .mockResolvedValueOnce(fetchUserResponse)
         .mockResolvedValueOnce(fetchBeneficiariesResponse)
 
-      const wrapper = shallowMount(Transfer)
+      const wrapper = shallowMount(Transfer, {
+        global: {
+          plugins: [vuetify]
+        }
+      })
 
       await new Promise((resolve) => setTimeout(resolve, 100))
 

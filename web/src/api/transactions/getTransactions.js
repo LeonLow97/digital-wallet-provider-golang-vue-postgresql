@@ -7,7 +7,6 @@ const getTransactions = async () => {
   }
   const url = 'http://localhost:4000/transactions'
   const response = await axios.get(url, config)
-  console.log(response.data)
   return response.data
 }
 

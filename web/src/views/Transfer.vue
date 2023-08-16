@@ -117,7 +117,7 @@
 
 <script>
 import axios from 'axios'
-import { currencyConversion } from '../utils/currencyUtils'
+import currencyConversion from '@/utils/currencyConversion'
 import getUser from '@/api/users/getUser'
 
 export default {
@@ -251,3 +251,4 @@ export default {
   }
 }
 </script>
+../utils/currencyConversion

@@ -14,23 +14,11 @@ describe('getTransactions', () => {
       data: [
         {
           sender_name: 'Alice',
-          amount_transferred: 100,
-          amount_transferred_currency: 'SGD',
-          beneficiary_name: 'Bob',
-          amount_received: 100,
-          amount_received_currency: 'SGD',
-          status: 'CONFIRMED',
-          date_transferred: '2023-07-02T12:00:00Z'
+          amount_transferred: 100
         },
         {
           sender_name: 'Alice',
-          amount_transferred: 100,
-          amount_transferred_currency: 'SGD',
-          beneficiary_name: 'Leon Low',
-          amount_received: 100,
-          amount_received_currency: 'SGD',
-          status: 'CONFIRMED',
-          date_transferred: '2023-07-02T12:00:00Z'
+          amount_transferred: 100
         }
       ]
     })
@@ -53,23 +41,11 @@ describe('getTransactions', () => {
     expect(transactions).toEqual([
       {
         sender_name: 'Alice',
-        amount_transferred: 100,
-        amount_transferred_currency: 'SGD',
-        beneficiary_name: 'Bob',
-        amount_received: 100,
-        amount_received_currency: 'SGD',
-        status: 'CONFIRMED',
-        date_transferred: '2023-07-02T12:00:00Z'
+        amount_transferred: 100
       },
       {
         sender_name: 'Alice',
-        amount_transferred: 100,
-        amount_transferred_currency: 'SGD',
-        beneficiary_name: 'Leon Low',
-        amount_received: 100,
-        amount_received_currency: 'SGD',
-        status: 'CONFIRMED',
-        date_transferred: '2023-07-02T12:00:00Z'
+        amount_transferred: 100
       }
     ])
 

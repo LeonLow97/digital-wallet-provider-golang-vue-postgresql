@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 import { mergeConfig } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
 import viteConfig from './vite.config'
-import Vue from '@vitejs/plugin-vue'
+import vue from '@vitejs/plugin-vue'
 
 export default mergeConfig(
   viteConfig,

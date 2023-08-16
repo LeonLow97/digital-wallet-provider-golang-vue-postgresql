@@ -15,35 +15,81 @@
       </v-card-actions>
     </v-card>
 
-    <div class="table-container">
-      <table class="v-table">
-        <thead>
-          <tr>
-            <th v-for="header in headers" :key="header.value" class="table-header">
-              {{ header.text }}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in computedTransactionData" :key="item.id" class="table-row">
-            <td>{{ formatDateTime(item.date_transferred) }}</td>
-            <td>{{ item.sender_name }}</td>
-            <td>
-              {{ item.sent_amount }}
-            </td>
-            <td>{{ item.beneficiary_name }}</td>
-            <td>
-              {{ item.received_amount }}
-            </td>
-            <td>{{ item.status }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h2 v-if="transactionData.length === 0" class="text-center">Transaction History is Empty!</h2>
+    <v-table class="table-container" fixed-header height="300px" width="80%">
+      <thead>
+        <tr>
+          <th v-for="header in headers" :key="header">
+            {{ header }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="transaction in computedTransactions" :key="transaction">
+          <td>{{ formatDateTime(transaction.date_transferred) }}</td>
+          <td>{{ transaction.sender_name }}</td>
+          <td>{{ transaction.amount_transferred }}</td>
+          <td>{{ transaction.beneficiary_name }}</td>
+          <td>{{ transaction.amount_received }}</td>
+          <td>{{ transaction.status }}</td>
+        </tr>
+      </tbody>
+    </v-table>
+    <h2 v-if="transactions.length === 0" class="text-center">Transaction History is Empty!</h2>
   </div>
 </template>
+
+<script>
+import getTransactions from '@/api/transactions/getTransactions'
+import formatDateTime from '@/utils/formatDateTime'
+
+export default {
+  name: 'TransactionList',
+  data() {
+    return {
+      transactions: [],
+      headers: [
+        'Date Transferred',
+        'Sender',
+        'Amount Transferred',
+        'Recipient',
+        'Amount Received',
+        'Transaction Status'
+      ]
+    }
+  },
+  computed: {
+    computedTransactions() {
+      return this.transactions.map((item) => {
+        return {
+          ...item,
+          amount_transferred: `${item.amount_transferred} ${item.amount_transferred_currency}`,
+          amount_received: `${item.amount_received} ${item.amount_received_currency}`
+        }
+      })
+    }
+  },
+  // Pull transactions when the component is created
+  mounted() {
+    this.fetchTransactions()
+  },
+  methods: {
+    formatDateTime,
+    async fetchTransactions() {
+      try {
+        const data = await getTransactions()
+        if (data.transactions != null) {
+          this.transactions = data.transactions
+        }
+      } catch (error) {
+        if (error.response.status === 401) {
+          this.$router.push('/login')
+          localStorage.removeItem('leon_access_token')
+        }
+      }
+    }
+  }
+}
+</script>
 
 <style>
 .table-container {
@@ -93,73 +139,3 @@
   color: beige;
 }
 </style>
-
-<script>
-import axios from 'axios'
-
-export default {
-  name: 'TransactionList',
-  data() {
-    return {
-      transactionData: [],
-      headers: [
-        { text: 'Date Transferred', value: 'date_transferred' },
-        { text: 'Sender', value: 'sender_name' },
-        { text: 'Amount Transferred', value: 'sent_amount' },
-        { text: 'Beneficiary', value: 'beneficiary_name' },
-        { text: 'Amount Received', value: 'received_amount' },
-        { text: 'Transaction Status', value: 'status' }
-      ]
-    }
-  },
-  computed: {
-    computedTransactionData() {
-      return this.transactionData.map((item) => {
-        return {
-          ...item,
-          sent_amount: `${item.amount_transferred} ${item.amount_transferred_currency}`,
-          received_amount: `${item.amount_received} ${item.amount_received_currency}`
-        }
-      })
-    }
-  },
-  // Pull transactions when the component is created
-  created() {
-    this.fetchData()
-  },
-  methods: {
-    formatDateTime(dateTime) {
-      const options = {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      }
-      return new Date(dateTime).toLocaleString(undefined, options)
-    },
-    fetchData() {
-      const jwt_token = localStorage.getItem('leon_token')
-      const config = {
-        headers: { Authorization: `Bearer ${jwt_token}` }
-      }
-      3
-
-      axios
-        .get('http://localhost:4000/transactions', config)
-        .then((response) => {
-          if (response.data.transactions) {
-            this.transactionData = response.data.transactions
-          }
-        })
-        .catch((error) => {
-          if (error.response.status == 401) {
-            this.$router.push('/login')
-            localStorage.removeItem('leon_token')
-          }
-        })
-    }
-  }
-}
-</script>

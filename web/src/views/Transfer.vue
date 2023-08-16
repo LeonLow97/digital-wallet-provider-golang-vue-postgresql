@@ -6,7 +6,7 @@
           <v-btn color="primary" @click="logout">Logout</v-btn>
         </v-col>
         <v-col cols="8">
-          <h1 class="display-1">Implementation of the Transfer View goes Here</h1>
+          <h1 class="display-1">Home</h1>
         </v-col>
       </v-row>
     </v-card-text>
@@ -118,6 +118,7 @@
 <script>
 import axios from 'axios'
 import { currencyConversion } from '../utils/currencyUtils'
+import getUser from '@/api/users/getUser'
 
 export default {
   name: 'TransferFunds',
@@ -168,32 +169,26 @@ export default {
   methods: {
     logout() {
       this.$router.push('/login')
-      localStorage.removeItem('leon_token')
+      localStorage.removeItem('leon_access_token')
     },
     navigateToTransactions() {
       this.$router.push('/transactions')
     },
     fetchUser() {
-      const jwt_token = localStorage.getItem('leon_token')
-      const config = {
-        headers: { Authorization: `Bearer ${jwt_token}` }
-      }
-
-      axios
-        .get('http://localhost:4000/user', config)
-        .then((response) => {
-          this.user = response.data
-          this.amountTransferredCurrency = response.data.currency
+      getUser()
+        .then((data) => {
+          this.user = data
+          this.amountTransferredCurrency = data.currency
         })
         .catch((error) => {
           if (error.response.status == 401) {
             this.$router.push('/login')
-            localStorage.removeItem('leon_token')
+            localStorage.removeItem('leon_access_token')
           }
         })
     },
     fetchBeneficiaries() {
-      const jwt_token = localStorage.getItem('leon_token')
+      const jwt_token = localStorage.getItem('leon_access_token')
       const config = {
         headers: { Authorization: `Bearer ${jwt_token}` }
       }
@@ -224,7 +219,7 @@ export default {
       this.amountReceived = 0
     },
     transferFunds() {
-      const jwt_token = localStorage.getItem('leon_token')
+      const jwt_token = localStorage.getItem('leon_access_token')
       const config = {
         headers: { Authorization: `Bearer ${jwt_token}` }
       }

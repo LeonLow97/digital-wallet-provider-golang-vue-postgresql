@@ -29,7 +29,7 @@ export const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.name !== 'login' && localStorage.getItem('leon_token') === null) {
+  if (to.name !== 'login' && localStorage.getItem('leon_access_token') === null) {
     next({ name: 'login' })
   } else {
     next()

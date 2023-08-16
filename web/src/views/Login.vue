@@ -74,7 +74,7 @@ export default {
         })
         .then((response) => {
           const token = response.data
-          localStorage.setItem('leon_token', token) // store the token in localStorage
+          localStorage.setItem('leon_access_token', token) // store the token in localStorage
           router.push('/')
         })
         .catch((error) => {

@@ -43,7 +43,7 @@ import getTransactions from '@/api/transactions/getTransactions'
 import formatDateTime from '@/utils/formatDateTime'
 
 export default {
-  name: 'TransactionList',
+  name: 'TransactionsView',
   data() {
     return {
       transactions: [],

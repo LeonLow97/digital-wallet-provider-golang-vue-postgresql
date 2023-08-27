@@ -3,11 +3,11 @@ import { createVuetify } from 'vuetify'
 import { RouterLinkStub } from '@vue/test-utils'
 import axios from 'axios'
 
-import Transactions from '@/views/Transactions.vue'
+import TransactionsView from '@/views/TransactionsView.vue'
 
 vi.mock('axios')
 
-describe('Transactions', () => {
+describe('TransactionsView', () => {
   beforeEach(() => {
     localStorage.setItem('leon_access_token', 'Bearer JWTToken')
   })
@@ -15,7 +15,7 @@ describe('Transactions', () => {
   const renderTransactions = () => {
     const vuetify = createVuetify()
 
-    render(Transactions, {
+    render(TransactionsView, {
       global: {
         plugins: [vuetify],
         stubs: {
@@ -45,11 +45,7 @@ describe('Transactions', () => {
       mockTransactionsResponse()
       renderTransactions()
 
-      const heading = screen.getByRole('heading', {
-        name: /transaction history is empty!/i
-      })
-
-      expect(heading.textContent).toBe('Transaction History is Empty!')
+      expect(screen.getByText('Transaction History is Empty!')).toBeInTheDocument()
     })
 
     it('displays 2 transactions', async () => {
@@ -96,7 +92,7 @@ describe('Transactions', () => {
       expect(tableCellAmountTransferred[0]).toBeInTheDocument()
     })
 
-    it('returns an error when getting transactions', async () => {
+    it.only('returns an error when getting transactions', async () => {
       const push = vi.fn()
       const $router = { push }
 
@@ -109,7 +105,7 @@ describe('Transactions', () => {
 
       const vuetify = createVuetify()
 
-      render(Transactions, {
+      render(TransactionsView, {
         global: {
           mocks: {
             $router

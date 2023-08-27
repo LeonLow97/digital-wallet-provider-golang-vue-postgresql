@@ -9,7 +9,7 @@ const routes = [
   {
     path: '/login',
     name: 'login',
-    component: () => import(/* webpackChunkName: "login" */ '@/views/Login.vue')
+    component: () => import('@/views/Login.vue')
   },
   {
     path: '/transactions',
@@ -20,6 +20,11 @@ const routes = [
     path: '/transfer-funds',
     name: 'Transfer Funds',
     component: () => import('@/views/Transfer.vue')
+  },
+  {
+    path: '/home',
+    name: 'Home',
+    component: () => import('@/views/HomeView.vue')
   }
 ]
 

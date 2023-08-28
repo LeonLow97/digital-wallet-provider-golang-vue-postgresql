@@ -1,19 +1,19 @@
 version: '3.8'
 
 services:
-  web:
-    image: leon-web
-    build:
-      context: ./web
-    volumes:
-      - ./web:/app
-      - node_modules:/app/node_modules
-    ports:
-      - 8080:8080
-    # links:
-    #   - api
-    networks:
-      - mobile-wallet-network
+  # web:
+  #   image: leon-web
+  #   build:
+  #     context: ./web
+  #   volumes:
+  #     - ./web:/app
+  #     - node_modules:/app/node_modules
+  #   ports:
+  #     - 8080:8080
+  #   # links:
+  #   #   - api
+  #   networks:
+  #     - mobile-wallet-network
   api:
     image: leon-api
     build:

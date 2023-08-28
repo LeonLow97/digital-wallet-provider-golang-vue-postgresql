@@ -71,15 +71,17 @@ func seed(db *sqlx.DB) {
 	users := []struct {
 		Username     string
 		Password     string
+		Active       int
+		Admin        int
 		MobileNumber string
 	}{
-		{Username: "Alice", Password: "password123", MobileNumber: "+65 90399012"},
-		{Username: "Bob", Password: "password123", MobileNumber: "+65 89230122"},
-		{Username: "Charlie", Password: "password123", MobileNumber: "+1 555-123-4567"},
-		{Username: "David", Password: "password123", MobileNumber: "+49 1234567890"},
+		{Username: "Alice", Password: "$2a$10$CerQd299qowq2ck8k/EqQeB7Jpjd/4Cut/Df.f8jnq9kYsuG0W7zG", Active: 1, Admin: 1, MobileNumber: "+65 90399012"},
+		{Username: "Bob", Password: "$2a$10$MVLL5BT/nIQKk6OYbgzK7.fbT0XKMBtNdeoy64ihYUUhr8Ag6358u", Active: 1, Admin: 1, MobileNumber: "+65 89230122"},
+		{Username: "Charlie", Password: "$2a$10$yKz0rguTzykTec4Bgke7LempFl/GQVTw9w9qEXfGUpI/XGK97VHFq", Active: 1, Admin: 1, MobileNumber: "+1 555-123-4567"},
+		{Username: "David", Password: "$2a$10$p444biF49.py2HOTVe5TSuUNAhSKqelEtlbLtZXghUh3o21Et7DNO", Active: 1, Admin: 1, MobileNumber: "+49 1234567890"},
 	}
 	for _, user := range users {
-		db.Exec("INSERT INTO users(username, password, mobile_number) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING", user.Username, user.Password, user.MobileNumber)
+		db.Exec("INSERT INTO users(username, password, active, admin, mobile_number) VALUES ($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING", user.Username, user.Password, user.Active, user.Admin, user.MobileNumber)
 	}
 
 	userBalances := []struct {

@@ -1,8 +1,10 @@
 CREATE TABLE IF NOT EXISTS users (
-    id BIGSERIAL PRIMARY KEY,
-    username TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL,
-    mobile_number VARCHAR(255) NOT NULL UNIQUE,
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(20) NOT NULL UNIQUE,
+    password VARCHAR(60) NOT NULL,
+    active INT NOT NULL DEFAULT 1,
+    admin INT NOT NULL DEFAULT 0,
+    mobile_number VARCHAR(50) NOT NULL UNIQUE,
     creation_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 

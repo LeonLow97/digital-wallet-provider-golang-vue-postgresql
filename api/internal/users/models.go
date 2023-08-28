@@ -1,13 +1,26 @@
 package users
 
-type User struct {
+type Credentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+type User struct {
+	ID       int    `json:"id"`
+	Username string `json:"username"`
+	Password string `json:"-"`
+	Active   int    `json:"active"`
+	Admin    int    `json:"admin"`
+}
+
+type Token struct {
+	Token        string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type GetUser struct {
 	Username     string  `json:"username"`
 	MobileNumber string  `json:"mobile_number"`
-	Currency     string `json:"currency"`
-	Balance      float64  `json:"balance"`
+	Currency     string  `json:"currency"`
+	Balance      float64 `json:"balance"`
 }

@@ -14,6 +14,8 @@ import (
 
 func routes(db *sqlx.DB) *mux.Router {
 	router := mux.NewRouter()
+
+	// middleware
 	router.Use(setAccessControlHeader)
 
 	userRepo, err := users.NewRepo(db)
@@ -24,7 +26,7 @@ func routes(db *sqlx.DB) *mux.Router {
 	if err != nil {
 		log.Fatal(err)
 	}
-	userHandler, err := handlers.NewUserHandler(userService)
+	userHandler, err := users.NewUserHandler(userService)
 	if err != nil {
 		log.Fatal(err)
 	}

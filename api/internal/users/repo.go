@@ -10,7 +10,7 @@ import (
 )
 
 type Repo interface {
-	GetByUserName(ctx context.Context, username string) (*User, error)
+	GetByUsername(ctx context.Context, username string) (*User, error)
 	GetUserCurrencyAndBalanceByUsername(ctx context.Context, username string) (*GetUser, error)
 }
 
@@ -24,17 +24,25 @@ func NewRepo(db *sqlx.DB) (Repo, error) {
 	}, nil
 }
 
-func (r *repo) GetByUserName(ctx context.Context, username string) (*User, error) {
-	query := `SELECT
-			username,
-			password
+func (r *repo) GetByUsername(ctx context.Context, username string) (*User, error) {
+	query := `SELECT id, username, password, active, admin
 		FROM users
-		WHERE username = ?`
+		WHERE username = $1`
 
-	query = r.db.Rebind(query)
 	var user User
-	err := r.db.GetContext(ctx, &user, query, username)
-	return &user, err
+	row := r.db.QueryRowContext(ctx, query, username)
+
+	err := row.Scan(
+		&user.ID,
+		&user.Username,
+		&user.Password,
+		&user.Active,
+		&user.Admin,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 func (r *repo) GetUserCurrencyAndBalanceByUsername(ctx context.Context, username string) (*GetUser, error) {
@@ -51,7 +59,7 @@ func (r *repo) GetUserCurrencyAndBalanceByUsername(ctx context.Context, username
 	var user GetUser
 
 	if err := r.db.QueryRowContext(ctx, query, username).Scan(&Username, &MobileNumber, &Balance, &Currency); err != nil {
-		return nil, utils.RepositoryError{Message: "error with QueryContext in GetUserCurrencyAndBalanceByUsername: " + err.Error()}
+		return nil, utils.RepositoryError{Message: err.Error()}
 	}
 
 	user = GetUser{

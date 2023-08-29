@@ -18,7 +18,7 @@ func PasswordMatchers(hashedPassword, plainText string) (bool, error) {
 			// invalid password
 			return false, nil
 		default:
-			return false, err
+			return false, InternalServerError{Message: err.Error()}
 		}
 	}
 

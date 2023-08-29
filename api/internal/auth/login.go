@@ -1,4 +1,4 @@
-package users
+package auth
 
 import (
 	"log"
@@ -7,19 +7,19 @@ import (
 	"github.com/LeonLow97/internal/utils"
 )
 
-type userHandler struct {
+type authHandler struct {
 	service Service
 }
 
-func NewUserHandler(s Service) (*userHandler, error) {
-	return &userHandler{
+func NewAuthHandler(s Service) (*authHandler, error) {
+	return &authHandler{
 		service: s,
 	}, nil
 }
 
 type envelope map[string]interface{}
 
-func (h userHandler) Login(w http.ResponseWriter, r *http.Request) {
+func (h authHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var creds Credentials
 
 	err := utils.ReadJSON(w, r, &creds)
@@ -38,5 +38,5 @@ func (h userHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	utils.WriteJSON(w, http.StatusUnauthorized, envelope{"user": user, "token": token})
+	utils.WriteJSON(w, http.StatusOK, envelope{"user": user, "token": token})
 }

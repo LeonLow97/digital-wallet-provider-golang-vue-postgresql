@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/LeonLow97/internal/auth"
 	"github.com/LeonLow97/internal/beneficiaries"
 	"github.com/LeonLow97/internal/handlers"
 	"github.com/LeonLow97/internal/transactions"
@@ -17,6 +18,19 @@ func routes(db *sqlx.DB) *mux.Router {
 
 	// middleware
 	router.Use(setAccessControlHeader)
+
+	authRepo, err := auth.NewRepo(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	authService, err := auth.NewService(authRepo)
+	if err != nil {
+		log.Fatal(err)
+	}
+	authHandler, err := auth.NewAuthHandler(authService)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	userRepo, err := users.NewRepo(db)
 	if err != nil {
@@ -57,7 +71,7 @@ func routes(db *sqlx.DB) *mux.Router {
 		log.Fatal(err)
 	}
 
-	router.HandleFunc("/login", userHandler.Login).Methods(http.MethodPost)
+	router.HandleFunc("/login", authHandler.Login).Methods(http.MethodPost)
 	router.HandleFunc("/user", userHandler.GetUser).Methods(http.MethodGet)
 	router.HandleFunc("/beneficiaries", beneficiaryHandler.GetBeneficiaries).Methods(http.MethodGet)
 	router.HandleFunc("/transactions", transactionHandler.GetTransactions).Methods(http.MethodGet)

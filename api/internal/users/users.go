@@ -9,6 +9,16 @@ import (
 	"github.com/LeonLow97/internal/utils"
 )
 
+type userHandler struct {
+	service Service
+}
+
+func NewUserHandler(s Service) (*userHandler, error) {
+	return &userHandler{
+		service: s,
+	}, nil
+}
+
 func (h userHandler) GetUser(writer http.ResponseWriter, request *http.Request) {
 	username, err := utils.RetrieveJWTClaimsUsername(request)
 	if err != nil {

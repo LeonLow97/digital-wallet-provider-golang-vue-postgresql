@@ -6,9 +6,10 @@ github.com/LeonLow97/internal/auth/handlers.go:40.2,41.75 2 1
 github.com/LeonLow97/internal/auth/handlers.go:26.16,30.3 3 0
 github.com/LeonLow97/internal/auth/handlers.go:34.16,38.3 3 0
 github.com/LeonLow97/internal/auth/mockDbRepo.go:14.87,21.18 2 1
-github.com/LeonLow97/internal/auth/mockDbRepo.go:28.2,28.17 1 0
+github.com/LeonLow97/internal/auth/mockDbRepo.go:31.2,31.17 1 0
 github.com/LeonLow97/internal/auth/mockDbRepo.go:22.19,23.20 1 1
 github.com/LeonLow97/internal/auth/mockDbRepo.go:24.25,25.46 1 1
+github.com/LeonLow97/internal/auth/mockDbRepo.go:26.22,28.20 2 1
 github.com/LeonLow97/internal/auth/repo.go:17.41,21.2 1 0
 github.com/LeonLow97/internal/auth/repo.go:23.83,38.16 5 0
 github.com/LeonLow97/internal/auth/repo.go:41.2,41.19 1 0
@@ -23,7 +24,7 @@ github.com/LeonLow97/internal/auth/service.go:63.2,63.25 1 1
 github.com/LeonLow97/internal/auth/service.go:36.16,39.3 2 1
 github.com/LeonLow97/internal/auth/service.go:43.16,46.3 2 0
 github.com/LeonLow97/internal/auth/service.go:47.20,50.3 2 1
-github.com/LeonLow97/internal/auth/service.go:53.22,55.3 1 0
+github.com/LeonLow97/internal/auth/service.go:53.22,55.3 1 1
 github.com/LeonLow97/internal/auth/service.go:59.16,61.3 1 0
 github.com/LeonLow97/internal/auth/service.go:67.91,78.21 8 1
 github.com/LeonLow97/internal/auth/service.go:83.2,87.16 3 1

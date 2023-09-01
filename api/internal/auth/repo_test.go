@@ -9,7 +9,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
-	"gotest.tools/v3/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_GetByUsername(t *testing.T) {
@@ -82,7 +82,7 @@ func Test_GetByUsername(t *testing.T) {
 				assert.Equal(t, fmt.Sprintf("%+v", results), fmt.Sprintf("%+v", tc.ExpectedUser))
 			} else {
 				require.Error(t, err, "running GetByUsername on repository layer")
-				assert.Equal(t, results, tc.ExpectedUser)
+				assert.Nil(t, results)
 			}
 		})
 	}

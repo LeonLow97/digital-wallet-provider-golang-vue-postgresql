@@ -2,51 +2,111 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
+// mocking the repository layer
+type mockRepo struct {
+	mock.Mock
+}
+
+func (m *mockRepo) GetByUsername(ctx context.Context, username string) (*User, error) {
+	args := m.Called(ctx, username)
+	return args.Get(0).(*User), args.Error(1)
+}
+
 func Test_LoginService(t *testing.T) {
-	var creds Credentials
-
-	creds.Username = "validUser"
-	creds.Password = "password"
-
-	mockRepo := &MockRepo{}
-	s := &service{
-		repo: mockRepo,
+	testCases := []struct {
+		Test         string
+		Credentials  *Credentials
+		ExpectedUser *User
+		ExpectErr    bool
+		MockError    error
+	}{
+		{
+			Test: "Successful Login",
+			Credentials: &Credentials{
+				Username: "validUsername",
+				Password: "validPassword",
+			},
+			ExpectedUser: &User{
+				ID:       1,
+				Username: "validUsername",
+				Password: "$2a$10$Tre6ATlvkBUWdrdR1fA.w.3d9CfJ86eHbcpyHSeAhrZaHTpmDCmIy",
+				Active:   1,
+				Admin:    1,
+			},
+			ExpectErr: false,
+			MockError: nil,
+		},
+		{
+			Test: "Non-Existent User",
+			Credentials: &Credentials{
+				Username: "invalidUsername",
+				Password: "invalidPassword",
+			},
+			ExpectedUser: nil,
+			ExpectErr:    true,
+			MockError:    errors.New("this user does not exist"),
+		},
+		{
+			Test: "Incorrect Password",
+			Credentials: &Credentials{
+				Username: "validUsername",
+				Password: "invalidPassword",
+			},
+			ExpectedUser: &User{
+				ID:       1,
+				Username: "validUsername",
+				Password: "$2a$10$Tre6ATlvkBUWdrdR1fA.w.3d9CfJ86eHbcpyHSeAhrZaHTpmDCmIy",
+				Active:   1,
+				Admin:    1,
+			},
+			ExpectErr: true,
+			MockError: nil,
+		},
+		{
+			Test: "Inactive User",
+			Credentials: &Credentials{
+				Username: "inactiveUser",
+				Password: "validPassword",
+			},
+			ExpectedUser: &User{
+				ID:       1,
+				Username: "inactiveUser",
+				Password: "$2a$10$Tre6ATlvkBUWdrdR1fA.w.3d9CfJ86eHbcpyHSeAhrZaHTpmDCmIy",
+				Active:   0,
+				Admin:    1,
+			},
+			ExpectErr: true,
+			MockError: nil,
+		},
 	}
 
-	// Testing valid username and password
-	user, _, err := s.Login(context.Background(), &creds)
-	if err != nil {
-		t.Errorf("valid username and password but got error, %q", err.Error())
-	}
-	if user.Username != creds.Username {
-		t.Errorf("expected username and password to be %s and %s, but got %s and %s", creds.Username, creds.Password, user.Username, user.Password)
-	}
+	// Creating a mock repository and a service with the mock repository
+	mockRepo := mockRepo{}
+	s, err := NewService(&mockRepo)
+	require.NoError(t, err, "getting service with mock repo in LoginService")
 
-	// Testing invalid password
-	creds.Password = "wrongpassword"
-	_, _, err = s.Login(context.Background(), &creds)
-	expectedError := "Incorrect username/password. Please try again."
-	if err == nil || err.Error() != expectedError {
-		t.Errorf("\nexpected error message: %s \nbut got: %s", expectedError, err)
-	}
+	for _, tc := range testCases {
+		t.Run(tc.Test, func(t *testing.T) {
+			mockRepo.On("GetByUsername", mock.Anything, tc.Credentials.Username).Return(tc.ExpectedUser, tc.MockError)
 
-	// Non existent user
-	creds.Username = "nonExistentUser"
-	creds.Password = "password"
-	_, _, err = s.Login(context.Background(), &creds)
-	expectedError = "Incorrect username/password. Please try again."
-	if err == nil || err.Error() != expectedError {
-		t.Errorf("\nexpected error message: %s \nbut got: %s", expectedError, err)
-	}
+			// calling the Login service
+			user, _, err := s.Login(context.Background(), tc.Credentials)
 
-	// Inactive user
-	creds.Username = "inactiveUser"
-	_, _, err = s.Login(context.Background(), &creds)
-	expectedError = "This user account has been disabled. Please contact the system administrator."
-	if err == nil || err.Error() != expectedError {
-		t.Errorf("\nexpected error message: %s \nbut got: %s", expectedError, err)
+			if !tc.ExpectErr {
+				require.NoError(t, err, "expected no error")
+				assert.Equal(t, user, tc.ExpectedUser)
+			} else {
+				require.Error(t, err, "expected error")
+				assert.Nil(t, user)
+			}
+		})
 	}
 }

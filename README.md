@@ -86,3 +86,11 @@
 | Utils | `currencyUtils.spec.js` | 3/3 Passed |
 
 <img src="./diagrams/vitest_results.png" />
+
+### Golang `%#v`
+
+type Link struct { A, Z string }
+l := Link{A: "n1:2", Z: "n2:1"}
+fmt.Printf("%v\n", l)	// {n1:2 n2:1}
+fmt.Printf("%+v\n", l)	// {A:n1:2 Z:n2:1}
+fmt.Printf("%#v\n", l)	// pkg.Link{A:"n1:2", Z:"n2:1"}

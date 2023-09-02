@@ -94,7 +94,7 @@ func Test_Login_Handler(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Test, func(t *testing.T) {
-			// create a request with a GET method and pass in the request body
+			// create a mock POST request and pass in the request body
 			req, err := http.NewRequest(http.MethodPost, "/login", strings.NewReader(string(tc.Body)))
 			require.NoError(t, err)
 

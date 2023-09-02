@@ -256,7 +256,6 @@ func (r *repo) GetByUserId(ctx context.Context, userId, pageSize, offset int) (*
 		}
 
 		transactions.Transactions = append(transactions.Transactions, transaction)
-		log.Println(transaction.TransferredAmount)
 	}
 
 	if err = rows.Err(); err != nil {

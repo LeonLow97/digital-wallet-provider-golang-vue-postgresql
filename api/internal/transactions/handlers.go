@@ -34,35 +34,18 @@ func (err *ServiceError) Error() string {
 	return err.message
 }
 
-func (t transactionHandler) GetTransactions(writer http.ResponseWriter, request *http.Request) {
-	username, err := utils.RetrieveJWTClaimsUsername(request)
+func (t transactionHandler) GetTransactions(w http.ResponseWriter, r *http.Request) {
+	// retrieve userId from request context
+	userId := r.Context().Value(utils.ContextUserIdKey)
+
+	transactions, err := t.service.GetTransactions(r.Context(), userId)
 	if err != nil {
-		writer.WriteHeader(http.StatusUnauthorized)
 		log.Println(err)
+		_ = utils.ErrorJSON(w, err)
 		return
 	}
 
-	if request.Method != http.MethodGet {
-		writer.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	transactions, err := t.service.GetTransactions(request.Context(), username)
-	if err != nil {
-		log.Printf("error getting transactions in controller layer: %s", err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	jsonData, err := json.Marshal(transactions)
-	if err != nil {
-		log.Printf("Error marshaling transactions to JSON: %s", err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	writer.Header().Set("Content-Type", "application/json")
-	writer.Write(jsonData)
+	_ = utils.WriteJSON(w, http.StatusOK, transactions)
 }
 
 func (t transactionHandler) CreateTransaction(writer http.ResponseWriter, request *http.Request) {

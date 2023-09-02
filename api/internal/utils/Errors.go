@@ -12,10 +12,6 @@ type ServiceError struct {
 	Message string
 }
 
-type RepositoryError struct {
-	Message string
-}
-
 type BadRequestError struct {
 	Message string
 }
@@ -29,10 +25,6 @@ func (err InternalServerError) Error() string {
 }
 
 func (err ServiceError) Error() string {
-	return err.Message
-}
-
-func (err RepositoryError) Error() string {
 	return err.Message
 }
 

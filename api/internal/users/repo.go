@@ -36,7 +36,7 @@ func (r *repo) GetUserCurrencyAndBalanceByUsername(ctx context.Context, username
 	var user GetUser
 
 	if err := r.db.QueryRowContext(ctx, query, username).Scan(&Username, &MobileNumber, &Balance, &Currency); err != nil {
-		return nil, utils.RepositoryError{Message: err.Error()}
+		return nil, utils.InternalServerError{Message: err.Error()}
 	}
 
 	user = GetUser{

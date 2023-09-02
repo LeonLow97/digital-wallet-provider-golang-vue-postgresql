@@ -22,7 +22,7 @@ var TRANSACTION_STATUS = struct {
 
 type Service interface {
 	CreateTransaction(ctx context.Context, senderName, beneficiaryName, beneficiaryNumber, amountTransferredCurrency, amountTransferredString string) error
-	GetTransactions(ctx context.Context, username string) (*Transactions, error)
+	GetTransactions(ctx context.Context, userId int) (*Transactions, error)
 }
 
 type service struct {
@@ -33,6 +33,20 @@ func NewService(r Repo) (Service, error) {
 	return &service{
 		repo: r,
 	}, nil
+}
+
+func (s *service) GetTransactions(ctx context.Context, userId int) (*Transactions, error) {
+	transactions, err := s.repo.GetByUserId(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Sorting date_transferred by descending order
+	sort.Slice(transactions.Transactions, func(i, j int) bool {
+		return transactions.Transactions[i].DateTransferred.After(transactions.Transactions[j].DateTransferred)
+	})
+
+	return transactions, nil
 }
 
 func (s *service) CreateTransaction(ctx context.Context, senderName, beneficiaryName, beneficiaryNumber, amountTransferredCurrency, amountTransferredString string) error {
@@ -146,18 +160,4 @@ func (s *service) CreateTransaction(ctx context.Context, senderName, beneficiary
 	}
 
 	return nil
-}
-
-func (s *service) GetTransactions(ctx context.Context, username string) (*Transactions, error) {
-	transactions, err := s.repo.GetByUserId(ctx, username)
-	if err != nil {
-		return nil, err
-	}
-
-	// Sorting date_transferred by descending order
-	sort.Slice(transactions.Transactions, func(i, j int) bool {
-		return transactions.Transactions[i].DateTransferred.After(transactions.Transactions[j].DateTransferred)
-	})
-
-	return transactions, nil
 }

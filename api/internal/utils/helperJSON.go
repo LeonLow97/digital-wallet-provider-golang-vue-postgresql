@@ -71,17 +71,14 @@ func ErrorJSON(w http.ResponseWriter, err error, status ...int) error {
 	}
 
 	switch err.(type) {
-	case RepositoryError:
+	case InternalServerError:
 		payload.Message = "Internal Server Error"
 		statusCode = http.StatusInternalServerError
 	case UnauthorizedError:
 		payload.Message = "Unauthorized"
 		statusCode = http.StatusUnauthorized
-	case InternalServerError:
-		payload.Message = "Internal Server Error"
-		statusCode = http.StatusInternalServerError
 	}
 
-	WriteJSON(w, statusCode, payload)
+	_ = WriteJSON(w, statusCode, payload)
 	return nil
 }

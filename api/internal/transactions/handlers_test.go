@@ -12,8 +12,8 @@ import (
 
 // Stub the Transaction Service
 type MockService struct {
-	ReturnServiceError    bool
-	ReturnRepositoryError bool
+	ReturnServiceError        bool
+	ReturnInternalServerError bool
 }
 
 func (s *MockService) GetTransactions(ctx context.Context, username string) (*Transactions, error) {
@@ -24,8 +24,8 @@ func (s *MockService) CreateTransaction(ctx context.Context, senderName, benefic
 	if s.ReturnServiceError {
 		return utils.ServiceError{Message: "UNIT TESTING SERVICE ERROR. DO NOT BE ALARMED. THIS IS NOT AN ACTUAL ERROR."}
 	}
-	if s.ReturnRepositoryError {
-		return utils.RepositoryError{Message: "UNIT TESTING REPOSITORY ERROR. DO NOT BE ALARMED. THIS IS NOT AN ACTUAL ERROR."}
+	if s.ReturnInternalServerError {
+		return utils.InternalServerError{Message: "UNIT TESTING REPOSITORY ERROR. DO NOT BE ALARMED. THIS IS NOT AN ACTUAL ERROR."}
 	}
 	return nil
 }
@@ -48,8 +48,8 @@ func setupTest(t *testing.T, mockService *MockService, reqBody string) *httptest
 
 func TestCreateTransaction(t *testing.T) {
 	mockService := &MockService{
-		ReturnServiceError:    false,
-		ReturnRepositoryError: false,
+		ReturnServiceError:        false,
+		ReturnInternalServerError: false,
 	}
 
 	reqBody := `{"beneficiary_name": "John Doe", "mobile_number": "123456789", "amount_transferred": "100.0", "amount_transferred_currency": "USD", "amount_received": 95.0, "amount_received_currency": "EUR"}`
@@ -63,8 +63,8 @@ func TestCreateTransaction(t *testing.T) {
 
 func TestCreateTransaction_ServiceError(t *testing.T) {
 	mockService := &MockService{
-		ReturnServiceError:    true,
-		ReturnRepositoryError: false,
+		ReturnServiceError:        true,
+		ReturnInternalServerError: false,
 	}
 
 	reqBody := `{"beneficiary_name": "John Doe", "mobile_number": "123456789", "amount_transferred": "100.0", "amount_transferred_currency": "USD", "amount_received": 95.0, "amount_received_currency": "EUR"}`
@@ -76,10 +76,10 @@ func TestCreateTransaction_ServiceError(t *testing.T) {
 	}
 }
 
-func TestCreateTransaction_RepositoryError(t *testing.T) {
+func TestCreateTransaction_InternalServerError(t *testing.T) {
 	mockService := &MockService{
-		ReturnServiceError:    false,
-		ReturnRepositoryError: true,
+		ReturnServiceError:        false,
+		ReturnInternalServerError: true,
 	}
 
 	reqBody := `{"beneficiary_name": "John Doe", "mobile_number": "123456789", "amount_transferred": "100.0", "amount_transferred_currency": "USD", "amount_received": 95.0, "amount_received_currency": "EUR"}`

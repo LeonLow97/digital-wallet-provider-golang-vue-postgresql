@@ -7,13 +7,17 @@ type Transactions struct {
 }
 
 type Transaction struct {
-	SenderName                string    `json:"sender_name"`
-	BeneficiaryName           string    `json:"beneficiary_name"`
-	AmountTransferred         float64   `json:"amount_transferred"`
-	AmountTransferredCurrency string    `json:"amount_transferred_currency"`
-	AmountReceived            float64   `json:"amount_received"`
-	AmountReceivedCurrency    string    `json:"amount_received_currency"`
+	SenderFirstName           string    `json:"sender_first_name"`
+	SenderLastName            string    `json:"sender_last_name"`
+	SenderUsername            string    `json:"sender_username"`
+	BeneficiaryFirstName      string    `json:"beneficiary_first_name"`
+	BeneficiaryLastName       string    `json:"beneficiary_last_name"`
+	BeneficiaryUsername       string    `json:"beneficiary_username"`
+	TransferredAmount         float64   `json:"transferred_amount"`
+	TransferredAmountCurrency string    `json:"transferred_amount_currency"`
+	ReceivedAmount            float64   `json:"received_amount"`
+	ReceivedAmountCurrency    string    `json:"received_amount_currency"`
 	Status                    string    `json:"status"`
-	DateTransferred           time.Time `json:"date_transferred"`
-	DateReceived              time.Time `json:"date_received"`
+	TransferredDate           time.Time `json:"transferred_date"`
+	ReceivedDate              time.Time `json:"received_date"`
 }

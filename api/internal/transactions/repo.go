@@ -21,7 +21,7 @@ type Repo interface {
 	// UpdateUserBalanceByUsername(ctx context.Context, finalAmount float64, username string) error
 	// InsertIntoTransactions(ctx context.Context, username, senderName, beneficiaryName, amountTransferredCurrency, amountReceivedCurrency, status string, amountTransferred, amountReceived float64) error
 	SQLTransactionMoneyTransfer(ctx context.Context, senderName, beneficiaryName, amountTransferredCurrency, amountReceivedCurrency, confirmedStatus, receivedStatus string, amountTransferred, amountReceived float64) error
-	GetByUserId(ctx context.Context, username string) (*Transactions, error)
+	GetByUserId(ctx context.Context, userId int) (*Transactions, error)
 }
 
 type repo struct {
@@ -41,7 +41,7 @@ func (r *repo) GetCountByUsername(ctx context.Context, username string) (int, er
 	query = r.db.Rebind(query)
 
 	if err := r.db.QueryRowContext(ctx, query, username).Scan(&count); err != nil {
-		return 0, utils.RepositoryError{Message: "error with QueryRowContext in GetCountByUsername: " + err.Error()}
+		return 0, utils.InternalServerError{Message: "error with QueryRowContext in GetCountByUsername: " + err.Error()}
 	}
 	return count, nil
 }
@@ -55,7 +55,7 @@ func (r *repo) GetCountByUsernameAndBeneficiaryNumber(ctx context.Context, usern
 	query = r.db.Rebind(query)
 
 	if err := r.db.QueryRowContext(ctx, query, username, beneficiaryNumber).Scan(&count); err != nil {
-		return 0, utils.RepositoryError{Message: "error with QueryRowContext in GetCountByUsernameAndBeneficiaryNumber: " + err.Error()}
+		return 0, utils.InternalServerError{Message: "error with QueryRowContext in GetCountByUsernameAndBeneficiaryNumber: " + err.Error()}
 	}
 	return count, nil
 }
@@ -67,7 +67,7 @@ func (r *repo) GetCountByBeneficiaryNameAndBeneficiaryNumber(ctx context.Context
 	query = r.db.Rebind(query)
 
 	if err := r.db.QueryRowContext(ctx, query, beneficiaryNumber, beneficiaryName).Scan(&count); err != nil {
-		return 0, utils.RepositoryError{Message: "error with QueryRowContext in GetCountByMobileNumber: " + err.Error()}
+		return 0, utils.InternalServerError{Message: "error with QueryRowContext in GetCountByMobileNumber: " + err.Error()}
 	}
 	return count, nil
 }
@@ -79,7 +79,7 @@ func (r *repo) GetUsernameByBeneficiaryNumber(ctx context.Context, beneficiaryNu
 	query = r.db.Rebind(query)
 
 	if err := r.db.QueryRowContext(ctx, query, beneficiaryNumber).Scan(&username); err != nil {
-		return "", utils.RepositoryError{Message: "error with QueryRowContext in GetUsernameByBeneficiaryNumber: " + err.Error()}
+		return "", utils.InternalServerError{Message: "error with QueryRowContext in GetUsernameByBeneficiaryNumber: " + err.Error()}
 	}
 	return username.String, nil
 }
@@ -91,7 +91,7 @@ func (r *repo) GetCurrencyByBeneficiaryMobileNumber(ctx context.Context, benefic
 	query = r.db.Rebind(query)
 
 	if err := r.db.QueryRowContext(ctx, query, beneficiaryNumber).Scan(&currency); err != nil {
-		return "", utils.RepositoryError{Message: "error with QueryRowContext in GetCurrencyByBeneficiaryMobileNumber: " + err.Error()}
+		return "", utils.InternalServerError{Message: "error with QueryRowContext in GetCurrencyByBeneficiaryMobileNumber: " + err.Error()}
 	}
 	return currency.String, nil
 }
@@ -104,7 +104,7 @@ func (r *repo) GetUserBalanceByUsername(ctx context.Context, username string) (f
 	query = r.db.Rebind(query)
 
 	if err := r.db.QueryRowContext(ctx, query, username).Scan(&userBalance); err != nil {
-		return 0.0, utils.RepositoryError{Message: "error with QueryRowContext in GetUserBalanceByUsername: " + err.Error()}
+		return 0.0, utils.InternalServerError{Message: "error with QueryRowContext in GetUserBalanceByUsername: " + err.Error()}
 	}
 	return userBalance.Float64, nil
 }
@@ -112,7 +112,7 @@ func (r *repo) GetUserBalanceByUsername(ctx context.Context, username string) (f
 func (r *repo) SQLTransactionMoneyTransfer(ctx context.Context, senderName, beneficiaryName, amountTransferredCurrency, amountReceivedCurrency, confirmedStatus, receivedStatus string, amountTransferred, amountReceived float64) error {
 	tx, err := r.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		return utils.RepositoryError{Message: "error in SQL Transaction for Money Transfer: " + err.Error()}
+		return utils.InternalServerError{Message: "error in SQL Transaction for Money Transfer: " + err.Error()}
 	}
 
 	defer func() {
@@ -148,7 +148,7 @@ func (r *repo) SQLTransactionMoneyTransfer(ctx context.Context, senderName, bene
 
 	// Check sender balance and deduct from sender balance
 	if err := tx.QueryRowContext(ctx, queryGetUserBalanceByUsername, senderName).Scan(&nullableUserBalance); err != nil {
-		return utils.RepositoryError{Message: "error with ExecContext in updating sender balance: " + err.Error()}
+		return utils.InternalServerError{Message: "error with ExecContext in updating sender balance: " + err.Error()}
 	}
 
 	senderBalance := nullableUserBalance.Float64
@@ -163,77 +163,85 @@ func (r *repo) SQLTransactionMoneyTransfer(ctx context.Context, senderName, bene
 
 	// Add to beneficiary balance
 	if err := tx.QueryRowContext(ctx, queryGetUserBalanceByUsername, beneficiaryName).Scan(&nullableBeneficiaryBalance); err != nil {
-		return utils.RepositoryError{Message: "error with ExecContext in updating sender balance: " + err.Error()}
+		return utils.InternalServerError{Message: "error with ExecContext in updating sender balance: " + err.Error()}
 	}
 
 	beneficiaryBalance := nullableBeneficiaryBalance.Float64
 	finalBeneficiaryBalance := beneficiaryBalance + amountReceived
 
 	if _, err := tx.ExecContext(ctx, queryUpdateUserBalance, finalUserBalance, senderName); err != nil {
-		return utils.RepositoryError{Message: "error with ExecContext in updating sender balance: " + err.Error()}
+		return utils.InternalServerError{Message: "error with ExecContext in updating sender balance: " + err.Error()}
 	}
 
 	if _, err := tx.ExecContext(ctx, queryUpdateUserBalance, finalBeneficiaryBalance, beneficiaryName); err != nil {
-		return utils.RepositoryError{Message: "error with ExecContext in updating beneficiary balance: " + err.Error()}
+		return utils.InternalServerError{Message: "error with ExecContext in updating beneficiary balance: " + err.Error()}
 	}
 
 	if _, err := tx.ExecContext(ctx, queryInsertIntoTransactions, senderName, senderName, beneficiaryName, amountTransferred, amountTransferredCurrency, amountReceived, amountReceivedCurrency, confirmedStatus, time.Now(), time.Now()); err != nil {
-		return utils.RepositoryError{Message: "error in ExecContext in inserting sender transaction: " + err.Error()}
+		return utils.InternalServerError{Message: "error in ExecContext in inserting sender transaction: " + err.Error()}
 	}
 
 	if _, err := tx.ExecContext(ctx, queryInsertIntoTransactions, beneficiaryName, senderName, beneficiaryName, amountTransferred, amountTransferredCurrency, amountReceived, amountReceivedCurrency, receivedStatus, time.Now(), time.Now()); err != nil {
-		return utils.RepositoryError{Message: "error in ExecContext in InsertIntoTransactions: " + err.Error()}
+		return utils.InternalServerError{Message: "error in ExecContext in InsertIntoTransactions: " + err.Error()}
 	}
 
 	return nil
 }
 
-func (r *repo) GetByUserId(ctx context.Context, username string) (*Transactions, error) {
-	query := `SELECT u.username, b.beneficiary_name, t.amount_transferred, t.amount_transferred_currency, t.amount_received, 
-			t.amount_received_currency, t.status, t.date_transferred, t.date_received
-			FROM transactions t
-			LEFT JOIN users u ON u.id = t.sender_id
-			LEFT JOIN beneficiaries b ON b.beneficiary_id = t.beneficiary_id
-			WHERE t.user_id = (SELECT id FROM users WHERE username = $1);`
-
-	var SenderName, BeneficiaryName, AmountTransferredCurrency, AmountReceivedCurrency, Status sql.NullString
-	var AmountTransferred, AmountReceived sql.NullFloat64
-	var DateTransferred, DateReceived sql.NullTime
-
-	query = r.db.Rebind(query)
-
-	rows, err := r.db.QueryContext(ctx, query, username)
-	if err != nil {
-		return nil, utils.RepositoryError{Message: "error with QueryContext: " + err.Error()}
-	}
-
-	defer rows.Close()
+func (r *repo) GetByUserId(ctx context.Context, userId int) (*Transactions, error) {
+	query := `SELECT
+		COALESCE(s.first_name, '') AS sender_first_name,
+		COALESCE(s.last_name, '') AS sender_last_name,
+		s.username AS sender_username,
+		COALESCE(b.first_name, '') AS beneficiary_first_name,
+		COALESCE(b.last_name, '') AS beneficiary_last_name,
+		b.username AS beneficiary_username,
+		t.transferred_amount,
+		t.transferred_amount_currency,
+		t.received_amount,
+		t.received_amount_currency,
+		t.status,
+		t.transferred_date,
+		t.received_date
+		FROM transactions t
+		JOIN users s ON s.id = t.sender_id
+		JOIN users b ON b.id = t.beneficiary_id
+		WHERE t.user_id = $1;
+	`
 
 	var transactions Transactions
 
+	rows, err := r.db.QueryContext(ctx, query, userId)
+	if err != nil {
+		return nil, utils.InternalServerError{Message: "error with QueryContext: " + err.Error()}
+	}
+	defer rows.Close()
+
 	for rows.Next() {
 		var transaction Transaction
-		if err := rows.Scan(&SenderName, &BeneficiaryName, &AmountTransferred, &AmountTransferredCurrency, &AmountReceived, &AmountReceivedCurrency, &Status, &DateTransferred, &DateReceived); err != nil {
-			return nil, utils.RepositoryError{Message: "error scanning results: " + err.Error()}
-		}
-
-		transaction = Transaction{
-			SenderName:                SenderName.String,
-			BeneficiaryName:           BeneficiaryName.String,
-			AmountTransferred:         AmountTransferred.Float64,
-			AmountTransferredCurrency: AmountTransferredCurrency.String,
-			AmountReceived:            AmountReceived.Float64,
-			AmountReceivedCurrency:    AmountReceivedCurrency.String,
-			Status:                    Status.String,
-			DateTransferred:           DateTransferred.Time,
-			DateReceived:              DateReceived.Time,
+		if err := rows.Scan(
+			&transaction.SenderFirstName,
+			&transaction.SenderLastName,
+			&transaction.SenderUsername,
+			&transaction.BeneficiaryFirstName,
+			&transaction.BeneficiaryLastName,
+			&transaction.BeneficiaryUsername,
+			&transaction.TransferredAmount,
+			&transaction.TransferredAmountCurrency,
+			&transaction.ReceivedAmount,
+			&transaction.ReceivedAmountCurrency,
+			&transaction.Status,
+			&transaction.TransferredDate,
+			&transaction.ReceivedDate,
+		); err != nil {
+			return nil, utils.InternalServerError{Message: err.Error()}
 		}
 
 		transactions.Transactions = append(transactions.Transactions, transaction)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, utils.RepositoryError{Message: "error iterating over result rows: " + err.Error()}
+		return nil, utils.InternalServerError{Message: err.Error()}
 	}
 
 	return &transactions, nil

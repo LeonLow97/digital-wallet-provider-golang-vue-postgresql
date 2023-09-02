@@ -7,3 +7,7 @@ var CONSTANTS = struct {
 }{
 	TIMEOUT: 2 * time.Minute,
 }
+
+type ContextUserId int
+
+const ContextUserIdKey ContextUserId = 0

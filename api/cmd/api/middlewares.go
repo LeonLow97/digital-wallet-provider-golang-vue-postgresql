@@ -18,9 +18,6 @@ func setAccessControlHeader(next http.Handler) http.Handler {
 	})
 }
 
-type ContextUserId int
-const ContextUserIdKey ContextUserId = 0
-
 func authTokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId, err := auth.ValidateToken(r)
@@ -31,7 +28,7 @@ func authTokenMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), ContextUserIdKey, userId)
+		ctx := context.WithValue(r.Context(), utils.ContextUserIdKey, userId)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

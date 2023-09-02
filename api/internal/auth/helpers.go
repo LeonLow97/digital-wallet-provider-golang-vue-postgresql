@@ -12,10 +12,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var jwtTokenExpiry = time.Second * 20
+var jwtTokenExpiry = time.Minute * 15
 var refreshTokenExpiry = time.Hour * 24
 var jwtSecretKey = os.Getenv("JWT_SECRET_KEY")
-var issuer = os.Getenv("Leon_Mobile_Wallet")
+var issuer = os.Getenv("API_DOMAIN")
 
 // generateToken gives a secure token and returns it with claims
 func generateJwtAccessTokenAndRefreshToken(user *User, ttl time.Duration) (*Token, error) {

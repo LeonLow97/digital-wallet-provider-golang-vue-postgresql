@@ -31,7 +31,7 @@
 
 - Utilized **SQL Transaction** for transferring funds because it involves UPDATE and INSERT queries. This is to ensure that the transaction is an atomic operation and if any operation fails, the entire transaction is rolled back to maintain data consistency and integrity, otherwise, the transaction is committed.
 - Implemented **Context Timeout** in Golang Backend API for requests for 2 minutes (configurable). This allows for better control of request operations and the API will terminate requests that exceed the specified timeout, preventing these request from affecting the entire application's performance.
-- Implemented custom error types for `ServiceError`, `RepositoryError` and `UnauthorizedError` to differentiate between different error types and returning the valid http status.
+- Implemented custom error types for `ServiceError`, `InternalServerError` and `UnauthorizedError` to differentiate between different error types and returning the valid http status.
 - Created a docker volume in `docker-compose` to prevent the container from using the `node_modules` in the local environment with packages of _darwin-arm64 arch_. Inside the container, it is a Linux system that requires packages for _linux-arm64_. The docker container has its own node_modules configured to the Linux environment.
 - Every request must be sent with a request 'Authorization' Header with the key 'Bearer <JWT_Token>' to be authorized to access resources.
 - Added `sql.NullString`, `sql.NullInt64`, and `sql.NullFloat64` for GET requests to retrieve nullable values from database (if any). There could be data patches with NULL values and by doing so, Golang can handle the nullable values.
@@ -91,6 +91,6 @@
 
 type Link struct { A, Z string }
 l := Link{A: "n1:2", Z: "n2:1"}
-fmt.Printf("%v\n", l)	// {n1:2 n2:1}
-fmt.Printf("%+v\n", l)	// {A:n1:2 Z:n2:1}
-fmt.Printf("%#v\n", l)	// pkg.Link{A:"n1:2", Z:"n2:1"}
+fmt.Printf("%v\n", l) // {n1:2 n2:1}
+fmt.Printf("%+v\n", l) // {A:n1:2 Z:n2:1}
+fmt.Printf("%#v\n", l) // pkg.Link{A:"n1:2", Z:"n2:1"}

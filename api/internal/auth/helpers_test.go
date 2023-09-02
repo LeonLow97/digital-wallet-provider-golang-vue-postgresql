@@ -54,7 +54,7 @@ func TestGenerateJwtAccessTokenAndRefreshToken(t *testing.T) {
 
 			// Check access token expiration
 			accessExp := time.Unix(int64(accessClaims["exp"].(float64)), 0)
-			if time.Until(accessExp) > jwtTokenExpiry {
+			if time.Until(accessExp) > tc.AccessTokenExpiry {
 				t.Fatalf("Access token expiration is incorrect")
 			}
 

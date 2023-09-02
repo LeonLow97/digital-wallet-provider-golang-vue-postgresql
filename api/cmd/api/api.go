@@ -57,6 +57,7 @@ func openDB() (*sqlx.DB, error) {
 		instance,
 	)
 	if err != nil {
+		return nil, err
 	}
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		return nil, err

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"os"
 	"time"
 
 	"github.com/LeonLow97/internal/utils"
@@ -11,8 +12,8 @@ import (
 
 var jwtTokenExpiry = time.Minute * 15
 var refreshTokenExpiry = time.Hour * 24
-var jwtSecretKey = "putthisinenvfile!"
-var issuer = "mobilewallet"
+var jwtSecretKey = os.Getenv("JWT_SECRET_KEY")
+var issuer = os.Getenv("Leon_Mobile_Wallet")
 
 // generateToken gives a secure token of exactly 26 characters in length and returns it
 func generateJwtAccessTokenAndRefreshToken(user *User, ttl time.Duration) (*Token, error) {
@@ -31,7 +32,7 @@ func generateJwtAccessTokenAndRefreshToken(user *User, ttl time.Duration) (*Toke
 	}
 
 	// set token expiry
-	claims["exp"] = time.Now().Add(jwtTokenExpiry).Unix()
+	claims["exp"] = time.Now().Add(ttl).Unix()
 
 	// generate signed token
 	signedAccessToken, err := token.SignedString([]byte(jwtSecretKey))

@@ -222,10 +222,9 @@ func (r *repo) GetByUserId(ctx context.Context, userId, pageSize, offset int) (*
 		JOIN users s ON s.id = t.sender_id
 		JOIN users b ON b.id = t.beneficiary_id
 		WHERE t.user_id = $1
+		ORDER BY t.transferred_date DESC
 		LIMIT $2 OFFSET $3;
 	`
-
-	log.Println(pageSize, offset)
 
 	var transactions Transactions
 

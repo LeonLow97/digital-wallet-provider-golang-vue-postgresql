@@ -31,5 +31,5 @@ SELECT
     'SGD',
     'COMPLETED'
 FROM
-    generate_series(1, 10000) AS gs(num);
+    generate_series(1, 1000) AS gs(num);
 

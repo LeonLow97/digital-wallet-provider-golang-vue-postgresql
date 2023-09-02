@@ -1,8 +1,76 @@
 package transactions
 
 import (
+	"context"
+	"database/sql"
+	"testing"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/stretchr/testify/require"
+	"gotest.tools/v3/assert"
 )
+
+func Test_GetCountByUserId_Repository(t *testing.T) {
+	testCases := []struct {
+		Test          string
+		UserId        int
+		ExpectedCount int
+		ExpectErr     bool
+		QueryExpect   func(mock sqlmock.Sqlmock)
+	}{
+		{
+			Test:          "Successfully returned count for transactions",
+			UserId:        1,
+			ExpectedCount: 1,
+			ExpectErr:     false,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				rows := sqlmock.NewRows([]string{"COUNT(*)"}).AddRow(1)
+
+				mock.ExpectQuery("SELECT COUNT(*) FROM transactions WHERE user_id = $1;").
+					WithArgs(1).WillReturnRows(rows)
+			},
+		},
+		{
+			Test:          "Returned no rows",
+			UserId:        513,
+			ExpectedCount: 0,
+			ExpectErr:     true,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery("SELECT COUNT(*) FROM transactions WHERE user_id = $1;").
+					WithArgs(513).WillReturnError(sql.ErrNoRows)
+			},
+		},
+	}
+
+	mockDB, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	if err != nil {
+		t.Fatalf("unexpected error when opening a stub database connection: %s", err)
+	}
+	defer mockDB.Close()
+
+	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
+
+	r, err := NewRepo(sqlxDB)
+	require.NoError(t, err, "creating the shared repo")
+
+	for _, tc := range testCases {
+		t.Run(tc.Test, func(t *testing.T) {
+			tc.QueryExpect(mock)
+
+			returnedCount, err := r.GetCountByUserId(context.Background(), tc.UserId)
+
+			if !tc.ExpectErr {
+				require.NoError(t, err, "running GetCountByUserId on repository layer")
+				assert.Equal(t, returnedCount, tc.ExpectedCount)
+			} else {
+				require.Error(t, err, "running GetCountByUserId on repository layer")
+				assert.Equal(t, returnedCount, tc.ExpectedCount)
+			}
+		})
+	}
+}
 
 // var (
 // 	host     = "localhost"

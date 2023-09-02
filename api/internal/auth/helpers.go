@@ -2,7 +2,9 @@ package auth
 
 import (
 	"errors"
+	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/LeonLow97/internal/utils"
@@ -10,12 +12,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var jwtTokenExpiry = time.Minute * 15
+var jwtTokenExpiry = time.Second * 20
 var refreshTokenExpiry = time.Hour * 24
 var jwtSecretKey = os.Getenv("JWT_SECRET_KEY")
 var issuer = os.Getenv("Leon_Mobile_Wallet")
 
-// generateToken gives a secure token of exactly 26 characters in length and returns it
+// generateToken gives a secure token and returns it with claims
 func generateJwtAccessTokenAndRefreshToken(user *User, ttl time.Duration) (*Token, error) {
 	// create the token
 	token := jwt.New(jwt.SigningMethodHS256)
@@ -78,4 +80,48 @@ func passwordMatchers(hashedPassword, plainText string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func ValidateToken(r *http.Request) (int, error) {
+	// retrieve the authorization header
+	authorizationHeader := r.Header.Get("Authorization")
+	if len(authorizationHeader) == 0 {
+		return 0, utils.UnauthorizedError{Message: "no authorization header received"}
+	}
+
+	// retrieve the jwt token from header
+	headerParts := strings.Split(authorizationHeader, " ")
+	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+		return 0, utils.UnauthorizedError{Message: "no valid authorization header received"}
+	}
+
+	// checking jwt token expiry
+	jwtToken := headerParts[1]
+	accessToken, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
+		return []byte(jwtSecretKey), nil
+	})
+	if err != nil || !accessToken.Valid {
+		return 0, utils.UnauthorizedError{Message: err.Error()}
+	}
+
+	accessClaims := accessToken.Claims.(jwt.MapClaims)
+
+	// Check access token expiration
+	accessExp := time.Unix(int64(accessClaims["exp"].(float64)), 0)
+	if time.Until(accessExp) > jwtTokenExpiry {
+		return 0, utils.UnauthorizedError{Message: "token has expired"}
+	}
+
+	// TODO: check whether user is active
+
+	// retrieve userId from token claims
+	sub := accessClaims["sub"]
+
+	// perform type assertion to convert interface{} to int
+	floatValue, ok := sub.(float64)
+	if !ok {
+		return 0, utils.UnauthorizedError{Message: "userId is not of type float64"}
+	}
+
+	return int(floatValue), nil
 }

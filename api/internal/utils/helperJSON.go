@@ -62,25 +62,24 @@ func ErrorJSON(w http.ResponseWriter, err error, status ...int) error {
 		statusCode = status[0]
 	}
 
-	switch err := err.(type) {
-	case RepositoryError:
-		err.Message = "Internal Server Error"
-		statusCode = http.StatusInternalServerError
-	case UnauthorizedError:
-		err.Message = "Unauthorized"
-		statusCode = http.StatusUnauthorized
-	case InternalServerError:
-		err.Message = "Internal Server Error"
-		statusCode = http.StatusInternalServerError
-	}
-
 	payload := struct {
-		Error   bool        `json:"error"`
-		Message string      `json:"message"`
-		Data    interface{} `json:"data,omitempty"`
+		Error   bool   `json:"error"`
+		Message string `json:"message"`
 	}{
 		Error:   true,
 		Message: err.Error(),
+	}
+
+	switch err.(type) {
+	case RepositoryError:
+		payload.Message = "Internal Server Error"
+		statusCode = http.StatusInternalServerError
+	case UnauthorizedError:
+		payload.Message = "Unauthorized"
+		statusCode = http.StatusUnauthorized
+	case InternalServerError:
+		payload.Message = "Internal Server Error"
+		statusCode = http.StatusInternalServerError
 	}
 
 	WriteJSON(w, statusCode, payload)

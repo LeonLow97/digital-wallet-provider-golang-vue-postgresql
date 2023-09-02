@@ -72,8 +72,13 @@ func routes(db *sqlx.DB) *mux.Router {
 
 	router.HandleFunc("/login", authHandler.Login).Methods(http.MethodPost)
 	router.HandleFunc("/user", userHandler.GetUser).Methods(http.MethodGet)
+
+	// sub-router for /user routes
+	userRouter := router.PathPrefix("/user").Subrouter()
+	userRouter.Use(authTokenMiddleware)
+	userRouter.HandleFunc("/transactions", transactionHandler.GetTransactions).Methods(http.MethodPost)
+
 	router.HandleFunc("/beneficiaries", beneficiaryHandler.GetBeneficiaries).Methods(http.MethodGet)
-	router.HandleFunc("/transactions", transactionHandler.GetTransactions).Methods(http.MethodGet)
 	router.HandleFunc("/transaction", transactionHandler.CreateTransaction).Methods(http.MethodPost)
 
 	router.Methods(http.MethodOptions).HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -81,13 +86,4 @@ func routes(db *sqlx.DB) *mux.Router {
 	}).Methods(http.MethodOptions)
 
 	return router
-}
-
-func setAccessControlHeader(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		next.ServeHTTP(w, r)
-	})
 }

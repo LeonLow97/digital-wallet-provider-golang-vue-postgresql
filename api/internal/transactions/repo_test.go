@@ -3,16 +3,19 @@ package transactions
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"regexp"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gotest.tools/v3/assert"
 )
 
-func Test_GetCountByUserId_Repository(t *testing.T) {
+func Test_GetCountByUserId_Repo(t *testing.T) {
 	testCases := []struct {
 		Test          string
 		UserId        int
@@ -67,6 +70,97 @@ func Test_GetCountByUserId_Repository(t *testing.T) {
 			} else {
 				require.Error(t, err, "running GetCountByUserId on repository layer")
 				assert.Equal(t, returnedCount, tc.ExpectedCount)
+			}
+		})
+	}
+}
+
+func Test_GetByUserId_Repo(t *testing.T) {
+	testCases := []struct {
+		Test                 string
+		UserId               int
+		PageSize             int
+		Offset               int
+		ExpectedTransactions *Transactions
+		ExpectErr            bool
+		QueryExpect          func(mock sqlmock.Sqlmock)
+	}{
+		{
+			Test:     "Successfully retrieve the list of transactions",
+			UserId:   1,
+			PageSize: 1,
+			Offset:   20,
+			ExpectedTransactions: &Transactions{
+				Transactions: []Transaction{
+					{
+						SenderFirstName:           "John",
+						SenderLastName:            "Doe",
+						SenderUsername:            "johndoe",
+						BeneficiaryFirstName:      "Jane",
+						BeneficiaryLastName:       "Smith",
+						BeneficiaryUsername:       "janesmith",
+						TransferredAmount:         100.0,
+						TransferredAmountCurrency: "USD",
+						ReceivedAmount:            90.0,
+						ReceivedAmountCurrency:    "USD",
+						Status:                    "Completed",
+						TransferredDate:           time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC),
+						ReceivedDate:              time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC),
+					},
+				},
+			},
+			ExpectErr: false,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				rows := sqlmock.NewRows([]string{"sender_first_name", "sender_last_name", "sender_username",
+					"beneficiary_first_name", "beneficiary_last_name", "beneficiary_username",
+					"transferred_amount", "transferred_amount_currency",
+					"received_amount", "received_amount_currency",
+					"status", "transferred_date", "received_date"}).
+					AddRow("John", "Doe", "johndoe", "Jane", "Smith", "janesmith", 100.0, "USD", 90.0, "USD", "Completed", time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC), time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC))
+
+				mock.ExpectQuery(
+					regexp.QuoteMeta("SELECT COALESCE(s.first_name, '') AS sender_first_name, COALESCE(s.last_name, '') AS sender_last_name, s.username AS sender_username, COALESCE(b.first_name, '') AS beneficiary_first_name, COALESCE(b.last_name, '') AS beneficiary_last_name, b.username AS beneficiary_username, t.transferred_amount, t.transferred_amount_currency, t.received_amount, t.received_amount_currency, t.status, t.transferred_date, t.received_date FROM transactions t JOIN users s ON s.id = t.sender_id JOIN users b ON b.id = t.beneficiary_id WHERE t.user_id = $1 ORDER BY t.transferred_date DESC LIMIT $2 OFFSET $3;"),
+				).WithArgs(1, 1, 20).WillReturnRows(rows)
+			},
+		},
+		{
+			Test:                 "Internal Server Error at QueryContext",
+			UserId:               2,
+			PageSize:             1,
+			Offset:               20,
+			ExpectedTransactions: nil,
+			ExpectErr:            true,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery(
+					regexp.QuoteMeta("SELECT COALESCE(s.first_name, '') AS sender_first_name, COALESCE(s.last_name, '') AS sender_last_name, s.username AS sender_username, COALESCE(b.first_name, '') AS beneficiary_first_name, COALESCE(b.last_name, '') AS beneficiary_last_name, b.username AS beneficiary_username, t.transferred_amount, t.transferred_amount_currency, t.received_amount, t.received_amount_currency, t.status, t.transferred_date, t.received_date FROM transactions t JOIN users s ON s.id = t.sender_id JOIN users b ON b.id = t.beneficiary_id WHERE t.user_id = $1 ORDER BY t.transferred_date DESC LIMIT $2 OFFSET $3;"),
+				).WithArgs(2, 1, 20).WillReturnError(sql.ErrNoRows)
+			},
+		},
+	}
+
+	mockDB, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("unexpected error when opening a stub database connection: %s", err)
+	}
+	defer mockDB.Close()
+
+	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
+
+	r, err := NewRepo(sqlxDB)
+	require.NoError(t, err, "creating the shared repo")
+
+	for _, tc := range testCases {
+		t.Run(tc.Test, func(t *testing.T) {
+			tc.QueryExpect(mock)
+
+			transactions, err := r.GetByUserId(context.Background(), tc.UserId, tc.PageSize, tc.Offset)
+
+			if !tc.ExpectErr {
+				require.NoError(t, err, "running GetByUserId on repository layer")
+				assert.Equal(t, fmt.Sprintf("%+v", transactions), fmt.Sprintf("%+v", tc.ExpectedTransactions))
+			} else {
+				require.Error(t, err, "running GetByUserId on repository layer")
+				assert.Nil(t, transactions)
 			}
 		})
 	}

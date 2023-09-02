@@ -8,11 +8,11 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func Test_GetByUsername_Repository(t *testing.T) {
+func Test_GetByUsername_Repo(t *testing.T) {
 	testCases := []struct {
 		Test         string
 		Username     string

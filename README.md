@@ -35,6 +35,7 @@
 - Created a docker volume in `docker-compose` to prevent the container from using the `node_modules` in the local environment with packages of _darwin-arm64 arch_. Inside the container, it is a Linux system that requires packages for _linux-arm64_. The docker container has its own node_modules configured to the Linux environment.
 - Every request must be sent with a request 'Authorization' Header with the key 'Bearer <JWT_Token>' to be authorized to access resources.
 - Added `sql.NullString`, `sql.NullInt64`, and `sql.NullFloat64` for GET requests to retrieve nullable values from database (if any). There could be data patches with NULL values and by doing so, Golang can handle the nullable values.
+- Added server-side pagination in `GetTransactions` endpoint.
 
 ## SQL Tables
 

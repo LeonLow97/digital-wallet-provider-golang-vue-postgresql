@@ -76,7 +76,7 @@ func routes(db *sqlx.DB) *mux.Router {
 	// sub-router for /user routes
 	userRouter := router.PathPrefix("/user").Subrouter()
 	userRouter.Use(authTokenMiddleware)
-	userRouter.HandleFunc("/transactions", transactionHandler.GetTransactions).Methods(http.MethodPost)
+	userRouter.HandleFunc("/transactions", transactionHandler.GetTransactions).Methods(http.MethodGet)
 
 	router.HandleFunc("/beneficiaries", beneficiaryHandler.GetBeneficiaries).Methods(http.MethodGet)
 	router.HandleFunc("/transaction", transactionHandler.CreateTransaction).Methods(http.MethodPost)

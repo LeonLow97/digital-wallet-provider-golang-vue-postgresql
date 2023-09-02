@@ -36,7 +36,6 @@ func (s *service) Login(ctx context.Context, creds *Credentials) (*User, *Token,
 		return nil, nil, err
 	}
 	if !validPassword {
-		log.Println("wrong password")
 		return nil, nil, utils.UnauthorizedError{Message: "Incorrect username/password. Please try again."}
 	}
 

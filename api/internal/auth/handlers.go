@@ -24,7 +24,7 @@ func (h authHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	err := utils.ReadJSON(w, r, &creds)
 	if err != nil {
-		log.Printf("invalid json supplied, or json missing entirely: %s", err)
+		log.Println(err)
 		utils.ErrorJSON(w, utils.BadRequestError{Message: "Bad Request!"})
 		return
 	}
@@ -32,7 +32,7 @@ func (h authHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// Invoking the Login service
 	user, token, err := h.service.Login(r.Context(), &creds)
 	if err != nil {
-		log.Printf("Login issue: %s", err)
+		log.Println(err)
 		utils.ErrorJSON(w, err)
 		return
 	}

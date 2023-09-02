@@ -22,7 +22,7 @@ var TRANSACTION_STATUS = struct {
 
 type Service interface {
 	CreateTransaction(ctx context.Context, senderName, beneficiaryName, beneficiaryNumber, amountTransferredCurrency, amountTransferredString string) error
-	GetTransactions(ctx context.Context, userId int) (*Transactions, error)
+	GetTransactions(ctx context.Context, userId, page, pageSize int) (*Transactions, int, bool, error)
 }
 
 type service struct {
@@ -35,18 +35,40 @@ func NewService(r Repo) (Service, error) {
 	}, nil
 }
 
-func (s *service) GetTransactions(ctx context.Context, userId int) (*Transactions, error) {
-	transactions, err := s.repo.GetByUserId(ctx, userId)
-	if err != nil {
-		return nil, err
+// Pagination on GetTransactions which returns a list of transactions
+func (s *service) GetTransactions(ctx context.Context, userId, page, pageSize int) (*Transactions, int, bool, error) {
+	// handle edge cases
+	if page < 1 {
+		page = 1
 	}
 
-	// Sorting date_transferred by descending order
+	offset := (page - 1) * pageSize
+
+	// calculate total number of pages and find the last page
+	totalRecords, err := s.repo.GetCountByUserId(ctx, userId)
+	if err != nil {
+		return nil, 0, false, err
+	}
+
+	totalPages := (totalRecords + pageSize - 1) / pageSize
+	isLastPage := page >= totalPages
+
+	if isLastPage {
+		// if user specifies a very high page number, we default it to the last page for better user experience
+		offset = (totalPages - 1) * pageSize
+	}
+
+	transactions, err := s.repo.GetByUserId(ctx, userId, pageSize, offset)
+	if err != nil {
+		return nil, 0, false, err
+	}
+
+	// Sorting transferred_date by descending order so latest transaction appears first
 	sort.Slice(transactions.Transactions, func(i, j int) bool {
-		return transactions.Transactions[i].DateTransferred.After(transactions.Transactions[j].DateTransferred)
+		return transactions.Transactions[i].TransferredDate.After(transactions.Transactions[j].TransferredDate)
 	})
 
-	return transactions, nil
+	return transactions, totalPages, isLastPage, nil
 }
 
 func (s *service) CreateTransaction(ctx context.Context, senderName, beneficiaryName, beneficiaryNumber, amountTransferredCurrency, amountTransferredString string) error {

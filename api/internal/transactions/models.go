@@ -2,6 +2,8 @@ package transactions
 
 import "time"
 
+type envelope map[string]interface{}
+
 type Transactions struct {
 	Transactions []Transaction `json:"transactions"`
 }

@@ -21,7 +21,8 @@ type Repo interface {
 	// UpdateUserBalanceByUsername(ctx context.Context, finalAmount float64, username string) error
 	// InsertIntoTransactions(ctx context.Context, username, senderName, beneficiaryName, amountTransferredCurrency, amountReceivedCurrency, status string, amountTransferred, amountReceived float64) error
 	SQLTransactionMoneyTransfer(ctx context.Context, senderName, beneficiaryName, amountTransferredCurrency, amountReceivedCurrency, confirmedStatus, receivedStatus string, amountTransferred, amountReceived float64) error
-	GetByUserId(ctx context.Context, userId int) (*Transactions, error)
+	GetCountByUserId(ctx context.Context, userId int) (int, error)
+	GetByUserId(ctx context.Context, userId, pageSize, offset int) (*Transactions, error)
 }
 
 type repo struct {
@@ -188,32 +189,49 @@ func (r *repo) SQLTransactionMoneyTransfer(ctx context.Context, senderName, bene
 	return nil
 }
 
-func (r *repo) GetByUserId(ctx context.Context, userId int) (*Transactions, error) {
-	query := `SELECT
-		COALESCE(s.first_name, '') AS sender_first_name,
-		COALESCE(s.last_name, '') AS sender_last_name,
-		s.username AS sender_username,
-		COALESCE(b.first_name, '') AS beneficiary_first_name,
-		COALESCE(b.last_name, '') AS beneficiary_last_name,
-		b.username AS beneficiary_username,
-		t.transferred_amount,
-		t.transferred_amount_currency,
-		t.received_amount,
-		t.received_amount_currency,
-		t.status,
-		t.transferred_date,
-		t.received_date
+func (r *repo) GetCountByUserId(ctx context.Context, userId int) (int, error) {
+	query := `SELECT COUNT(*) FROM transactions WHERE user_id = $1;`
+
+	var count int
+
+	if err := r.db.QueryRowContext(ctx, query, userId).Scan(&count); err != nil {
+		return 0, utils.InternalServerError{Message: err.Error()}
+	}
+
+	return count, nil
+}
+
+// paginated data - returns a list of transactions that is associated with the userId
+func (r *repo) GetByUserId(ctx context.Context, userId, pageSize, offset int) (*Transactions, error) {
+	query := `
+		SELECT
+			COALESCE(s.first_name, '') AS sender_first_name,
+			COALESCE(s.last_name, '') AS sender_last_name,
+			s.username AS sender_username,
+			COALESCE(b.first_name, '') AS beneficiary_first_name,
+			COALESCE(b.last_name, '') AS beneficiary_last_name,
+			b.username AS beneficiary_username,
+			t.transferred_amount,
+			t.transferred_amount_currency,
+			t.received_amount,
+			t.received_amount_currency,
+			t.status,
+			t.transferred_date,
+			t.received_date
 		FROM transactions t
 		JOIN users s ON s.id = t.sender_id
 		JOIN users b ON b.id = t.beneficiary_id
-		WHERE t.user_id = $1;
+		WHERE t.user_id = $1
+		LIMIT $2 OFFSET $3;
 	`
+
+	log.Println(pageSize, offset)
 
 	var transactions Transactions
 
-	rows, err := r.db.QueryContext(ctx, query, userId)
+	rows, err := r.db.QueryContext(ctx, query, userId, pageSize, offset)
 	if err != nil {
-		return nil, utils.InternalServerError{Message: "error with QueryContext: " + err.Error()}
+		return nil, utils.InternalServerError{Message: err.Error()}
 	}
 	defer rows.Close()
 
@@ -238,6 +256,7 @@ func (r *repo) GetByUserId(ctx context.Context, userId int) (*Transactions, erro
 		}
 
 		transactions.Transactions = append(transactions.Transactions, transaction)
+		log.Println(transaction.TransferredAmount)
 	}
 
 	if err = rows.Err(); err != nil {

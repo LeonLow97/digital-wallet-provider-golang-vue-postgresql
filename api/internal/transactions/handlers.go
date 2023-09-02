@@ -3,8 +3,10 @@ package transactions
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/LeonLow97/internal/utils"
 )
@@ -26,26 +28,37 @@ type transactionRequest struct {
 	AmountTransferredCurrency string `json:"amount_transferred_currency"`
 }
 
-type ServiceError struct {
-	message string
-}
-
-func (err *ServiceError) Error() string {
-	return err.message
-}
-
 func (t transactionHandler) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	// retrieve userId from request context
-	userId := r.Context().Value(utils.ContextUserIdKey)
+	userId := r.Context().Value(utils.ContextUserIdKey).(int)
 
-	transactions, err := t.service.GetTransactions(r.Context(), userId)
+	// Default page and page size if not provided
+	page := 1
+	pageSize := 20
+
+	// retrieve page and pageSize from url query params
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		log.Println(err)
+		utils.ErrorJSON(w, errors.New("Please provide numerical page in URL Param."))
+		return
+	}
+
+	pageSize, err = strconv.Atoi(r.URL.Query().Get("pageSize"))
+	if err != nil {
+		log.Println(err)
+		utils.ErrorJSON(w, errors.New("Please provide numerical page size in URL Param."))
+		return
+	}
+
+	transactions, totalPages, isLastPage, err := t.service.GetTransactions(r.Context(), userId, page, pageSize)
 	if err != nil {
 		log.Println(err)
 		_ = utils.ErrorJSON(w, err)
 		return
 	}
 
-	_ = utils.WriteJSON(w, http.StatusOK, transactions)
+	_ = utils.WriteJSON(w, http.StatusOK, envelope{"total_pages": totalPages, "isLastPage": isLastPage, "transactions": transactions})
 }
 
 func (t transactionHandler) CreateTransaction(writer http.ResponseWriter, request *http.Request) {

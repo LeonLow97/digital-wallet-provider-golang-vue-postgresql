@@ -79,7 +79,7 @@ func ErrorJSON(w http.ResponseWriter, err error, status ...int) error {
 		Message string      `json:"message"`
 		Data    interface{} `json:"data,omitempty"`
 	}{
-		Error:   false,
+		Error:   true,
 		Message: err.Error(),
 	}
 

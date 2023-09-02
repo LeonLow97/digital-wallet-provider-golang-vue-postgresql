@@ -2,39 +2,127 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
-type MockService struct{}
-
-func (s *MockService) Login(ctx context.Context, creds *Credentials) (*User, *Token, error) {
-	return nil, nil, nil
+type mockService struct {
+	mock.Mock
 }
 
-func Test_Login(t *testing.T) {
-	var mockService *MockService
+func (s *mockService) Login(ctx context.Context, creds *Credentials) (*User, *Token, error) {
+	args := s.Called(ctx, creds)
+	return args.Get(0).(*User), args.Get(1).(*Token), args.Error(2)
+}
 
-	authHandler := authHandler{
-		service: mockService,
+func Test_LoginHandler(t *testing.T) {
+	testCases := []struct {
+		Test                 string
+		Body                 []byte
+		Credentials          *Credentials
+		MockError            error
+		ExpectErr            bool
+		ExpectedUser         *User
+		ExpectedToken        *Token
+		ExpectedJSONResponse string
+		ExpectedStatusCode   int
+	}{
+		{
+			Test: "Successful Login",
+			Body: []byte(`{"username": "validUsername", "password": "validPassword"}`),
+			Credentials: &Credentials{
+				Username: "validUsername",
+				Password: "validPassword",
+			},
+			MockError: nil,
+			ExpectErr: false,
+			ExpectedUser: &User{
+				ID:       1,
+				Username: "validUsername",
+				Active:   1,
+				Admin:    1,
+			},
+			ExpectedToken: &Token{
+				Token:        "accessToken",
+				RefreshToken: "refreshToken",
+			},
+			ExpectedJSONResponse: `{"token":{"access_token":"accessToken","refresh_token":"refreshToken"},"user":{"active":1,"admin":1,"id":1,"username":"validUsername"}}`,
+			ExpectedStatusCode:   http.StatusOK,
+		},
+		{
+			Test: "Unsuccessful Login",
+			Body: []byte(`{"username": "wrongUsername", "password": "wrongPassword"}`),
+			Credentials: &Credentials{
+				Username: "wrongUsername",
+				Password: "wrongPassword",
+			},
+			MockError:            errors.New("incorrect username/password"),
+			ExpectErr:            true,
+			ExpectedUser:         nil,
+			ExpectedToken:        nil,
+			ExpectedJSONResponse: `{"error":true,"message":"incorrect username/password"}`,
+			ExpectedStatusCode:   http.StatusBadRequest,
+		},
+		{
+			Test: "Invalid JSON Request Body",
+			Body: []byte(`{"username": "wrongUsername", "password": "wrongPassword"}{"username: "invalidjson}`),
+			Credentials: &Credentials{
+				Username: "wrongUsername",
+				Password: "wrongPassword",
+			},
+			MockError:            errors.New("Bad Request!"),
+			ExpectErr:            true,
+			ExpectedUser:         nil,
+			ExpectedToken:        nil,
+			ExpectedJSONResponse: `{"error":true,"message":"Bad Request!"}`,
+			ExpectedStatusCode:   http.StatusBadRequest,
+		},
 	}
 
-	// Create a mock request payload
-	jsonPayload := []byte(`{"username": "testuser", "password": "testpass"}`)
+	// creating the mock service
+	mockService := mockService{}
+	authHandler, err := NewAuthHandler(&mockService)
+	require.NoError(t, err, "getting authHandler with mockService in Login handler")
 
-	// generate request
-	req, _ := http.NewRequest(http.MethodPost, "/login", strings.NewReader(string(jsonPayload)))
-	req.Header.Set("Content-Type", "application/json")
+	for _, tc := range testCases {
+		t.Run(tc.Test, func(t *testing.T) {
+			// create a request with a GET method and pass in the request body
+			req, err := http.NewRequest(http.MethodPost, "/login", strings.NewReader(string(tc.Body)))
+			require.NoError(t, err)
 
-	// generate response recorder
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(authHandler.Login)
+			mockService.On("Login", mock.Anything, tc.Credentials).Return(tc.ExpectedUser, tc.ExpectedToken, tc.MockError)
 
-	handler.ServeHTTP(rr, req)
+			// create a ResponseRecorder to record the response
+			rr := httptest.NewRecorder()
+			rr.Header().Set("Content-Type", "application/json")
 
-	if rr.Code != http.StatusOK {
-		t.Errorf("Expected status %d, but got %d", http.StatusOK, rr.Code)
+			// calling the handler method
+			handler := http.HandlerFunc(authHandler.Login)
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.ExpectedStatusCode, rr.Code)
+
+			// parse the jsonResponse
+			var response envelope
+			if err := json.Unmarshal(rr.Body.Bytes(), &response); err != nil {
+				t.Errorf("Error parsing JSON response: %v", err)
+			}
+
+			jsonData, _ := json.Marshal(response)
+
+			if !tc.ExpectErr {
+				assert.Equal(t, tc.ExpectedJSONResponse, string(jsonData))
+			} else {
+				assert.Equal(t, tc.ExpectedJSONResponse, string(jsonData))
+			}
+		})
 	}
 }

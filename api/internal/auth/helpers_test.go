@@ -3,10 +3,82 @@ package auth
 import (
 	"errors"
 	"testing"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
-func Test_generateJwtAccessTokenAndRefreshToken(t *testing.T) {
+func TestGenerateJwtAccessTokenAndRefreshToken(t *testing.T) {
+	testCases := []struct {
+		Test              string
+		User              *User
+		AccessTokenExpiry time.Duration
+	}{
+		{
+			Test: "Generate Valid Token",
+			User: &User{
+				ID:       1,
+				Username: "validUsername",
+				Active:   1,
+				Admin:    1,
+			},
+			AccessTokenExpiry: time.Minute * 15,
+		},
+	}
 
+	for _, tc := range testCases {
+		t.Run(tc.Test, func(t *testing.T) {
+			// generate the token
+			tokens, err := generateJwtAccessTokenAndRefreshToken(tc.User, tc.AccessTokenExpiry)
+			if err != nil {
+				t.Fatalf("generateJwtAccessTokenAndRefreshToken returned an error: %v", err)
+			}
+
+			// parse the access token
+			accessToken, err := jwt.Parse(tokens.Token, func(token *jwt.Token) (interface{}, error) {
+				return []byte(jwtSecretKey), nil
+			})
+			if err != nil || !accessToken.Valid {
+				t.Fatalf("Access token is not valid: %v", err)
+			}
+
+			// Check access token claims
+			accessClaims := accessToken.Claims.(jwt.MapClaims)
+			if accessClaims["name"] != tc.User.Username ||
+				accessClaims["sub"] != float64(tc.User.ID) ||
+				accessClaims["aud"] != issuer ||
+				accessClaims["iss"] != issuer ||
+				accessClaims["admin"] != true {
+				t.Fatalf("expected access token claims to be: %v, %v, %v, %v, %v \nbut got: %v, %v, %v, %v, %v", tc.User.Username, tc.User.ID, issuer, issuer, true, accessClaims["name"], accessClaims["sub"], accessClaims["aud"], accessClaims["iss"], accessClaims["admin"])
+			}
+
+			// Check access token expiration
+			accessExp := time.Unix(int64(accessClaims["exp"].(float64)), 0)
+			if time.Until(accessExp) > jwtTokenExpiry {
+				t.Fatalf("Access token expiration is incorrect")
+			}
+
+			// Parse refresh token
+			refreshToken, err := jwt.Parse(tokens.RefreshToken, func(token *jwt.Token) (interface{}, error) {
+				return []byte(jwtSecretKey), nil
+			})
+			if err != nil || !refreshToken.Valid {
+				t.Fatalf("Refresh token is not valid: %v", err)
+			}
+
+			// Check refresh token claims
+			refreshClaims := refreshToken.Claims.(jwt.MapClaims)
+			if refreshClaims["sub"] != float64(tc.User.ID) {
+				t.Fatalf("expected refresh token claims to have id: %v, but got %v", refreshClaims["sub"], float64(tc.User.ID))
+			}
+
+			// Check refresh token expiration
+			refreshExp := time.Unix(int64(refreshClaims["exp"].(float64)), 0)
+			if time.Until(refreshExp) > refreshTokenExpiry {
+				t.Fatalf("Refresh token expiration is incorrect")
+			}
+		})
+	}
 }
 
 func Test_passwordMatchers(t *testing.T) {
@@ -48,7 +120,6 @@ func Test_passwordMatchers(t *testing.T) {
 			if isMatchingPassword != tc.ExpectedResult {
 				t.Errorf("expected passwordMatch to return %v but got %v", tc.ExpectedResult, isMatchingPassword)
 			}
-
 
 			if tc.ExpectedError != nil {
 				if err == nil {

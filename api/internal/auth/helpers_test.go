@@ -8,7 +8,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-func TestGenerateJwtAccessTokenAndRefreshToken(t *testing.T) {
+func TestGenerateJwtAccessTokenAndRefreshToken_Helpers(t *testing.T) {
 	testCases := []struct {
 		Test              string
 		User              *User
@@ -81,7 +81,7 @@ func TestGenerateJwtAccessTokenAndRefreshToken(t *testing.T) {
 	}
 }
 
-func Test_passwordMatchers(t *testing.T) {
+func Test_passwordMatchers_Helpers(t *testing.T) {
 	testCases := []struct {
 		Test           string
 		HashedPassword string

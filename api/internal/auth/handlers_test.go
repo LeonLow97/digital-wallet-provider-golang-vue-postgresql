@@ -23,7 +23,7 @@ func (s *mockService) Login(ctx context.Context, creds *Credentials) (*User, *To
 	return args.Get(0).(*User), args.Get(1).(*Token), args.Error(2)
 }
 
-func Test_LoginHandler(t *testing.T) {
+func Test_Login_Handler(t *testing.T) {
 	testCases := []struct {
 		Test                 string
 		Body                 []byte

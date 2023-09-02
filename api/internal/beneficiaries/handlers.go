@@ -1,20 +1,19 @@
-package handlers
+package beneficiaries
 
 import (
 	"context"
 	"encoding/json"
 	"log"
 	"net/http"
-	"github.com/LeonLow97/internal/utils"
 
-	"github.com/LeonLow97/internal/beneficiaries"
+	"github.com/LeonLow97/internal/utils"
 )
 
 type beneficiaryHandler struct {
-	service beneficiaries.Service
+	service Service
 }
 
-func NewBeneficiaryHandler(s beneficiaries.Service) (*beneficiaryHandler, error) {
+func NewBeneficiaryHandler(s Service) (*beneficiaryHandler, error) {
 	return &beneficiaryHandler{
 		service: s,
 	}, nil
@@ -61,3 +60,6 @@ func (b beneficiaryHandler) GetBeneficiaries(writer http.ResponseWriter, request
 	writer.Write(jsonData)
 
 }
+
+// TODO: Add Beneficiary
+// TODO: Update Beneficiary

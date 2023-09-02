@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_GetByUsername(t *testing.T) {
+func Test_GetByUsername_Repository(t *testing.T) {
 	testCases := []struct {
 		Test         string
 		Username     string

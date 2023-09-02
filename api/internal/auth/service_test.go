@@ -20,7 +20,7 @@ func (m *mockRepo) GetByUsername(ctx context.Context, username string) (*User, e
 	return args.Get(0).(*User), args.Error(1)
 }
 
-func Test_LoginService(t *testing.T) {
+func Test_Login_Service(t *testing.T) {
 	testCases := []struct {
 		Test         string
 		Credentials  *Credentials

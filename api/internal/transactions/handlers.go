@@ -1,4 +1,4 @@
-package handlers
+package transactions
 
 import (
 	"context"
@@ -6,15 +6,14 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/LeonLow97/internal/transactions"
 	"github.com/LeonLow97/internal/utils"
 )
 
 type transactionHandler struct {
-	service transactions.Service
+	service Service
 }
 
-func NewTransactionHandler(s transactions.Service) (*transactionHandler, error) {
+func NewTransactionHandler(s Service) (*transactionHandler, error) {
 	return &transactionHandler{
 		service: s,
 	}, nil
@@ -33,6 +32,37 @@ type ServiceError struct {
 
 func (err *ServiceError) Error() string {
 	return err.message
+}
+
+func (t transactionHandler) GetTransactions(writer http.ResponseWriter, request *http.Request) {
+	username, err := utils.RetrieveJWTClaimsUsername(request)
+	if err != nil {
+		writer.WriteHeader(http.StatusUnauthorized)
+		log.Println(err)
+		return
+	}
+
+	if request.Method != http.MethodGet {
+		writer.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	transactions, err := t.service.GetTransactions(request.Context(), username)
+	if err != nil {
+		log.Printf("error getting transactions in controller layer: %s", err)
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	jsonData, err := json.Marshal(transactions)
+	if err != nil {
+		log.Printf("Error marshaling transactions to JSON: %s", err)
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.Write(jsonData)
 }
 
 func (t transactionHandler) CreateTransaction(writer http.ResponseWriter, request *http.Request) {
@@ -77,35 +107,4 @@ func (t transactionHandler) CreateTransaction(writer http.ResponseWriter, reques
 
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(http.StatusCreated)
-}
-
-func (t transactionHandler) GetTransactions(writer http.ResponseWriter, request *http.Request) {
-	username, err := utils.RetrieveJWTClaimsUsername(request)
-	if err != nil {
-		writer.WriteHeader(http.StatusUnauthorized)
-		log.Println(err)
-		return
-	}
-
-	if request.Method != http.MethodGet {
-		writer.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	transactions, err := t.service.GetTransactions(request.Context(), username)
-	if err != nil {
-		log.Printf("error getting transactions in controller layer: %s", err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	jsonData, err := json.Marshal(transactions)
-	if err != nil {
-		log.Printf("Error marshaling transactions to JSON: %s", err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	writer.Header().Set("Content-Type", "application/json")
-	writer.Write(jsonData)
 }

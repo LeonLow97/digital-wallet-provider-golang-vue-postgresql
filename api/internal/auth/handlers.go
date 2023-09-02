@@ -40,3 +40,5 @@ func (h authHandler) Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	utils.WriteJSON(w, http.StatusOK, envelope{"user": user, "token": token})
 }
+
+// TODO: Logout Handler

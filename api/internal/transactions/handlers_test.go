@@ -1,4 +1,4 @@
-package handlers
+package transactions
 
 import (
 	"context"
@@ -6,12 +6,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/LeonLow97/internal/transactions"
 	"github.com/LeonLow97/internal/utils"
-
-	"github.com/dgrijalva/jwt-go"
 )
 
 // Stub the Transaction Service
@@ -20,8 +16,8 @@ type MockService struct {
 	ReturnRepositoryError bool
 }
 
-func (s *MockService) GetTransactions(ctx context.Context, username string) (*transactions.Transactions, error) {
-	return &transactions.Transactions{}, nil
+func (s *MockService) GetTransactions(ctx context.Context, username string) (*Transactions, error) {
+	return &Transactions{}, nil
 }
 
 func (s *MockService) CreateTransaction(ctx context.Context, senderName, beneficiaryName, beneficiaryNumber, amountTransferredCurrency, amountTransferred string) error {
@@ -44,20 +40,6 @@ func setupTest(t *testing.T, mockService *MockService, reqBody string) *httptest
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(transactionHandler.CreateTransaction)
-
-	expirationTime := time.Now().Add(60 * time.Minute)
-	claims := &Claims{
-		Username: "Alice",
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	jwtKey := []byte("secret_key")
-	tokenString, _ := token.SignedString(jwtKey)
-	bearerHeader := "Bearer " + tokenString
-	req.Header.Set("Authorization", bearerHeader)
 
 	handler.ServeHTTP(rr, req)
 
@@ -109,7 +91,7 @@ func TestCreateTransaction_RepositoryError(t *testing.T) {
 	}
 }
 
-func TestGetTransactions(t *testing.T) {
+func Test_GetTransactionsHandler(t *testing.T) {
 
 	mockService := &MockService{}
 
@@ -122,20 +104,6 @@ func TestGetTransactions(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(transactionHandler.GetTransactions)
-
-	expirationTime := time.Now().Add(60 * time.Minute)
-	claims := &Claims{
-		Username: "Alice",
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	jwtKey := []byte("secret_key")
-	tokenString, _ := token.SignedString(jwtKey)
-	bearerHeader := "Bearer " + tokenString
-	req.Header.Set("Authorization", bearerHeader)
 
 	handler.ServeHTTP(rr, req)
 

@@ -6,7 +6,6 @@ import (
 
 	"github.com/LeonLow97/internal/auth"
 	"github.com/LeonLow97/internal/beneficiaries"
-	"github.com/LeonLow97/internal/handlers"
 	"github.com/LeonLow97/internal/transactions"
 	"github.com/LeonLow97/internal/users"
 	"github.com/gorilla/mux"
@@ -53,7 +52,7 @@ func routes(db *sqlx.DB) *mux.Router {
 	if err != nil {
 		log.Fatal(err)
 	}
-	beneficiaryHandler, err := handlers.NewBeneficiaryHandler(beneficiaryService)
+	beneficiaryHandler, err := beneficiaries.NewBeneficiaryHandler(beneficiaryService)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -66,7 +65,7 @@ func routes(db *sqlx.DB) *mux.Router {
 	if err != nil {
 		log.Fatal(err)
 	}
-	transactionHandler, err := handlers.NewTransactionHandler(transactionService)
+	transactionHandler, err := transactions.NewTransactionHandler(transactionService)
 	if err != nil {
 		log.Fatal(err)
 	}

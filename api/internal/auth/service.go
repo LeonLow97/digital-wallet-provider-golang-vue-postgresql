@@ -26,7 +26,7 @@ func (s *service) Login(ctx context.Context, creds *Credentials) (*User, *Token,
 	user, err := s.repo.GetByUsername(ctx, creds.Username)
 	if err != nil {
 		log.Println(err)
-		return nil, nil, utils.UnauthorizedError{Message: "Incorrect username/password. Please try again."}
+		return nil, nil, err
 	}
 
 	// validate the user's password

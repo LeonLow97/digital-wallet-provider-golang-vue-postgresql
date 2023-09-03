@@ -2,7 +2,9 @@ package auth
 
 import (
 	"context"
+	"database/sql"
 
+	"github.com/LeonLow97/internal/utils"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -36,7 +38,10 @@ func (r *repo) GetByUsername(ctx context.Context, username string) (*User, error
 		&user.Admin,
 	)
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, utils.UnauthorizedError{Message: "Incorrect username/password. Please try again."}
+		}
+		return nil, utils.InternalServerError{Message: "[Repo] error in GetByUsername: " + err.Error()}
 	}
 	return &user, nil
 }

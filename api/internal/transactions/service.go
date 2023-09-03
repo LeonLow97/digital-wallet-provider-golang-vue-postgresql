@@ -161,8 +161,9 @@ func (s *service) CreateTransaction(ctx context.Context, userId int, transaction
 	}
 
 	// currency exchange for beneficiary
+	beneficiaryReceivedAmount := transaction.TransferredAmount
 	if beneficiaryHasTransferredCurrency == 0 {
-		transaction.TransferredAmount = utils.CurrencyConversion(transaction.TransferredAmount, transaction.TransferredAmountCurrency, beneficiaryCurrency)
+		beneficiaryReceivedAmount = utils.CurrencyConversion(transaction.TransferredAmount, transaction.TransferredAmountCurrency, beneficiaryCurrency)
 	}
 
 	// user has enough funds and we have both the balance id for sender and beneficiary
@@ -173,7 +174,7 @@ func (s *service) CreateTransaction(ctx context.Context, userId int, transaction
 		return err
 	}
 
-	beneficiaryBalance = beneficiaryBalance + transaction.TransferredAmount
+	beneficiaryBalance = beneficiaryBalance + beneficiaryReceivedAmount
 	err = s.repo.UpdateBalanceAmountById(tx, ctx, beneficiaryBalance, beneficiaryBalanceId)
 	if err != nil {
 		return err
@@ -186,7 +187,7 @@ func (s *service) CreateTransaction(ctx context.Context, userId int, transaction
 		BeneficiaryId:             beneficiaryId,
 		TransferredAmount:         transaction.TransferredAmount,
 		TransferredAmountCurrency: transaction.TransferredAmountCurrency,
-		ReceivedAmount:            transaction.TransferredAmount,
+		ReceivedAmount:            beneficiaryReceivedAmount,
 		ReceivedAmountCurrency:    beneficiaryCurrency,
 		Status:                    utils.TRANSACTION_STATUS.COMPLETED,
 	}
@@ -197,7 +198,7 @@ func (s *service) CreateTransaction(ctx context.Context, userId int, transaction
 		BeneficiaryId:             beneficiaryId,
 		TransferredAmount:         transaction.TransferredAmount,
 		TransferredAmountCurrency: transaction.TransferredAmountCurrency,
-		ReceivedAmount:            transaction.TransferredAmount,
+		ReceivedAmount:            beneficiaryReceivedAmount,
 		ReceivedAmountCurrency:    beneficiaryCurrency,
 		Status:                    utils.TRANSACTION_STATUS.RECEIVED,
 	}

@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_GetCountByUserId_Repo(t *testing.T) {
+func Test_GetTransactionsCountByUserId_Repo(t *testing.T) {
 	testCases := []struct {
 		Test          string
 		UserId        int
@@ -62,7 +62,7 @@ func Test_GetCountByUserId_Repo(t *testing.T) {
 		t.Run(tc.Test, func(t *testing.T) {
 			tc.QueryExpect(mock)
 
-			returnedCount, err := r.GetCountByUserId(context.Background(), tc.UserId)
+			returnedCount, err := r.GetTransactionsCountByUserId(context.Background(), tc.UserId)
 
 			if !tc.ExpectErr {
 				require.NoError(t, err, "running GetCountByUserId on repository layer")
@@ -75,7 +75,7 @@ func Test_GetCountByUserId_Repo(t *testing.T) {
 	}
 }
 
-func Test_GetByUserId_Repo(t *testing.T) {
+func Test_GetTransactionsByUserId_Repo(t *testing.T) {
 	testCases := []struct {
 		Test                 string
 		UserId               int
@@ -153,7 +153,7 @@ func Test_GetByUserId_Repo(t *testing.T) {
 		t.Run(tc.Test, func(t *testing.T) {
 			tc.QueryExpect(mock)
 
-			transactions, err := r.GetByUserId(context.Background(), tc.UserId, tc.PageSize, tc.Offset)
+			transactions, err := r.GetTransactionsByUserId(context.Background(), tc.UserId, tc.PageSize, tc.Offset)
 
 			if !tc.ExpectErr {
 				require.NoError(t, err, "running GetByUserId on repository layer")

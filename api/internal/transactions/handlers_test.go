@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/LeonLow97/internal/utils"
@@ -24,8 +25,9 @@ func (s *mockService) GetTransactions(ctx context.Context, userId, page, pageSiz
 	return args.Get(0).(*Transactions), args.Int(1), args.Bool(2), args.Error(3)
 }
 
-func (s *mockService) CreateTransaction(ctx context.Context, userId int, transaction CreateTransaction) error {
-	return nil
+func (s *mockService) CreateTransaction(ctx context.Context, userId int, transaction *CreateTransaction) error {
+	args := s.Called(ctx, userId, transaction)
+	return args.Error(0)
 }
 
 func createTestContextWithUserID(userId int) context.Context {
@@ -128,6 +130,91 @@ func Test_GetTransactions_Handler(t *testing.T) {
 			assert.Equal(t, tc.ExpectedStatusCode, rr.Code)
 
 			// parse the jsonResponse
+			var response envelope
+			if err := json.Unmarshal(rr.Body.Bytes(), &response); err != nil {
+				t.Errorf("Error parsing JSON response: %v", err)
+			}
+
+			jsonData, _ := json.Marshal(response)
+
+			if !tc.ExpectErr {
+				assert.Equal(t, tc.ExpectedJSONResponse, string(jsonData))
+			} else {
+				assert.Equal(t, tc.ExpectedJSONResponse, string(jsonData))
+			}
+		})
+	}
+}
+
+func Test_CreateTransaction_Handler(t *testing.T) {
+	testCases := []struct {
+		Test                 string
+		Body                 []byte
+		Transaction          *CreateTransaction
+		ExpectErr            bool
+		MockError            error
+		ExpectedJSONResponse string
+		ExpectedStatusCode   int
+	}{
+		{
+			Test: "Valid Transaction",
+			Body: []byte(`{"mobile_number":"+65 98765432","transferred_amount":60,"transferred_amount_currency":"SGD"}`),
+			Transaction: &CreateTransaction{
+				BeneficiaryNumber:         "+65 98765432",
+				TransferredAmount:         60,
+				TransferredAmountCurrency: "SGD",
+			},
+			ExpectErr:            false,
+			MockError:            nil,
+			ExpectedJSONResponse: `{"result":"Successfully created a transaction!"}`,
+			ExpectedStatusCode:   http.StatusCreated,
+		},
+		{
+			Test: "Invalid JSON Request Body",
+			Body: []byte(`{"mobile_number":"+65 98765432","transferred_amount":60,"transferred_amount_currency":"SGD"}{"mobile_number":"invalidjson",`),
+			Transaction: nil,
+			ExpectErr:            true,
+			MockError:            errors.New("Bad Request!"),
+			ExpectedJSONResponse: `{"error":true,"message":"Bad Request!"}`,
+			ExpectedStatusCode:   http.StatusBadRequest,
+		},
+		{
+			Test:                 "Invalid JSON Request Body",
+			Body:                 []byte(`{"mobile_number":"+65 99999999","transferred_amount":60,"transferred_amount_currency":"SGD"}`),
+			Transaction:          &CreateTransaction{
+				BeneficiaryNumber:         "+65 99999999",
+				TransferredAmount:         60,
+				TransferredAmountCurrency: "SGD",
+			},
+			ExpectErr:            true,
+			MockError:            utils.InternalServerError{Message: "Internal Server Error!"},
+			ExpectedJSONResponse: `{"error":true,"message":"Internal Server Error"}`,
+			ExpectedStatusCode:   http.StatusInternalServerError,
+		},
+	}
+
+	// creating the mock service
+	mockService := mockService{}
+	transactionHandler, err := NewTransactionHandler(&mockService)
+	require.NoError(t, err, "getting transactionHandler with mockService in Transaction handler")
+
+	for _, tc := range testCases {
+		t.Run(tc.Test, func(t *testing.T) {
+			req, err := http.NewRequest(http.MethodPost, "/transaction", strings.NewReader(string(tc.Body)))
+			require.NoError(t, err)
+
+			mockService.On("CreateTransaction", mock.Anything, 1, tc.Transaction).Return(tc.MockError)
+
+			rr := httptest.NewRecorder()
+			rr.Header().Set("Content-Type", "application/json")
+
+			req = req.WithContext(createTestContextWithUserID(1))
+
+			handler := http.HandlerFunc(transactionHandler.CreateTransaction)
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.ExpectedStatusCode, rr.Code)
+
 			var response envelope
 			if err := json.Unmarshal(rr.Body.Bytes(), &response); err != nil {
 				t.Errorf("Error parsing JSON response: %v", err)

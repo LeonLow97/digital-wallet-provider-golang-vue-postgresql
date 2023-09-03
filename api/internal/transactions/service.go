@@ -10,7 +10,7 @@ import (
 )
 
 type Service interface {
-	CreateTransaction(ctx context.Context, userId int, transaction CreateTransaction) error
+	CreateTransaction(ctx context.Context, userId int, transaction *CreateTransaction) error
 	GetTransactions(ctx context.Context, userId, page, pageSize int) (*Transactions, int, bool, error)
 }
 
@@ -60,7 +60,7 @@ func (s *service) GetTransactions(ctx context.Context, userId, page, pageSize in
 	return transactions, totalPages, isLastPage, nil
 }
 
-func (s *service) CreateTransaction(ctx context.Context, userId int, transaction CreateTransaction) error {
+func (s *service) CreateTransaction(ctx context.Context, userId int, transaction *CreateTransaction) error {
 	if !IsFloat64(transaction.TransferredAmount) {
 		return utils.BadRequestError{Message: "Please provide a valid numeric amount for transfer."}
 	}

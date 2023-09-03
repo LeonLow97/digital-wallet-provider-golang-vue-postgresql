@@ -53,9 +53,10 @@ func (t transactionHandler) GetTransactions(w http.ResponseWriter, r *http.Reque
 	_ = utils.WriteJSON(w, http.StatusOK, envelope{"total_pages": totalPages, "isLastPage": isLastPage, "transactions": transactions})
 }
 
+// CreateTransaction handler for transferring funds to a beneficiary
 func (t transactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 
-	var transaction CreateTransaction
+	var transaction *CreateTransaction
 
 	err := utils.ReadJSON(w, r, &transaction)
 	if err != nil {

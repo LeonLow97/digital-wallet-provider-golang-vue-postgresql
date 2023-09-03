@@ -1,6 +1,6 @@
 package utils
 
-func CurrencyConversion(amountTransferred float64, transferredCurrency, receivedCurrency string) float64 {
+func CurrencyConversion(transferredAmount float64, transferredCurrency, receivedCurrency string) float64 {
 	conversionRates := map[string]map[string]float64{
 		"USD": {
 			"SGD": 1.35,
@@ -17,11 +17,11 @@ func CurrencyConversion(amountTransferred float64, transferredCurrency, received
 	}
 
 	if transferredCurrency == receivedCurrency {
-		return amountTransferred
+		return transferredAmount
 	}
 
 	if rate, ok := conversionRates[transferredCurrency][receivedCurrency]; ok {
-		return amountTransferred * rate
+		return transferredAmount * rate
 	}
 
 	return 0.0

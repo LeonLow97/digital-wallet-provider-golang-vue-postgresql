@@ -23,3 +23,20 @@ type Transaction struct {
 	TransferredDate           time.Time `json:"transferred_date"`
 	ReceivedDate              time.Time `json:"received_date"`
 }
+
+type CreateTransaction struct {
+	BeneficiaryNumber         string  `json:"mobile_number"`
+	TransferredAmount         float64 `json:"transferred_amount"`
+	TransferredAmountCurrency string  `json:"transferred_amount_currency"`
+}
+
+type TransactionEntity struct {
+	UserId                    int
+	SenderId                  int
+	BeneficiaryId             int
+	TransferredAmount         float64
+	TransferredAmountCurrency string
+	ReceivedAmount            float64
+	ReceivedAmountCurrency    string
+	Status                    string
+}

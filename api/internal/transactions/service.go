@@ -2,26 +2,15 @@ package transactions
 
 import (
 	"context"
-	"log"
+	"database/sql"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/LeonLow97/internal/utils"
 )
 
-var TRANSACTION_STATUS = struct {
-	CONFIRMED string
-	PENDING   string
-	RECEIVED  string
-}{
-	CONFIRMED: "CONFIRMED",
-	PENDING:   "PENDING",
-	RECEIVED:  "RECEIVED",
-}
-
 type Service interface {
-	CreateTransaction(ctx context.Context, senderName, beneficiaryName, beneficiaryNumber, amountTransferredCurrency, amountTransferredString string) error
+	CreateTransaction(ctx context.Context, userId int, transaction CreateTransaction) error
 	GetTransactions(ctx context.Context, userId, page, pageSize int) (*Transactions, int, bool, error)
 }
 
@@ -45,7 +34,7 @@ func (s *service) GetTransactions(ctx context.Context, userId, page, pageSize in
 	offset := (page - 1) * pageSize
 
 	// calculate total number of pages and find the last page
-	totalRecords, err := s.repo.GetCountByUserId(ctx, userId)
+	totalRecords, err := s.repo.GetTransactionsCountByUserId(ctx, userId)
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -58,7 +47,7 @@ func (s *service) GetTransactions(ctx context.Context, userId, page, pageSize in
 		offset = (totalPages - 1) * pageSize
 	}
 
-	transactions, err := s.repo.GetByUserId(ctx, userId, pageSize, offset)
+	transactions, err := s.repo.GetTransactionsByUserId(ctx, userId, pageSize, offset)
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -71,112 +60,155 @@ func (s *service) GetTransactions(ctx context.Context, userId, page, pageSize in
 	return transactions, totalPages, isLastPage, nil
 }
 
-func (s *service) CreateTransaction(ctx context.Context, senderName, beneficiaryName, beneficiaryNumber, amountTransferredCurrency, amountTransferredString string) error {
-	amountTransferred, err := strconv.ParseFloat(amountTransferredString, 64)
-	if err != nil {
-		return utils.ServiceError{Message: "Please enter a valid numeric amount."}
+func (s *service) CreateTransaction(ctx context.Context, userId int, transaction CreateTransaction) error {
+	if !IsFloat64(transaction.TransferredAmount) {
+		return utils.BadRequestError{Message: "Please provide a valid numeric amount for transfer."}
 	}
-	if amountTransferred == 0 {
-		return utils.ServiceError{Message: "Please specify an amount to be transferred."}
+	if transaction.TransferredAmount == 0 || transaction.TransferredAmount < 10 || transaction.TransferredAmount > 10000 {
+		return utils.BadRequestError{Message: "Transfer amount must be between $10 and $10,000."}
 	}
-	if amountTransferred < 10 {
-		return utils.ServiceError{Message: "Minimum amount allowed per transfer is 10. Please try again."}
+	if err := ValidateFloatPrecision(transaction.TransferredAmount); err != nil {
+		return utils.BadRequestError{Message: "Transfer amount must be up to 2 decimal places."}
 	}
-	if amountTransferred > 10000 {
-		return utils.ServiceError{Message: "Maximum amount allowed per transfer is 10000. Please try again."}
-	}
-	err = utils.ValidateFloatPrecision(amountTransferred)
-	if err != nil {
-		return utils.ServiceError{Message: "Amount Transferred must be up to 2 decimal places."}
-	}
-	senderName = strings.TrimSpace(senderName)
-	beneficiaryName = strings.TrimSpace(beneficiaryName)
-	beneficiaryNumber = strings.TrimSpace(beneficiaryNumber)
-	amountTransferredCurrency = strings.TrimSpace(amountTransferredCurrency)
 
-	// -------------------- MONEY TRANSFER --------------------
-	// 1. Determine if sender is a registered user by verifying username
-	count, err := s.repo.GetCountByUsername(ctx, senderName)
+	// trim necessary strings
+	transaction.BeneficiaryNumber = strings.TrimSpace(transaction.BeneficiaryNumber)
+	transaction.TransferredAmountCurrency = strings.TrimSpace(transaction.TransferredAmountCurrency)
+
+	// check if sender is a registered user
+	userCount, err := s.repo.GetUserCountByUserId(ctx, userId)
 	if err != nil {
 		return err
 	}
-	if count == 0 {
-		return utils.ServiceError{Message: "This sender does not exist."}
-	}
-	if count > 1 {
-		return utils.ServiceError{Message: "Duplicate senders."}
+	if userCount != 1 {
+		return utils.BadRequestError{Message: "The specified sender does not exist."}
 	}
 
-	// Check if sender is sending to himself (not allowed)
-
-	// 2. Determine if sender is linked to beneficiary by sender name and beneficiary mobile number
-	count, err = s.repo.GetCountByUsernameAndBeneficiaryNumber(ctx, senderName, beneficiaryNumber)
+	// check if sender is sending to himself
+	beneficiaryId, err := s.repo.GetUserIdByMobileNumber(ctx, transaction.BeneficiaryNumber)
 	if err != nil {
 		return err
 	}
-	if count == 0 {
-		return utils.ServiceError{Message: "This user is not linked to the specified beneficiary"}
+	if beneficiaryId == 0 {
+		return utils.BadRequestError{Message: "The specified beneficiary does not exist."}
+	}
+	if userId == beneficiaryId {
+		return utils.BadRequestError{Message: "Unable to send money to yourself."}
 	}
 
-	// 2. Determine if the beneficiary is a registered user of the mobile application via mobile number
-	count, err = s.repo.GetCountByBeneficiaryNameAndBeneficiaryNumber(ctx, beneficiaryName, beneficiaryNumber)
+	// check if sender is linked to the beneficiary
+	isLinked, err := s.repo.GetCountByUserIdAndBeneficiaryId(ctx, userId, beneficiaryId)
 	if err != nil {
 		return err
 	}
-	if count == 0 {
-		// Check if mobile number exist in the `users` table, if exist, it is a registered user and the sender may
-		// be referring to another name
-		username, err := s.repo.GetUsernameByBeneficiaryNumber(ctx, beneficiaryNumber)
+	if isLinked != 1 {
+		return utils.BadRequestError{Message: "Unable to transfer funds. Sender is not linked to the specified beneficiary."}
+	}
+
+	// begin SQL transaction of updating user balance and creating a transaction
+	db := s.repo.GetDB()
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return utils.InternalServerError{Message: err.Error()}
+	}
+
+	defer func() {
 		if err != nil {
-			return err
+			_ = tx.Rollback()
+			return
 		}
-		if len(username) > 0 {
-			return utils.ServiceError{Message: "Do you mean: " + username + " ?"}
+		err = tx.Commit()
+		if err != nil {
+			return
 		}
+	}()
 
-		log.Println("External Beneficiary...")
-		// External Beneficiary! For future development!
-		return nil
-	}
-	if count > 1 {
-		return utils.ServiceError{Message: "Duplicate beneficiary"}
-	}
-
-	// 3. Get Beneficiary Currency
-	amountReceivedCurrency, err := s.repo.GetCurrencyByBeneficiaryMobileNumber(ctx, beneficiaryNumber)
+	// valid beneficiary up to this point
+	// check if transferred currency exists in beneficiary's list of currencies
+	var beneficiaryBalanceId int
+	beneficiaryCurrency := transaction.TransferredAmountCurrency
+	beneficiaryHasTransferredCurrency, beneficiaryBalanceId, err := s.repo.GetCountByUserIdAndCurrency(tx, ctx, beneficiaryId, transaction.TransferredAmountCurrency)
 	if err != nil {
 		return err
 	}
 
-	// 4. Calculate Beneficiary received amount (Perform currency conversion in backend)
-	amountReceived := utils.CurrencyConversion(amountTransferred, amountTransferredCurrency, amountReceivedCurrency)
+	// if transferred currency is not in beneficiary's list of currencies, retrieve primary currency
+	if beneficiaryHasTransferredCurrency == 0 {
+		beneficiaryBalanceId, beneficiaryCurrency, err = s.repo.GetBalanceIdByUserIdAndPrimary(tx, ctx, beneficiaryId)
+	}
 
-	// Check if amount to be sent if less than or equal to the user's balance (SELECT)
-	// userBalance, err := s.repo.GetUserBalanceByUsername(ctx, senderName)
-	// if err != nil {
-	// 	return err
-	// }
+	// retrieve user balance. check for user currency availability and
+	// if user has sufficient funds for the transfer.
+	count, userBalanceId, err := s.repo.GetCountByUserIdAndCurrency(tx, ctx, userId, transaction.TransferredAmountCurrency)
+	if err != nil {
+		return err
+	}
+	if count != 1 {
+		return utils.BadRequestError{Message: "You do not have balance in the specified currency. Please use another currency."}
+	}
 
-	// if userBalance == 0.0 {
-	// 	return utils.ServiceError{Message: "Account has 0 balance. Please top up."}
-	// }
-	// if amountTransferred > userBalance {
-	// 	return utils.ServiceError{Message: "User does not have sufficient funds to make the transfer. Please top up."}
-	// }
+	userBalance, err := s.repo.GetBalanceAmountById(tx, ctx, userBalanceId)
+	if err != nil {
+		return err
+	}
+	if userBalance < transaction.TransferredAmount {
+		return utils.BadRequestError{Message: "You have insufficient funds for this transfer. Please top up your funds in " + transaction.TransferredAmountCurrency}
+	}
 
-	// 6. Deduct the transferred amount from the current user balance to obtain the final balance
-	// finalUserBalance := userBalance - amountTransferred
+	beneficiaryBalance, err := s.repo.GetBalanceAmountById(tx, ctx, beneficiaryBalanceId)
+	if err != nil {
+		return err
+	}
 
-	// 7. Update the beneficiary balance by adding the amount transferred to the current balance
-	// beneficiaryBalance, err := s.repo.GetUserBalanceByUsername(ctx, beneficiaryName)
-	// if err != nil {
-	// 	return err
-	// }
-	// finalBeneficiaryBalance := beneficiaryBalance + amountReceived
+	// currency exchange for beneficiary
+	if beneficiaryHasTransferredCurrency == 0 {
+		transaction.TransferredAmount = utils.CurrencyConversion(transaction.TransferredAmount, transaction.TransferredAmountCurrency, beneficiaryCurrency)
+	}
 
-	// 8. Perform SQL Transaction to ensure data integrity and
-	// that the amounts were deducted and transferred to the correct recipients.
-	err = s.repo.SQLTransactionMoneyTransfer(ctx, senderName, beneficiaryName, amountTransferredCurrency, amountReceivedCurrency, TRANSACTION_STATUS.CONFIRMED, TRANSACTION_STATUS.RECEIVED, amountTransferred, amountReceived)
+	// user has enough funds and we have both the balance id for sender and beneficiary
+	// update the user balance for sender and beneficiary
+	userBalance = userBalance - transaction.TransferredAmount
+	err = s.repo.UpdateBalanceAmountById(tx, ctx, userBalance, userBalanceId)
+	if err != nil {
+		return err
+	}
+
+	beneficiaryBalance = beneficiaryBalance + transaction.TransferredAmount
+	err = s.repo.UpdateBalanceAmountById(tx, ctx, beneficiaryBalance, beneficiaryBalanceId)
+	if err != nil {
+		return err
+	}
+
+	// create transaction entries for sender and beneficiary
+	senderTransaction := TransactionEntity{
+		UserId:                    userId,
+		SenderId:                  userId,
+		BeneficiaryId:             beneficiaryId,
+		TransferredAmount:         transaction.TransferredAmount,
+		TransferredAmountCurrency: transaction.TransferredAmountCurrency,
+		ReceivedAmount:            transaction.TransferredAmount,
+		ReceivedAmountCurrency:    beneficiaryCurrency,
+		Status:                    utils.TRANSACTION_STATUS.COMPLETED,
+	}
+
+	beneficiaryTransaction := TransactionEntity{
+		UserId:                    beneficiaryId,
+		SenderId:                  userId,
+		BeneficiaryId:             beneficiaryId,
+		TransferredAmount:         transaction.TransferredAmount,
+		TransferredAmountCurrency: transaction.TransferredAmountCurrency,
+		ReceivedAmount:            transaction.TransferredAmount,
+		ReceivedAmountCurrency:    beneficiaryCurrency,
+		Status:                    utils.TRANSACTION_STATUS.RECEIVED,
+	}
+
+	// insert into transactions table
+	err = s.repo.InsertIntoTransactions(tx, ctx, &senderTransaction)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.InsertIntoTransactions(tx, ctx, &beneficiaryTransaction)
 	if err != nil {
 		return err
 	}

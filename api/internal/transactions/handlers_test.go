@@ -24,7 +24,7 @@ func (s *mockService) GetTransactions(ctx context.Context, userId, page, pageSiz
 	return args.Get(0).(*Transactions), args.Int(1), args.Bool(2), args.Error(3)
 }
 
-func (s *mockService) CreateTransaction(ctx context.Context, username, BeneficiaryName, BeneficiaryNumber, AmountTransferredCurrency, AmountTransferred string) error {
+func (s *mockService) CreateTransaction(ctx context.Context, userId int, transaction CreateTransaction) error {
 	return nil
 }
 

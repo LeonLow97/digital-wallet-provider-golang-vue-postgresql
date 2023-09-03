@@ -77,9 +77,9 @@ func routes(db *sqlx.DB) *mux.Router {
 	userRouter := router.PathPrefix("/user").Subrouter()
 	userRouter.Use(authTokenMiddleware)
 	userRouter.HandleFunc("/transactions", transactionHandler.GetTransactions).Methods(http.MethodGet)
+	userRouter.HandleFunc("/transaction", transactionHandler.CreateTransaction).Methods(http.MethodPost)
 
 	router.HandleFunc("/beneficiaries", beneficiaryHandler.GetBeneficiaries).Methods(http.MethodGet)
-	router.HandleFunc("/transaction", transactionHandler.CreateTransaction).Methods(http.MethodPost)
 
 	router.Methods(http.MethodOptions).HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusOK)

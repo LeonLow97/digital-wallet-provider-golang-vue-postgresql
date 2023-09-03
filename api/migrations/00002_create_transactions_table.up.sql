@@ -10,26 +10,14 @@ CREATE TABLE IF NOT EXISTS transactions (
     status VARCHAR(50) NOT NULL,
     transferred_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     received_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (sender_id) REFERENCES users(id),
-    FOREIGN KEY (beneficiary_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (beneficiary_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS transaction_fee (
     id SERIAL PRIMARY KEY,
     transaction_id SERIAL NOT NULL,
     fee DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (transaction_id) REFERENCES transactions(id)
+    FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE CASCADE
 );
-
-INSERT INTO transactions (user_id, sender_id, beneficiary_id, transferred_amount, transferred_amount_currency, received_amount, received_amount_currency, status)
-SELECT
-    1, 1, 2,
-    gs.num,
-    'SGD',
-    6000,
-    'SGD',
-    'COMPLETED'
-FROM
-    generate_series(1, 1000) AS gs(num);
-

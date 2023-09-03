@@ -14,20 +14,22 @@ CREATE UNIQUE INDEX ON users(username);
 
 CREATE TABLE IF NOT EXISTS user_balance (
     id SERIAL PRIMARY KEY,
-    user_id SERIAL NOT NULL,
+    user_id INT NOT NULL,
     balance DECIMAL(20,2) NOT NULL,
     currency CHAR(3) NOT NULL,
     country_iso_code CHAR(3) NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    is_primary INT NOT NULL DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS user_beneficiary (
-    user_id SERIAL NOT NULL,
-    beneficiary_id SERIAL NOT NULL,
+    user_id INT NOT NULL,
+    beneficiary_id INT NOT NULL,
     PRIMARY KEY (user_id, beneficiary_id),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (beneficiary_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (beneficiary_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
 
 INSERT INTO users (first_name, last_name, username, password, active, admin, mobile_number, creation_date) 
 VALUES
@@ -36,12 +38,12 @@ VALUES
 ('Charlie', 'Brown', 'charlie', '$2a$10$yKz0rguTzykTec4Bgke7LempFl/GQVTw9w9qEXfGUpI/XGK97VHFq', 1, 1, '+1 5551234567', NOW()),
 ('David', 'Johnson', 'david', '$2a$10$p444biF49.py2HOTVe5TSuUNAhSKqelEtlbLtZXghUh3o21Et7DNO', 1, 1, '+49 1234567890', NOW());
 
-INSERT INTO user_balance (user_id, balance, currency, country_iso_code)
+INSERT INTO user_balance (user_id, balance, currency, country_iso_code, is_primary)
 VALUES
-(1, 70000.00, 'SGD', 'SG'),
-(2, 15000.00, 'SGD', 'SG'),
-(3, 78000.00, 'USD', 'US'),
-(4, 4700.00, 'EUR', 'FR');
+(1, 70000.00, 'SGD', 'SG', 1),
+(2, 15000.00, 'SGD', 'SG', 1),
+(3, 78000.00, 'USD', 'US', 1),
+(4, 4700.00, 'EUR', 'FR', 1);
 
 INSERT INTO user_beneficiary (user_id, beneficiary_id)
 VALUES

@@ -29,7 +29,7 @@ func (h authHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Invoking the Login service
+	// calling the Login service
 	user, token, err := h.service.Login(r.Context(), &creds)
 	if err != nil {
 		log.Println(err)

@@ -15,6 +15,220 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func Test_GetUserCountByUserId(t *testing.T) {
+	testCases := []struct {
+		Test          string
+		UserId        int
+		ExpectedCount int
+		ExpectErr     bool
+		QueryExpect   func(mock sqlmock.Sqlmock)
+	}{
+		{
+			Test:          "Successfully returned count by userId",
+			UserId:        1,
+			ExpectedCount: 1,
+			ExpectErr:     false,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				rows := sqlmock.NewRows([]string{"COUNT(*)"}).AddRow(1)
+
+				mock.ExpectQuery("SELECT COUNT(*) FROM users WHERE id = $1;").
+					WithArgs(1).WillReturnRows(rows)
+			},
+		},
+		{
+			Test:          "Returned no rows",
+			UserId:        513,
+			ExpectedCount: 0,
+			ExpectErr:     false,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery("SELECT COUNT(*) FROM users WHERE id = $1;").
+					WithArgs(513).WillReturnError(sql.ErrNoRows)
+			},
+		},
+		{
+			Test:          "Returned internal server error",
+			UserId:        514,
+			ExpectedCount: 0,
+			ExpectErr:     true,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery("SELECT COUNT(*) FROM users WHERE id = $1;").
+					WithArgs(514).WillReturnError(sql.ErrConnDone)
+			},
+		},
+	}
+
+	mockDB, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	if err != nil {
+		t.Fatalf("unexpected error when opening a stub database connection: %s", err)
+	}
+	defer mockDB.Close()
+
+	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
+
+	r, err := NewRepo(sqlxDB)
+	require.NoError(t, err, "creating the shared repo")
+
+	for _, tc := range testCases {
+		t.Run(tc.Test, func(t *testing.T) {
+			tc.QueryExpect(mock)
+
+			returnedCount, err := r.GetUserCountByUserId(context.Background(), tc.UserId)
+
+			if !tc.ExpectErr {
+				require.NoError(t, err, "running GetUserCountByUserId on repository layer")
+				assert.Equal(t, returnedCount, tc.ExpectedCount)
+			} else {
+				require.Error(t, err, "running GetUserCountByUserId on repository layer expected error")
+				assert.Equal(t, returnedCount, tc.ExpectedCount)
+			}
+		})
+	}
+}
+
+func Test_GetUserIdByMobileNumber_Repo(t *testing.T) {
+	testCases := []struct {
+		Test          string
+		MobileNumber  string
+		ExpectedCount int
+		ExpectErr     bool
+		QueryExpect   func(mock sqlmock.Sqlmock)
+	}{
+		{
+			Test:          "Successfully returned count by userId and beneficiaryId",
+			MobileNumber:  "+555",
+			ExpectedCount: 1,
+			ExpectErr:     false,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				rows := sqlmock.NewRows([]string{"COUNT(*)"}).AddRow(1)
+
+				mock.ExpectQuery("SELECT id FROM users where mobile_number = $1;").
+					WithArgs("+555").WillReturnRows(rows)
+			},
+		},
+		{
+			Test:          "Returned no rows",
+			MobileNumber:  "+556",
+			ExpectedCount: 0,
+			ExpectErr:     false,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery("SELECT id FROM users where mobile_number = $1;").
+					WithArgs("+556").WillReturnError(sql.ErrNoRows)
+			},
+		},
+		{
+			Test:          "Returned internal server error",
+			MobileNumber:  "+557",
+			ExpectedCount: 0,
+			ExpectErr:     true,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery("SELECT id FROM users where mobile_number = $1;").
+					WithArgs("+557").WillReturnError(sql.ErrConnDone)
+			},
+		},
+	}
+
+	mockDB, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	if err != nil {
+		t.Fatalf("unexpected error when opening a stub database connection: %s", err)
+	}
+	defer mockDB.Close()
+
+	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
+
+	r, err := NewRepo(sqlxDB)
+	require.NoError(t, err, "creating the shared repo")
+
+	for _, tc := range testCases {
+		t.Run(tc.Test, func(t *testing.T) {
+			tc.QueryExpect(mock)
+
+			returnedCount, err := r.GetUserIdByMobileNumber(context.Background(), tc.MobileNumber)
+
+			if !tc.ExpectErr {
+				require.NoError(t, err, "running GetUserIdByMobileNumber on repository layer")
+				assert.Equal(t, returnedCount, tc.ExpectedCount)
+			} else {
+				require.Error(t, err, "running GetUserIdByMobileNumber on repository layer expected error")
+				assert.Equal(t, returnedCount, tc.ExpectedCount)
+			}
+		})
+	}
+}
+
+func Test_GetCountByUserIdAndBeneficiaryId_Repo(t *testing.T) {
+	testCases := []struct {
+		Test          string
+		UserId        int
+		BeneficiaryId int
+		ExpectedCount int
+		ExpectErr     bool
+		QueryExpect   func(mock sqlmock.Sqlmock)
+	}{
+		{
+			Test:          "Successfully returned count by userId and beneficiaryId",
+			UserId:        1,
+			BeneficiaryId: 2,
+			ExpectedCount: 1,
+			ExpectErr:     false,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				rows := sqlmock.NewRows([]string{"COUNT(*)"}).AddRow(1)
+
+				mock.ExpectQuery("SELECT COUNT(*) FROM user_beneficiary WHERE user_id = $1 AND beneficiary_id = $2;").
+					WithArgs(1, 2).WillReturnRows(rows)
+			},
+		},
+		{
+			Test:          "Returned no rows",
+			UserId:        513,
+			BeneficiaryId: 2,
+			ExpectedCount: 0,
+			ExpectErr:     false,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery("SELECT COUNT(*) FROM user_beneficiary WHERE user_id = $1 AND beneficiary_id = $2;").
+					WithArgs(513, 2).WillReturnError(sql.ErrNoRows)
+			},
+		},
+		{
+			Test:          "Returned internal server error",
+			UserId:        514,
+			BeneficiaryId: 2,
+			ExpectedCount: 0,
+			ExpectErr:     true,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery("SELECT COUNT(*) FROM user_beneficiary WHERE user_id = $1 AND beneficiary_id = $2;").
+					WithArgs(514, 2).WillReturnError(sql.ErrConnDone)
+			},
+		},
+	}
+
+	mockDB, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	if err != nil {
+		t.Fatalf("unexpected error when opening a stub database connection: %s", err)
+	}
+	defer mockDB.Close()
+
+	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
+
+	r, err := NewRepo(sqlxDB)
+	require.NoError(t, err, "creating the shared repo")
+
+	for _, tc := range testCases {
+		t.Run(tc.Test, func(t *testing.T) {
+			tc.QueryExpect(mock)
+
+			returnedCount, err := r.GetCountByUserIdAndBeneficiaryId(context.Background(), tc.UserId, tc.BeneficiaryId)
+
+			if !tc.ExpectErr {
+				require.NoError(t, err, "running GetCountByUserIdAndBeneficiaryId on repository layer")
+				assert.Equal(t, returnedCount, tc.ExpectedCount)
+			} else {
+				require.Error(t, err, "running GetCountByUserIdAndBeneficiaryId on repository layer expected error")
+				assert.Equal(t, returnedCount, tc.ExpectedCount)
+			}
+		})
+	}
+}
+
 func Test_GetTransactionsCountByUserId_Repo(t *testing.T) {
 	testCases := []struct {
 		Test          string
@@ -65,10 +279,10 @@ func Test_GetTransactionsCountByUserId_Repo(t *testing.T) {
 			returnedCount, err := r.GetTransactionsCountByUserId(context.Background(), tc.UserId)
 
 			if !tc.ExpectErr {
-				require.NoError(t, err, "running GetCountByUserId on repository layer")
+				require.NoError(t, err, "running GetTransactionsCountByUserId on repository layer")
 				assert.Equal(t, returnedCount, tc.ExpectedCount)
 			} else {
-				require.Error(t, err, "running GetCountByUserId on repository layer")
+				require.Error(t, err, "running GetTransactionsCountByUserId on repository layer")
 				assert.Equal(t, returnedCount, tc.ExpectedCount)
 			}
 		})
@@ -156,10 +370,10 @@ func Test_GetTransactionsByUserId_Repo(t *testing.T) {
 			transactions, err := r.GetTransactionsByUserId(context.Background(), tc.UserId, tc.PageSize, tc.Offset)
 
 			if !tc.ExpectErr {
-				require.NoError(t, err, "running GetByUserId on repository layer")
+				require.NoError(t, err, "running GetTransactionsByUserId on repository layer")
 				assert.Equal(t, fmt.Sprintf("%+v", transactions), fmt.Sprintf("%+v", tc.ExpectedTransactions))
 			} else {
-				require.Error(t, err, "running GetByUserId on repository layer")
+				require.Error(t, err, "running GetTransactionsByUserId on repository layer")
 				assert.Nil(t, transactions)
 			}
 		})

@@ -17,6 +17,7 @@ type Repo interface {
 	GetUserIdByMobileNumber(ctx context.Context, mobileNumber string) (int, error)
 	GetCountByUserIdAndBeneficiaryId(ctx context.Context, userId, beneficiaryId int) (int, error)
 
+	// for sql transaction (create transaction)
 	GetCountByUserIdAndCurrency(tx *sql.Tx, ctx context.Context, userId int, currency string) (int, int, error)
 	GetBalanceIdByUserIdAndPrimary(tx *sql.Tx, ctx context.Context, userId int) (int, string, error)
 	GetBalanceAmountById(tx *sql.Tx, ctx context.Context, balanceId int) (float64, error)

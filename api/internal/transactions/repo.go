@@ -3,7 +3,6 @@ package transactions
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/LeonLow97/internal/utils"
 
@@ -171,7 +170,8 @@ func (r *repo) InsertIntoTransactions(tx *sql.Tx, ctx context.Context, transacti
 		&transaction.ReceivedAmount,
 		&transaction.ReceivedAmountCurrency,
 		&transaction.Status,
-		time.Now(), time.Now(),
+		&transaction.TransferredDate,
+		&transaction.ReceivedDate,
 	)
 	if err != nil {
 		return utils.InternalServerError{Message: "[Repo] error in InsertIntoTransactions: " + err.Error()}

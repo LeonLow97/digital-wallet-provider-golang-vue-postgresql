@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/LeonLow97/internal/utils"
 )
@@ -190,6 +191,8 @@ func (s *service) CreateTransaction(ctx context.Context, userId int, transaction
 		ReceivedAmount:            beneficiaryReceivedAmount,
 		ReceivedAmountCurrency:    beneficiaryCurrency,
 		Status:                    utils.TRANSACTION_STATUS.COMPLETED,
+		TransferredDate:           time.Now(),
+		ReceivedDate:              time.Now(),
 	}
 
 	beneficiaryTransaction := TransactionEntity{
@@ -201,6 +204,8 @@ func (s *service) CreateTransaction(ctx context.Context, userId int, transaction
 		ReceivedAmount:            beneficiaryReceivedAmount,
 		ReceivedAmountCurrency:    beneficiaryCurrency,
 		Status:                    utils.TRANSACTION_STATUS.RECEIVED,
+		TransferredDate:           time.Now(),
+		ReceivedDate:              time.Now(),
 	}
 
 	// insert into transactions table

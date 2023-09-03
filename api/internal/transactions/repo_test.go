@@ -12,8 +12,27 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
+
+type MockDB struct {
+	mock.Mock
+}
+
+func TestGetDB(t *testing.T) {
+	// Create a mock database connection
+	mockDB := &sqlx.DB{} // Replace this with your actual mock or real db
+
+	// Create a repo instance with the mock database
+	r := &repo{db: mockDB}
+
+	// Call the GetDB method
+	db := r.GetDB()
+
+	// Assert that the returned database connection is the same as the mockDB
+	assert.Equal(t, mockDB, db, "GetDB should return the mock database connection")
+}
 
 func Test_GetUserCountByUserId(t *testing.T) {
 	testCases := []struct {
@@ -567,6 +586,104 @@ func Test_UpdateBalanceAmountById_Repo(t *testing.T) {
 
 			} else {
 				require.Error(t, err, "running UpdateBalanceAmountById on repository layer expected error")
+			}
+		})
+	}
+}
+
+func Test_InsertIntoTransactions_Repo(t *testing.T) {
+	testCases := []struct {
+		Test              string
+		TransactionEntity *TransactionEntity
+		ExpectErr         bool
+		QueryExpect       func(mock sqlmock.Sqlmock)
+	}{
+		{
+			Test: "Successfully update balance by ID",
+			TransactionEntity: &TransactionEntity{
+				UserId:                    1,
+				SenderId:                  1,
+				BeneficiaryId:             2,
+				TransferredAmount:         100.0,
+				TransferredAmountCurrency: "SGD",
+				ReceivedAmount:            100.0,
+				ReceivedAmountCurrency:    "SGD",
+				Status:                    "COMPLETED",
+				TransferredDate:           time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC),
+				ReceivedDate:              time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC),
+			},
+			ExpectErr: false,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec(`INSERT INTO transactions (
+					user_id, sender_id, beneficiary_id, transferred_amount, transferred_amount_currency,
+					received_amount, received_amount_currency, status, transferred_date, received_date
+				) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
+				`).
+					WithArgs(1, 1, 2, 100.0, "SGD", 100.0, "SGD", "COMPLETED", time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC), time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC)).WillReturnResult(sqlmock.NewResult(0, 1))
+			},
+		},
+		{
+			Test: "Returned internal server error",
+			TransactionEntity: &TransactionEntity{
+				UserId:                    2,
+				SenderId:                  3,
+				BeneficiaryId:             7,
+				TransferredAmount:         100.0,
+				TransferredAmountCurrency: "SGD",
+				ReceivedAmount:            100.0,
+				ReceivedAmountCurrency:    "SGD",
+				Status:                    "COMPLETED",
+				TransferredDate:           time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC),
+				ReceivedDate:              time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC),
+			},
+			ExpectErr: true,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery(`INSERT INTO transactions (
+					user_id, sender_id, beneficiary_id, transferred_amount, transferred_amount_currency,
+					received_amount, received_amount_currency, status, transferred_date, received_date
+				) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
+				`).
+					WithArgs(2, 3, 7, 100.0, "SGD", 100.0, "SGD", "COMPLETED", time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC), time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC)).WillReturnError(sql.ErrConnDone)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Test, func(t *testing.T) {
+			// Create a new database connection mock for each test case
+			mockDB, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+			if err != nil {
+				t.Fatalf("unexpected error when opening a stub database connection: %s", err)
+			}
+			defer mockDB.Close()
+
+			sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
+
+			r, err := NewRepo(sqlxDB)
+			require.NoError(t, err, "creating the shared repo")
+
+			mock.ExpectBegin()
+			tc.QueryExpect(mock)
+
+			if tc.ExpectErr {
+				// Expect a rollback if an error is expected
+				mock.ExpectRollback()
+			} else {
+				mock.ExpectCommit()
+			}
+
+			tx, err := mockDB.Begin()
+			if err != nil {
+				t.Fatalf("Error creating mock transaction: %v", err)
+			}
+			defer tx.Rollback()
+
+			err = r.InsertIntoTransactions(tx, context.Background(), tc.TransactionEntity)
+
+			if !tc.ExpectErr {
+				require.NoError(t, err, "running InsertIntoTransactions on repository layer")
+			} else {
+				require.Error(t, err, "running InsertIntoTransactions on repository layer expected error")
 			}
 		})
 	}

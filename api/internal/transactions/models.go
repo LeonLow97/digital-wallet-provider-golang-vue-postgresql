@@ -39,4 +39,6 @@ type TransactionEntity struct {
 	ReceivedAmount            float64
 	ReceivedAmountCurrency    string
 	Status                    string
+	TransferredDate           time.Time
+	ReceivedDate              time.Time
 }

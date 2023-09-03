@@ -14,11 +14,10 @@ func IsFloat64(value interface{}) bool {
 	return valueType.Kind() == reflect.Float64
 }
 
-// Ensure float precision has 2 decimal places
 func ValidateFloatPrecision(value float64) error {
-	rounded := math.Round(value*100) / 100
-	if rounded != value {
-		return fmt.Errorf("invalid float precision: %.2f", value)
-	}
-	return nil
+    expected := math.Floor(value*100) / 100
+    if expected != value {
+        return fmt.Errorf("invalid float precision: %.2f", value)
+    }
+    return nil
 }

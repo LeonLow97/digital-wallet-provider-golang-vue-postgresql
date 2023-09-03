@@ -418,14 +418,14 @@ func Test_GetBalanceIdByUserIdAndPrimary_Repo(t *testing.T) {
 func Test_GetBalanceAmountById_Repo(t *testing.T) {
 	testCases := []struct {
 		Test            string
-		balanceId       int
+		BalanceId       int
 		ExpectedBalance float64
 		ExpectErr       bool
 		QueryExpect     func(mock sqlmock.Sqlmock)
 	}{
 		{
 			Test:            "Successfully returned count by userId and beneficiaryId",
-			balanceId:       1,
+			BalanceId:       1,
 			ExpectedBalance: 100.0,
 			ExpectErr:       false,
 			QueryExpect: func(mock sqlmock.Sqlmock) {
@@ -437,7 +437,7 @@ func Test_GetBalanceAmountById_Repo(t *testing.T) {
 		},
 		{
 			Test:            "Returned no rows",
-			balanceId:       513,
+			BalanceId:       513,
 			ExpectedBalance: 0,
 			ExpectErr:       false,
 			QueryExpect: func(mock sqlmock.Sqlmock) {
@@ -447,7 +447,7 @@ func Test_GetBalanceAmountById_Repo(t *testing.T) {
 		},
 		{
 			Test:            "Returned internal server error",
-			balanceId:       514,
+			BalanceId:       514,
 			ExpectedBalance: 0,
 			ExpectErr:       true,
 			QueryExpect: func(mock sqlmock.Sqlmock) {
@@ -487,7 +487,7 @@ func Test_GetBalanceAmountById_Repo(t *testing.T) {
 			}
 			defer tx.Rollback()
 
-			returnedBalance, err := r.GetBalanceAmountById(tx, context.Background(), tc.balanceId)
+			returnedBalance, err := r.GetBalanceAmountById(tx, context.Background(), tc.BalanceId)
 
 			if !tc.ExpectErr {
 				require.NoError(t, err, "running GetBalanceAmountById on repository layer")
@@ -495,6 +495,78 @@ func Test_GetBalanceAmountById_Repo(t *testing.T) {
 			} else {
 				require.Error(t, err, "running GetBalanceAmountById on repository layer expected error")
 				assert.Equal(t, returnedBalance, tc.ExpectedBalance)
+			}
+		})
+	}
+}
+
+func Test_UpdateBalanceAmountById_Repo(t *testing.T) {
+	testCases := []struct {
+		Test        string
+		Balance     float64
+		BalanceId   int
+		ExpectErr   bool
+		QueryExpect func(mock sqlmock.Sqlmock)
+	}{
+		{
+			Test:      "Successfully update balance by ID",
+			Balance:   100.0,
+			BalanceId: 1,
+			ExpectErr: false,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("UPDATE user_balance SET balance = $1 WHERE id = $2;").
+					WithArgs(100.0, 1).WillReturnResult(sqlmock.NewResult(0, 1))
+			},
+		},
+		{
+			Test:      "Returned internal server error",
+			Balance:   100.0,
+			BalanceId: 514,
+			ExpectErr: true,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery("UPDATE user_balance SET balance = $1 WHERE id = $2;").
+					WithArgs(100.0, 514).WillReturnError(sql.ErrConnDone)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Test, func(t *testing.T) {
+			// Create a new database connection mock for each test case
+			mockDB, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+			if err != nil {
+				t.Fatalf("unexpected error when opening a stub database connection: %s", err)
+			}
+			defer mockDB.Close()
+
+			sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
+
+			r, err := NewRepo(sqlxDB)
+			require.NoError(t, err, "creating the shared repo")
+
+			mock.ExpectBegin()
+			tc.QueryExpect(mock)
+
+			if tc.ExpectErr {
+				// Expect a rollback if an error is expected
+				mock.ExpectRollback()
+			} else {
+				mock.ExpectCommit()
+			}
+
+			tx, err := mockDB.Begin()
+			if err != nil {
+				t.Fatalf("Error creating mock transaction: %v", err)
+			}
+			defer tx.Rollback()
+
+			err = r.UpdateBalanceAmountById(tx, context.Background(), tc.Balance, tc.BalanceId)
+
+			if !tc.ExpectErr {
+				require.NoError(t, err, "running UpdateBalanceAmountById on repository layer")
+
+			} else {
+				require.Error(t, err, "running UpdateBalanceAmountById on repository layer expected error")
 			}
 		})
 	}

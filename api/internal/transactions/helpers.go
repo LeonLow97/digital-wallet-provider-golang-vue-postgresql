@@ -15,9 +15,9 @@ func IsFloat64(value interface{}) bool {
 }
 
 func ValidateFloatPrecision(value float64) error {
-    expected := math.Floor(value*100) / 100
-    if expected != value {
-        return fmt.Errorf("invalid float precision: %.2f", value)
-    }
-    return nil
+	expected := math.Floor(value*100) / 100
+	if expected != value {
+		return fmt.Errorf("invalid float precision: %.2f", value)
+	}
+	return nil
 }

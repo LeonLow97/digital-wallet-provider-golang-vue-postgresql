@@ -52,6 +52,17 @@ func Test_GetByUsername_Repo(t *testing.T) {
 					WillReturnError(sql.ErrNoRows)
 			},
 		},
+		{
+			Test:         "Internal Server Error",
+			Username:     "internalServerError",
+			ExpectedUser: nil,
+			ExpectErr:    true,
+			QueryExpect: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery("SELECT id, username, password, active, admin FROM users WHERE username = $1").
+					WithArgs("internalServerError").
+					WillReturnError(sql.ErrConnDone)
+			},
+		},
 	}
 
 	// Create a mock database connection using sqlmock

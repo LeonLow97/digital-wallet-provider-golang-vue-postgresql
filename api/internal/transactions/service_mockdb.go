@@ -4,11 +4,16 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/mock"
 )
 
 type mockRepo struct {
 	mock.Mock
+}
+
+func (m *mockRepo) GetDB() *sqlx.DB {
+	return nil
 }
 
 func (m *mockRepo) GetUserCountByUserId(ctx context.Context, userId int) (int, error) {

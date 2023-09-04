@@ -3,7 +3,6 @@ package transactions
 import (
 	"context"
 	"database/sql"
-	"sort"
 	"strings"
 	"time"
 
@@ -52,11 +51,6 @@ func (s *service) GetTransactions(ctx context.Context, userId, page, pageSize in
 	if err != nil {
 		return nil, 0, false, err
 	}
-
-	// Sorting transferred_date by descending order so latest transaction appears first
-	sort.Slice(transactions.Transactions, func(i, j int) bool {
-		return transactions.Transactions[i].TransferredDate.After(transactions.Transactions[j].TransferredDate)
-	})
 
 	return transactions, totalPages, isLastPage, nil
 }

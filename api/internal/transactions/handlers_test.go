@@ -170,18 +170,18 @@ func Test_CreateTransaction_Handler(t *testing.T) {
 			ExpectedStatusCode:   http.StatusCreated,
 		},
 		{
-			Test: "Invalid JSON Request Body",
-			Body: []byte(`{"mobile_number":"+65 98765432","transferred_amount":60,"transferred_amount_currency":"SGD"}{"mobile_number":"invalidjson",`),
-			Transaction: nil,
+			Test:                 "Invalid JSON Request Body",
+			Body:                 []byte(`{"mobile_number":"+65 98765432","transferred_amount":60,"transferred_amount_currency":"SGD"}{"mobile_number":"invalidjson",`),
+			Transaction:          nil,
 			ExpectErr:            true,
 			MockError:            errors.New("Bad Request!"),
 			ExpectedJSONResponse: `{"error":true,"message":"Bad Request!"}`,
 			ExpectedStatusCode:   http.StatusBadRequest,
 		},
 		{
-			Test:                 "Invalid JSON Request Body",
-			Body:                 []byte(`{"mobile_number":"+65 99999999","transferred_amount":60,"transferred_amount_currency":"SGD"}`),
-			Transaction:          &CreateTransaction{
+			Test: "Invalid JSON Request Body",
+			Body: []byte(`{"mobile_number":"+65 99999999","transferred_amount":60,"transferred_amount_currency":"SGD"}`),
+			Transaction: &CreateTransaction{
 				BeneficiaryNumber:         "+65 99999999",
 				TransferredAmount:         60,
 				TransferredAmountCurrency: "SGD",

@@ -29,13 +29,13 @@ func TestIsFloat64(t *testing.T) {
 
 func TestValidateFloatPrecision(t *testing.T) {
 	testCases := []struct {
-		value          float64
-		expectedError  string
-		shouldSucceed  bool
+		value         float64
+		expectedError string
+		shouldSucceed bool
 	}{
-		{value: 42.42, expectedError: "", shouldSucceed: true},       // Valid float with no error expected
-		{value: 42.426, expectedError: "invalid float precision: 42.43", shouldSucceed: false}, // Invalid float with error expected
-		{value: 0.0, expectedError: "", shouldSucceed: true},         // Valid float with no error expected
+		{value: 42.42, expectedError: "", shouldSucceed: true},                                     // Valid float with no error expected
+		{value: 42.426, expectedError: "invalid float precision: 42.43", shouldSucceed: false},     // Invalid float with error expected
+		{value: 0.0, expectedError: "", shouldSucceed: true},                                       // Valid float with no error expected
 		{value: -123.456, expectedError: "invalid float precision: -123.46", shouldSucceed: false}, // Invalid negative float with error expected
 	}
 

@@ -56,9 +56,6 @@ func (s *service) GetTransactions(ctx context.Context, userId, page, pageSize in
 }
 
 func (s *service) CreateTransaction(ctx context.Context, userId int, transaction *CreateTransaction) error {
-	if !IsFloat64(transaction.TransferredAmount) {
-		return utils.BadRequestError{Message: "Please provide a valid numeric amount for transfer."}
-	}
 	if transaction.TransferredAmount == 0 || transaction.TransferredAmount < 10 || transaction.TransferredAmount > 10000 {
 		return utils.BadRequestError{Message: "Transfer amount must be between $10 and $10,000."}
 	}
@@ -130,6 +127,9 @@ func (s *service) CreateTransaction(ctx context.Context, userId int, transaction
 	// if transferred currency is not in beneficiary's list of currencies, retrieve primary currency
 	if beneficiaryHasTransferredCurrency == 0 {
 		beneficiaryBalanceId, beneficiaryCurrency, err = s.repo.GetBalanceIdByUserIdAndPrimary(tx, ctx, beneficiaryId)
+		if err != nil {
+			return err
+		}
 	}
 
 	// retrieve user balance. check for user currency availability and

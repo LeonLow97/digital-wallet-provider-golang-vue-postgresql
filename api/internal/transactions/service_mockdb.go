@@ -13,7 +13,8 @@ type mockRepo struct {
 }
 
 func (m *mockRepo) GetDB() *sqlx.DB {
-	return nil
+	args := m.Called()
+	return args.Get(0).(*sqlx.DB)
 }
 
 func (m *mockRepo) GetUserCountByUserId(ctx context.Context, userId int) (int, error) {

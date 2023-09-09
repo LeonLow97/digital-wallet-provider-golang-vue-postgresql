@@ -113,13 +113,12 @@ func (s *service) CreateTransaction(ctx context.Context, userId int, transaction
 		}
 	}
 
-	// retrieve user balance. check for user currency availability and
-	// if user has sufficient funds for the transfer.
-	count, userBalanceId, err := s.repo.GetCountByUserIdAndCurrency(ctx, userId, transaction.TransferredAmountCurrency)
+	// retrieve user balance. check for user currency availability
+	senderHasTransferredCurrency, userBalanceId, err := s.repo.GetCountByUserIdAndCurrency(ctx, userId, transaction.TransferredAmountCurrency)
 	if err != nil {
 		return err
 	}
-	if count != 1 {
+	if senderHasTransferredCurrency != 1 {
 		return utils.BadRequestError{Message: "You do not have balance in the specified currency. Please use another currency."}
 	}
 

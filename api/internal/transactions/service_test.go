@@ -150,20 +150,28 @@ func Test_GetTransactions_Service(t *testing.T) {
 
 func Test_CreateTransaction_Service(t *testing.T) {
 	testCases := []struct {
-		Test                                      string
-		UserId                                    int
-		BeneficiaryId                             int
-		Transaction                               *CreateTransaction
-		ExpectedUserCount                         int
-		ExpectedIsLinked                          int
-		ExpectedBeneficiaryHasTransferredCurrency int
-		ExpectedBeneficiaryBalanceId              int
-		ExpectedErrorMessage                      string
-		MockErrorGetUserCountByUserId             error
-		MockErrorGetUserIdByMobileNumber          error
-		MockErrorGetCountByUserIdAndBeneficiaryId error
-		MockErrorGetCountByUserIdAndCurrency      error
-		ExpectErr                                 bool
+		Test                                               string
+		UserId                                             int
+		BeneficiaryId                                      int
+		Transaction                                        *CreateTransaction
+		SenderTransaction                                  TransactionEntity
+		BeneficiaryTransaction                             TransactionEntity
+		ExpectedUserCount                                  int
+		ExpectedIsLinked                                   int
+		ExpectedBeneficiaryHasTransferredCurrency          int
+		ExpectedBeneficiaryBalanceId                       int
+		ExpectedBeneficiaryCurrency                        string
+		ExpectedSenderHasTransferredCurrency               int
+		ExpectedSenderBalanceId                            int
+		ExpectedErrorMessage                               string
+		MockErrorGetUserCountByUserId                      error
+		MockErrorGetUserIdByMobileNumber                   error
+		MockErrorGetCountByUserIdAndBeneficiaryId          error
+		MockErrorGetCountByUserIdAndCurrencyForBeneficiary error
+		MockErrorGetBalanceIdByUserIdAndPrimary            error
+		MockErrorGetCountByUserIdAndCurrencyForSender      error
+		MockErrorCreateTransactionSQLTransaction           error
+		ExpectErr                                          bool
 	}{
 		{
 			Test:   "TransferredAmount is 0",
@@ -238,10 +246,9 @@ func Test_CreateTransaction_Service(t *testing.T) {
 			Transaction: &CreateTransaction{
 				TransferredAmount: 9000,
 			},
-			ExpectedUserCount:             0,
-			ExpectErr:                     true,
-			MockErrorGetUserCountByUserId: nil,
-			ExpectedErrorMessage:          "The specified sender does not exist.",
+			ExpectedUserCount:    0,
+			ExpectErr:            true,
+			ExpectedErrorMessage: "The specified sender does not exist.",
 		},
 		{
 			Test:          "InternalServerError in GetUserIdByMobileNumber",
@@ -253,7 +260,6 @@ func Test_CreateTransaction_Service(t *testing.T) {
 			},
 			ExpectedUserCount:                1,
 			ExpectErr:                        true,
-			MockErrorGetUserCountByUserId:    nil,
 			MockErrorGetUserIdByMobileNumber: errors.New("Internal Server Error"),
 			ExpectedErrorMessage:             "Internal Server Error",
 		},
@@ -265,11 +271,9 @@ func Test_CreateTransaction_Service(t *testing.T) {
 				TransferredAmount: 9000,
 				BeneficiaryNumber: "0",
 			},
-			ExpectedUserCount:                1,
-			ExpectErr:                        true,
-			MockErrorGetUserCountByUserId:    nil,
-			MockErrorGetUserIdByMobileNumber: nil,
-			ExpectedErrorMessage:             "The specified beneficiary does not exist.",
+			ExpectedUserCount:    1,
+			ExpectErr:            true,
+			ExpectedErrorMessage: "The specified beneficiary does not exist.",
 		},
 		{
 			Test:          "BadRequest (userId == beneficiaryId) in GetUserIdByMobileNumber",
@@ -279,11 +283,9 @@ func Test_CreateTransaction_Service(t *testing.T) {
 				TransferredAmount: 9000,
 				BeneficiaryNumber: "01",
 			},
-			ExpectedUserCount:                         1,
-			ExpectedIsLinked:                          1,
-			ExpectErr:                                 true,
-			MockErrorGetUserCountByUserId:             nil,
-			MockErrorGetUserIdByMobileNumber:          nil,
+			ExpectedUserCount: 1,
+			ExpectedIsLinked:  1,
+			ExpectErr:         true,
 			MockErrorGetCountByUserIdAndBeneficiaryId: errors.New("Internal Server Error"),
 			ExpectedErrorMessage:                      "Unable to send money to yourself.",
 		},
@@ -295,11 +297,9 @@ func Test_CreateTransaction_Service(t *testing.T) {
 				TransferredAmount: 9000,
 				BeneficiaryNumber: "02",
 			},
-			ExpectedUserCount:                         1,
-			ExpectedIsLinked:                          1,
-			ExpectErr:                                 true,
-			MockErrorGetUserCountByUserId:             nil,
-			MockErrorGetUserIdByMobileNumber:          nil,
+			ExpectedUserCount: 1,
+			ExpectedIsLinked:  1,
+			ExpectErr:         true,
 			MockErrorGetCountByUserIdAndBeneficiaryId: errors.New("Internal Server Error"),
 			ExpectedErrorMessage:                      "Internal Server Error",
 		},
@@ -311,13 +311,102 @@ func Test_CreateTransaction_Service(t *testing.T) {
 				TransferredAmount: 9000,
 				BeneficiaryNumber: "03",
 			},
+			ExpectedUserCount:    1,
+			ExpectedIsLinked:     0,
+			ExpectErr:            true,
+			ExpectedErrorMessage: "Unable to transfer funds. Sender is not linked to the specified beneficiary.",
+		},
+		{
+			Test:          "InternalServerError in GetCountByUserIdAndCurrency",
+			UserId:        7,
+			BeneficiaryId: 8,
+			Transaction: &CreateTransaction{
+				TransferredAmount:         9000,
+				BeneficiaryNumber:         "04",
+				TransferredAmountCurrency: "SGD",
+			},
 			ExpectedUserCount:                         1,
-			ExpectedIsLinked:                          0,
+			ExpectedIsLinked:                          1,
+			ExpectedBeneficiaryHasTransferredCurrency: 0,
+			ExpectedBeneficiaryBalanceId:              0,
 			ExpectErr:                                 true,
-			MockErrorGetUserCountByUserId:             nil,
-			MockErrorGetUserIdByMobileNumber:          nil,
-			MockErrorGetCountByUserIdAndBeneficiaryId: nil,
-			ExpectedErrorMessage:                      "Unable to transfer funds. Sender is not linked to the specified beneficiary.",
+			MockErrorGetCountByUserIdAndCurrencyForBeneficiary: errors.New("Internal Server Error"),
+			ExpectedErrorMessage: "Internal Server Error",
+		},
+		{
+			Test:          "InternalServerError in GetBalanceIdByUserIdAndPrimary",
+			UserId:        8,
+			BeneficiaryId: 9,
+			Transaction: &CreateTransaction{
+				TransferredAmount:         9000,
+				BeneficiaryNumber:         "05",
+				TransferredAmountCurrency: "SGD",
+			},
+			ExpectedUserCount:                         1,
+			ExpectedIsLinked:                          1,
+			ExpectedBeneficiaryHasTransferredCurrency: 0,
+			ExpectedBeneficiaryBalanceId:              1,
+			ExpectedBeneficiaryCurrency:               "USD",
+			ExpectErr:                                 true,
+			MockErrorGetBalanceIdByUserIdAndPrimary:   errors.New("Internal Server Error"),
+			ExpectedErrorMessage:                      "Internal Server Error",
+		},
+		{
+			Test:          "InternalServerError in GetCountByUserIdAndCurrency",
+			UserId:        10,
+			BeneficiaryId: 11,
+			Transaction: &CreateTransaction{
+				TransferredAmount:         9000,
+				BeneficiaryNumber:         "06",
+				TransferredAmountCurrency: "SGD",
+			},
+			ExpectedUserCount:                             1,
+			ExpectedIsLinked:                              1,
+			ExpectedBeneficiaryHasTransferredCurrency:     1,
+			ExpectedBeneficiaryBalanceId:                  1,
+			ExpectedBeneficiaryCurrency:                   "USD",
+			ExpectedSenderHasTransferredCurrency:          1,
+			ExpectedSenderBalanceId:                       2,
+			ExpectErr:                                     true,
+			MockErrorGetCountByUserIdAndCurrencyForSender: errors.New("Internal Server Error"),
+			ExpectedErrorMessage:                          "Internal Server Error",
+		},
+		{
+			Test:          "BadRequest in GetCountByUserIdAndCurrency",
+			UserId:        11,
+			BeneficiaryId: 12,
+			Transaction: &CreateTransaction{
+				TransferredAmount:         9000,
+				BeneficiaryNumber:         "07",
+				TransferredAmountCurrency: "YEN",
+			},
+			ExpectedUserCount:                         1,
+			ExpectedIsLinked:                          1,
+			ExpectedBeneficiaryHasTransferredCurrency: 1,
+			ExpectedBeneficiaryBalanceId:              1,
+			ExpectedBeneficiaryCurrency:               "USD",
+			ExpectedSenderHasTransferredCurrency:      0,
+			ExpectedSenderBalanceId:                   2,
+			ExpectErr:                                 true,
+			ExpectedErrorMessage:                      "You do not have balance in the specified currency. Please use another currency.",
+		},
+		{
+			Test:          "InternalServerError in CreateTransactionSQLTransaction",
+			UserId:        12,
+			BeneficiaryId: 13,
+			Transaction: &CreateTransaction{
+				TransferredAmount:         9000,
+				BeneficiaryNumber:         "08",
+				TransferredAmountCurrency: "YEN",
+			},
+			ExpectedUserCount:                         1,
+			ExpectedIsLinked:                          1,
+			ExpectedBeneficiaryHasTransferredCurrency: 1,
+			ExpectedBeneficiaryBalanceId:              1,
+			ExpectedBeneficiaryCurrency:               "USD",
+			ExpectedSenderHasTransferredCurrency:      0,
+			ExpectedSenderBalanceId:                   2,
+			ExpectErr:                                 false,
 		},
 	}
 
@@ -330,6 +419,10 @@ func Test_CreateTransaction_Service(t *testing.T) {
 			mockRepo.On("GetUserCountByUserId", mock.Anything, tc.UserId).Return(tc.ExpectedUserCount, tc.MockErrorGetUserCountByUserId)
 			mockRepo.On("GetUserIdByMobileNumber", mock.Anything, tc.Transaction.BeneficiaryNumber).Return(tc.BeneficiaryId, tc.MockErrorGetUserIdByMobileNumber)
 			mockRepo.On("GetCountByUserIdAndBeneficiaryId", mock.Anything, tc.UserId, tc.BeneficiaryId).Return(tc.ExpectedIsLinked, tc.MockErrorGetCountByUserIdAndBeneficiaryId)
+			mockRepo.On("GetCountByUserIdAndCurrency", mock.Anything, tc.BeneficiaryId, tc.Transaction.TransferredAmountCurrency).Return(tc.ExpectedBeneficiaryHasTransferredCurrency, tc.ExpectedBeneficiaryBalanceId, tc.MockErrorGetCountByUserIdAndCurrencyForBeneficiary)
+			mockRepo.On("GetBalanceIdByUserIdAndPrimary", mock.Anything, tc.BeneficiaryId).Return(tc.ExpectedBeneficiaryBalanceId, tc.ExpectedBeneficiaryCurrency, tc.MockErrorGetBalanceIdByUserIdAndPrimary)
+			mockRepo.On("GetCountByUserIdAndCurrency", mock.Anything, tc.UserId, tc.Transaction.TransferredAmountCurrency).Return(tc.ExpectedSenderHasTransferredCurrency, tc.ExpectedSenderBalanceId, tc.MockErrorGetCountByUserIdAndCurrencyForSender)
+			mockRepo.On("CreateTransactionSQLTransaction", mock.Anything, mock.Anything, mock.Anything).Return(tc.MockErrorCreateTransactionSQLTransaction)
 
 			err = s.CreateTransaction(context.Background(), tc.UserId, tc.Transaction)
 

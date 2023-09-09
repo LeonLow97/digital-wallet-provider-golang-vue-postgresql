@@ -1,7 +1,6 @@
 package transactions
 
 import (
-	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -32,14 +31,14 @@ func (t transactionHandler) GetTransactions(w http.ResponseWriter, r *http.Reque
 	page, err := strconv.Atoi(r.URL.Query().Get("page"))
 	if err != nil {
 		log.Println(err)
-		utils.ErrorJSON(w, errors.New("Please provide numerical page in URL Param."))
+		utils.ErrorJSON(w, utils.BadRequestError{Message: "Please provide numerical page in URL Param."})
 		return
 	}
 
 	pageSize, err = strconv.Atoi(r.URL.Query().Get("pageSize"))
 	if err != nil {
 		log.Println(err)
-		utils.ErrorJSON(w, errors.New("Please provide numerical page size in URL Param."))
+		utils.ErrorJSON(w, utils.BadRequestError{Message: "Please provide numerical page size in URL Param."})
 		return
 	}
 

@@ -312,23 +312,9 @@ func Test_GetCountByUserIdAndCurrency_Repo(t *testing.T) {
 			r, err := NewRepo(sqlxDB)
 			require.NoError(t, err, "creating the shared repo")
 
-			mock.ExpectBegin()
 			tc.QueryExpect(mock)
 
-			if tc.ExpectErr {
-				// Expect a rollback if an error is expected
-				mock.ExpectRollback()
-			} else {
-				mock.ExpectCommit()
-			}
-
-			tx, err := mockDB.Begin()
-			if err != nil {
-				t.Fatalf("Error creating mock transaction: %v", err)
-			}
-			defer tx.Rollback()
-
-			returnedCount, returnedId, err := r.GetCountByUserIdAndCurrency(tx, context.Background(), tc.UserId, tc.Currency)
+			returnedCount, returnedId, err := r.GetCountByUserIdAndCurrency(context.Background(), tc.UserId, tc.Currency)
 
 			if !tc.ExpectErr {
 				require.NoError(t, err, "running GetCountByUserIdAndCurrency on repository layer")
@@ -403,23 +389,9 @@ func Test_GetBalanceIdByUserIdAndPrimary_Repo(t *testing.T) {
 			r, err := NewRepo(sqlxDB)
 			require.NoError(t, err, "creating the shared repo")
 
-			mock.ExpectBegin()
 			tc.QueryExpect(mock)
 
-			if tc.ExpectErr {
-				// Expect a rollback if an error is expected
-				mock.ExpectRollback()
-			} else {
-				mock.ExpectCommit()
-			}
-
-			tx, err := mockDB.Begin()
-			if err != nil {
-				t.Fatalf("Error creating mock transaction: %v", err)
-			}
-			defer tx.Rollback()
-
-			returnedCount, returnedCurrency, err := r.GetBalanceIdByUserIdAndPrimary(tx, context.Background(), tc.UserId)
+			returnedCount, returnedCurrency, err := r.GetBalanceIdByUserIdAndPrimary(context.Background(), tc.UserId)
 
 			if !tc.ExpectErr {
 				require.NoError(t, err, "running GetBalanceIdByUserIdAndPrimary on repository layer")

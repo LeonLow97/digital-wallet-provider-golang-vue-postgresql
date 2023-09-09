@@ -31,14 +31,16 @@ type CreateTransaction struct {
 }
 
 type TransactionEntity struct {
-	UserId                    int
-	SenderId                  int
-	BeneficiaryId             int
-	TransferredAmount         float64
-	TransferredAmountCurrency string
-	ReceivedAmount            float64
-	ReceivedAmountCurrency    string
-	Status                    string
-	TransferredDate           time.Time
-	ReceivedDate              time.Time
+	UserId                            int
+	SenderId                          int
+	BalanceId                         int
+	BeneficiaryId                     int
+	TransferredAmount                 float64
+	TransferredAmountCurrency         string
+	ReceivedAmount                    float64
+	ReceivedAmountCurrency            string
+	BeneficiaryHasTransferredCurrency int
+	Status                            string
+	TransferredDate                   time.Time
+	ReceivedDate                      time.Time
 }

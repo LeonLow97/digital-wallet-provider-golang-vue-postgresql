@@ -17,8 +17,8 @@ type Repo interface {
 	GetCountByUserIdAndBeneficiaryId(ctx context.Context, userId, beneficiaryId int) (int, error)
 
 	// for sql transaction (create transaction)
-	GetCountByUserIdAndCurrency(tx *sql.Tx, ctx context.Context, userId int, currency string) (int, int, error)
-	GetBalanceIdByUserIdAndPrimary(tx *sql.Tx, ctx context.Context, userId int) (int, string, error)
+	GetCountByUserIdAndCurrency(ctx context.Context, userId int, currency string) (int, int, error)
+	GetBalanceIdByUserIdAndPrimary(ctx context.Context, userId int) (int, string, error)
 	GetBalanceAmountById(tx *sql.Tx, ctx context.Context, balanceId int) (float64, error)
 
 	UpdateBalanceAmountById(tx *sql.Tx, ctx context.Context, balance float64, balanceId int) error
@@ -26,6 +26,9 @@ type Repo interface {
 
 	GetTransactionsCountByUserId(ctx context.Context, userId int) (int, error)
 	GetTransactionsByUserId(ctx context.Context, userId, pageSize, offset int) (*Transactions, error)
+
+	// SQL Transaction
+	CreateTransactionSQLTransaction(ctx context.Context, senderTransaction TransactionEntity, beneficiaryTransaction TransactionEntity) error
 }
 
 type repo struct {
@@ -87,14 +90,14 @@ func (r *repo) GetCountByUserIdAndBeneficiaryId(ctx context.Context, userId, ben
 	return count, nil
 }
 
-func (r *repo) GetCountByUserIdAndCurrency(tx *sql.Tx, ctx context.Context, userId int, currency string) (int, int, error) {
+func (r *repo) GetCountByUserIdAndCurrency(ctx context.Context, userId int, currency string) (int, int, error) {
 	var count, id int
 	query := `SELECT COUNT(*), id FROM user_balance
 		WHERE user_id = $1 AND currency = $2
 		GROUP BY (id);
 	`
 
-	if err := tx.QueryRowContext(ctx, query, userId, currency).Scan(&count, &id); err != nil {
+	if err := r.db.QueryRowContext(ctx, query, userId, currency).Scan(&count, &id); err != nil {
 		if err == sql.ErrNoRows {
 			return 0, 0, nil
 		}
@@ -105,14 +108,14 @@ func (r *repo) GetCountByUserIdAndCurrency(tx *sql.Tx, ctx context.Context, user
 }
 
 // retrieve primary balance by specified userId
-func (r *repo) GetBalanceIdByUserIdAndPrimary(tx *sql.Tx, ctx context.Context, userId int) (int, string, error) {
+func (r *repo) GetBalanceIdByUserIdAndPrimary(ctx context.Context, userId int) (int, string, error) {
 	var id int
 	var currency string
 	query := `SELECT id, currency FROM user_balance
 		WHERE user_id = $1 AND is_primary = 1;
 	`
 
-	if err := tx.QueryRowContext(ctx, query, userId).Scan(&id, &currency); err != nil {
+	if err := r.db.QueryRowContext(ctx, query, userId).Scan(&id, &currency); err != nil {
 		if err == sql.ErrNoRows {
 			return 0, "", nil
 		}
@@ -254,4 +257,69 @@ func (r *repo) GetTransactionsByUserId(ctx context.Context, userId, pageSize, of
 	}
 
 	return &transactions, nil
+}
+
+// CreateTransaction is a SQL Transaction for updating user balance and inserting into transactions table
+func (r *repo) CreateTransactionSQLTransaction(ctx context.Context, senderTransaction TransactionEntity, beneficiaryTransaction TransactionEntity) error {
+	tx, err := r.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return utils.InternalServerError{Message: err.Error()}
+	}
+
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+		if err != nil {
+			return
+		}
+	}()
+
+	userBalance, err := r.GetBalanceAmountById(tx, ctx, senderTransaction.BalanceId)
+	if err != nil {
+		return err
+	}
+	if userBalance < senderTransaction.TransferredAmount {
+		return utils.BadRequestError{Message: "You have insufficient funds for this transfer. Please top up your funds in " + senderTransaction.TransferredAmountCurrency}
+	}
+
+	beneficiaryBalance, err := r.GetBalanceAmountById(tx, ctx, beneficiaryTransaction.BalanceId)
+	if err != nil {
+		return err
+	}
+
+	// currency exchange for beneficiary
+	beneficiaryReceivedAmount := beneficiaryTransaction.TransferredAmount
+	if beneficiaryTransaction.BeneficiaryHasTransferredCurrency == 0 {
+		beneficiaryReceivedAmount = utils.CurrencyConversion(beneficiaryTransaction.TransferredAmount, beneficiaryTransaction.TransferredAmountCurrency, beneficiaryTransaction.ReceivedAmountCurrency)
+	}
+
+	// user has enough funds and we have both the balance id for sender and beneficiary
+	// update the user balance for sender and beneficiary
+	userBalance = userBalance - senderTransaction.TransferredAmount
+	err = r.UpdateBalanceAmountById(tx, ctx, userBalance, senderTransaction.BalanceId)
+	if err != nil {
+		return err
+	}
+
+	beneficiaryBalance = beneficiaryBalance + beneficiaryReceivedAmount
+	err = r.UpdateBalanceAmountById(tx, ctx, beneficiaryBalance, beneficiaryTransaction.BalanceId)
+	if err != nil {
+		return err
+	}
+
+	// insert into transactions table
+	err = r.InsertIntoTransactions(tx, ctx, &senderTransaction)
+	if err != nil {
+		return err
+	}
+
+	err = r.InsertIntoTransactions(tx, ctx, &beneficiaryTransaction)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

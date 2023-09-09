@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -331,7 +330,6 @@ func Test_CreateTransaction_Service(t *testing.T) {
 			mockRepo.On("GetUserCountByUserId", mock.Anything, tc.UserId).Return(tc.ExpectedUserCount, tc.MockErrorGetUserCountByUserId)
 			mockRepo.On("GetUserIdByMobileNumber", mock.Anything, tc.Transaction.BeneficiaryNumber).Return(tc.BeneficiaryId, tc.MockErrorGetUserIdByMobileNumber)
 			mockRepo.On("GetCountByUserIdAndBeneficiaryId", mock.Anything, tc.UserId, tc.BeneficiaryId).Return(tc.ExpectedIsLinked, tc.MockErrorGetCountByUserIdAndBeneficiaryId)
-			mockRepo.On("GetDB").Return(&sqlx.DB{})
 
 			err = s.CreateTransaction(context.Background(), tc.UserId, tc.Transaction)
 

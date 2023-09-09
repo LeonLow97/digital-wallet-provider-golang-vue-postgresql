@@ -2,7 +2,6 @@ package transactions
 
 import (
 	"context"
-	"database/sql"
 	"strings"
 	"time"
 
@@ -97,36 +96,18 @@ func (s *service) CreateTransaction(ctx context.Context, userId int, transaction
 		return utils.BadRequestError{Message: "Unable to transfer funds. Sender is not linked to the specified beneficiary."}
 	}
 
-	// begin SQL transaction of updating user balance and creating a transaction
-	db := s.repo.GetDB()
-	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
-	if err != nil {
-		return utils.InternalServerError{Message: err.Error()}
-	}
-
-	defer func() {
-		if err != nil {
-			_ = tx.Rollback()
-			return
-		}
-		err = tx.Commit()
-		if err != nil {
-			return
-		}
-	}()
-
 	// valid beneficiary up to this point
 	// check if transferred currency exists in beneficiary's list of currencies
 	var beneficiaryBalanceId int
 	beneficiaryCurrency := transaction.TransferredAmountCurrency
-	beneficiaryHasTransferredCurrency, beneficiaryBalanceId, err := s.repo.GetCountByUserIdAndCurrency(tx, ctx, beneficiaryId, transaction.TransferredAmountCurrency)
+	beneficiaryHasTransferredCurrency, beneficiaryBalanceId, err := s.repo.GetCountByUserIdAndCurrency(ctx, beneficiaryId, transaction.TransferredAmountCurrency)
 	if err != nil {
 		return err
 	}
 
 	// if transferred currency is not in beneficiary's list of currencies, retrieve primary currency
 	if beneficiaryHasTransferredCurrency == 0 {
-		beneficiaryBalanceId, beneficiaryCurrency, err = s.repo.GetBalanceIdByUserIdAndPrimary(tx, ctx, beneficiaryId)
+		beneficiaryBalanceId, beneficiaryCurrency, err = s.repo.GetBalanceIdByUserIdAndPrimary(ctx, beneficiaryId)
 		if err != nil {
 			return err
 		}
@@ -134,7 +115,7 @@ func (s *service) CreateTransaction(ctx context.Context, userId int, transaction
 
 	// retrieve user balance. check for user currency availability and
 	// if user has sufficient funds for the transfer.
-	count, userBalanceId, err := s.repo.GetCountByUserIdAndCurrency(tx, ctx, userId, transaction.TransferredAmountCurrency)
+	count, userBalanceId, err := s.repo.GetCountByUserIdAndCurrency(ctx, userId, transaction.TransferredAmountCurrency)
 	if err != nil {
 		return err
 	}
@@ -142,47 +123,14 @@ func (s *service) CreateTransaction(ctx context.Context, userId int, transaction
 		return utils.BadRequestError{Message: "You do not have balance in the specified currency. Please use another currency."}
 	}
 
-	userBalance, err := s.repo.GetBalanceAmountById(tx, ctx, userBalanceId)
-	if err != nil {
-		return err
-	}
-	if userBalance < transaction.TransferredAmount {
-		return utils.BadRequestError{Message: "You have insufficient funds for this transfer. Please top up your funds in " + transaction.TransferredAmountCurrency}
-	}
-
-	beneficiaryBalance, err := s.repo.GetBalanceAmountById(tx, ctx, beneficiaryBalanceId)
-	if err != nil {
-		return err
-	}
-
-	// currency exchange for beneficiary
-	beneficiaryReceivedAmount := transaction.TransferredAmount
-	if beneficiaryHasTransferredCurrency == 0 {
-		beneficiaryReceivedAmount = utils.CurrencyConversion(transaction.TransferredAmount, transaction.TransferredAmountCurrency, beneficiaryCurrency)
-	}
-
-	// user has enough funds and we have both the balance id for sender and beneficiary
-	// update the user balance for sender and beneficiary
-	userBalance = userBalance - transaction.TransferredAmount
-	err = s.repo.UpdateBalanceAmountById(tx, ctx, userBalance, userBalanceId)
-	if err != nil {
-		return err
-	}
-
-	beneficiaryBalance = beneficiaryBalance + beneficiaryReceivedAmount
-	err = s.repo.UpdateBalanceAmountById(tx, ctx, beneficiaryBalance, beneficiaryBalanceId)
-	if err != nil {
-		return err
-	}
-
 	// create transaction entries for sender and beneficiary
 	senderTransaction := TransactionEntity{
 		UserId:                    userId,
 		SenderId:                  userId,
+		BalanceId:                 userBalanceId,
 		BeneficiaryId:             beneficiaryId,
 		TransferredAmount:         transaction.TransferredAmount,
 		TransferredAmountCurrency: transaction.TransferredAmountCurrency,
-		ReceivedAmount:            beneficiaryReceivedAmount,
 		ReceivedAmountCurrency:    beneficiaryCurrency,
 		Status:                    utils.TRANSACTION_STATUS.COMPLETED,
 		TransferredDate:           time.Now(),
@@ -190,25 +138,21 @@ func (s *service) CreateTransaction(ctx context.Context, userId int, transaction
 	}
 
 	beneficiaryTransaction := TransactionEntity{
-		UserId:                    beneficiaryId,
-		SenderId:                  userId,
-		BeneficiaryId:             beneficiaryId,
-		TransferredAmount:         transaction.TransferredAmount,
-		TransferredAmountCurrency: transaction.TransferredAmountCurrency,
-		ReceivedAmount:            beneficiaryReceivedAmount,
-		ReceivedAmountCurrency:    beneficiaryCurrency,
-		Status:                    utils.TRANSACTION_STATUS.RECEIVED,
-		TransferredDate:           time.Now(),
-		ReceivedDate:              time.Now(),
+		UserId:                            beneficiaryId,
+		SenderId:                          userId,
+		BalanceId:                         beneficiaryBalanceId,
+		BeneficiaryId:                     beneficiaryId,
+		TransferredAmount:                 transaction.TransferredAmount,
+		TransferredAmountCurrency:         transaction.TransferredAmountCurrency,
+		ReceivedAmountCurrency:            beneficiaryCurrency,
+		BeneficiaryHasTransferredCurrency: beneficiaryHasTransferredCurrency,
+		Status:                            utils.TRANSACTION_STATUS.RECEIVED,
+		TransferredDate:                   time.Now(),
+		ReceivedDate:                      time.Now(),
 	}
 
-	// insert into transactions table
-	err = s.repo.InsertIntoTransactions(tx, ctx, &senderTransaction)
-	if err != nil {
-		return err
-	}
-
-	err = s.repo.InsertIntoTransactions(tx, ctx, &beneficiaryTransaction)
+	// CreateTransaction SQL Transaction
+	err = s.repo.CreateTransactionSQLTransaction(ctx, senderTransaction, beneficiaryTransaction)
 	if err != nil {
 		return err
 	}

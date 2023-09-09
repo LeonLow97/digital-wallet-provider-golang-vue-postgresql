@@ -32,13 +32,13 @@ func (m *mockRepo) GetCountByUserIdAndBeneficiaryId(ctx context.Context, userId,
 	return args.Int(0), args.Error(1)
 }
 
-func (m *mockRepo) GetCountByUserIdAndCurrency(tx *sql.Tx, ctx context.Context, userId int, currency string) (int, int, error) {
-	args := m.Called(tx, ctx, userId, currency)
+func (m *mockRepo) GetCountByUserIdAndCurrency(ctx context.Context, userId int, currency string) (int, int, error) {
+	args := m.Called(ctx, userId, currency)
 	return args.Int(0), args.Int(1), args.Error(2)
 }
 
-func (m *mockRepo) GetBalanceIdByUserIdAndPrimary(tx *sql.Tx, ctx context.Context, userId int) (int, string, error) {
-	args := m.Called(tx, ctx, userId)
+func (m *mockRepo) GetBalanceIdByUserIdAndPrimary(ctx context.Context, userId int) (int, string, error) {
+	args := m.Called(ctx, userId)
 	return args.Int(0), args.String(1), args.Error(2)
 }
 
@@ -72,4 +72,10 @@ func (m *mockRepo) GetTransactionsByUserId(ctx context.Context, userId, pageSize
 	}
 
 	return transactions, args.Error(1)
+}
+
+func (m *mockRepo) CreateTransactionSQLTransaction(ctx context.Context, senderTransaction TransactionEntity, beneficiaryTransaction TransactionEntity) error {
+	args := m.Called(ctx, senderTransaction, beneficiaryTransaction)
+
+	return args.Error(0)
 }

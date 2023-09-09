@@ -63,3 +63,4 @@ func (b beneficiaryHandler) GetBeneficiaries(writer http.ResponseWriter, request
 
 // TODO: Add Beneficiary
 // TODO: Update Beneficiary
+// TODO: Delete Beneficiary

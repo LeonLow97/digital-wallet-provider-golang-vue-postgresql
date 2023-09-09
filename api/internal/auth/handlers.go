@@ -42,3 +42,4 @@ func (h authHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // TODO: Logout Handler
+// TODO: SignUp Handler

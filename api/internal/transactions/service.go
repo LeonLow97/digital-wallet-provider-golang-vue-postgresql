@@ -123,7 +123,7 @@ func (s *service) CreateTransaction(ctx context.Context, userId int, transaction
 	}
 
 	// create transaction entries for sender and beneficiary
-	senderTransaction := TransactionEntity{
+	senderTransaction := &TransactionEntity{
 		UserId:                    userId,
 		SenderId:                  userId,
 		BalanceId:                 userBalanceId,
@@ -136,7 +136,7 @@ func (s *service) CreateTransaction(ctx context.Context, userId int, transaction
 		ReceivedDate:              time.Now(),
 	}
 
-	beneficiaryTransaction := TransactionEntity{
+	beneficiaryTransaction := &TransactionEntity{
 		UserId:                            beneficiaryId,
 		SenderId:                          userId,
 		BalanceId:                         beneficiaryBalanceId,

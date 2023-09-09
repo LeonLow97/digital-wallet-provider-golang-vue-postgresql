@@ -74,7 +74,7 @@ func (m *mockRepo) GetTransactionsByUserId(ctx context.Context, userId, pageSize
 	return transactions, args.Error(1)
 }
 
-func (m *mockRepo) CreateTransactionSQLTransaction(ctx context.Context, senderTransaction TransactionEntity, beneficiaryTransaction TransactionEntity) error {
+func (m *mockRepo) CreateTransactionSQLTransaction(ctx context.Context, senderTransaction *TransactionEntity, beneficiaryTransaction *TransactionEntity) error {
 	args := m.Called(ctx, senderTransaction, beneficiaryTransaction)
 
 	return args.Error(0)

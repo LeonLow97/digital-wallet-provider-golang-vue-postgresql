@@ -28,7 +28,7 @@ type Repo interface {
 	GetTransactionsByUserId(ctx context.Context, userId, pageSize, offset int) (*Transactions, error)
 
 	// SQL Transaction
-	CreateTransactionSQLTransaction(ctx context.Context, senderTransaction TransactionEntity, beneficiaryTransaction TransactionEntity) error
+	CreateTransactionSQLTransaction(ctx context.Context, senderTransaction *TransactionEntity, beneficiaryTransaction *TransactionEntity) error
 }
 
 type repo struct {
@@ -260,7 +260,7 @@ func (r *repo) GetTransactionsByUserId(ctx context.Context, userId, pageSize, of
 }
 
 // CreateTransaction is a SQL Transaction for updating user balance and inserting into transactions table
-func (r *repo) CreateTransactionSQLTransaction(ctx context.Context, senderTransaction TransactionEntity, beneficiaryTransaction TransactionEntity) error {
+func (r *repo) CreateTransactionSQLTransaction(ctx context.Context, senderTransaction *TransactionEntity, beneficiaryTransaction *TransactionEntity) error {
 	tx, err := r.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return utils.InternalServerError{Message: err.Error()}
@@ -311,12 +311,12 @@ func (r *repo) CreateTransactionSQLTransaction(ctx context.Context, senderTransa
 	}
 
 	// insert into transactions table
-	err = r.InsertIntoTransactions(tx, ctx, &senderTransaction)
+	err = r.InsertIntoTransactions(tx, ctx, senderTransaction)
 	if err != nil {
 		return err
 	}
 
-	err = r.InsertIntoTransactions(tx, ctx, &beneficiaryTransaction)
+	err = r.InsertIntoTransactions(tx, ctx, beneficiaryTransaction)
 	if err != nil {
 		return err
 	}

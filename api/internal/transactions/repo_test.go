@@ -812,6 +812,125 @@ func Test_GetTransactionsByUserId_Repo(t *testing.T) {
 	}
 }
 
+func Test_CreateTransactionSQLTransaction_Repo(t *testing.T) {
+	testCases := []struct {
+		Test                                    string
+		SenderId                                int
+		BeneficiaryId                           int
+		SenderTransaction                       *TransactionEntity
+		BeneficiaryTransaction                  *TransactionEntity
+		ExpectErr                               bool
+		QueryExpectForSenderBalanceAmount       func(mock sqlmock.Sqlmock)
+		QueryExpectForBeneficiaryBalanceAmount  func(mock sqlmock.Sqlmock)
+		QueryUpdateSenderBalanceAmountById      func(mock sqlmock.Sqlmock)
+		QueryUpdateBeneficiaryBalanceAmountById func(mock sqlmock.Sqlmock)
+		QueryInsertSenderBalanceAmountById      func(mock sqlmock.Sqlmock)
+		QueryInsertBeneficiaryBalanceAmountById func(mock sqlmock.Sqlmock)
+	}{
+		{
+			Test:     "Successfully created a transaction",
+			SenderId: 12,
+			SenderTransaction: &TransactionEntity{
+				UserId:                            12,
+				SenderId:                          12,
+				BalanceId:                         1,
+				BeneficiaryId:                     13,
+				TransferredAmount:                 9000,
+				TransferredAmountCurrency:         "YEN",
+				ReceivedAmount:                    9000,
+				ReceivedAmountCurrency:            "YEN",
+				BeneficiaryHasTransferredCurrency: 0,
+				Status:                            "COMPLETED",
+				TransferredDate:                   time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC),
+				ReceivedDate:                      time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC),
+			},
+			BeneficiaryTransaction: &TransactionEntity{
+				UserId:                            13,
+				SenderId:                          12,
+				BalanceId:                         2,
+				BeneficiaryId:                     13,
+				TransferredAmount:                 9000,
+				TransferredAmountCurrency:         "YEN",
+				ReceivedAmount:                    9000,
+				ReceivedAmountCurrency:            "YEN",
+				BeneficiaryHasTransferredCurrency: 1,
+				Status:                            "RECEIVED",
+				TransferredDate:                   time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC),
+				ReceivedDate:                      time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC),
+			},
+			ExpectErr: false,
+			QueryExpectForSenderBalanceAmount: func(mock sqlmock.Sqlmock) {
+				rows := sqlmock.NewRows([]string{"balance"}).AddRow(10000)
+				mock.ExpectQuery("SELECT\\s+balance\\s+FROM\\s+user_balance\\s+WHERE\\s+id\\s+=\\s+\\$1;").WithArgs(1).WillReturnRows(rows)
+			},
+			QueryExpectForBeneficiaryBalanceAmount: func(mock sqlmock.Sqlmock) {
+				rows := sqlmock.NewRows([]string{"balance"}).AddRow(16000)
+				mock.ExpectQuery("SELECT\\s+balance\\s+FROM\\s+user_balance\\s+WHERE\\s+id\\s+=\\s+\\$1;").WithArgs(2).WillReturnRows(rows)
+			},
+			QueryUpdateSenderBalanceAmountById: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("UPDATE\\s+user_balance\\s+SET\\s+balance\\s+=\\s+\\$1\\s+WHERE\\s+id\\s+=\\s+\\$2;").
+					WillReturnResult(sqlmock.NewResult(12, 1))
+			},
+			QueryUpdateBeneficiaryBalanceAmountById: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("UPDATE\\s+user_balance\\s+SET\\s+balance\\s+=\\s+\\$1\\s+WHERE\\s+id\\s+=\\s+\\$2;").
+					WillReturnResult(sqlmock.NewResult(13, 1))
+			},
+			QueryInsertSenderBalanceAmountById: func(mock sqlmock.Sqlmock) {
+				regexPattern := `^INSERT\s+INTO\s+transactions\s+\(\s*user_id,\s+sender_id,\s+beneficiary_id,\s+transferred_amount,\s+transferred_amount_currency,\s+received_amount,\s+received_amount_currency,\s+status,\s+transferred_date,\s+received_date\s*\)\s+VALUES\s+\(\s*\$1,\s*\$2,\s*\$3,\s*\$4,\s*\$5,\s*\$6,\s*\$7,\s*\$8,\s*\$9,\s*\$10\s*\);`
+
+				mock.ExpectExec(regexPattern).WithArgs(
+					12, 12, 13, 9000.0, "YEN", 9000.0, "YEN", "COMPLETED", time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC), time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC),
+				).WillReturnResult(sqlmock.NewResult(1, 1))
+			},
+			QueryInsertBeneficiaryBalanceAmountById: func(mock sqlmock.Sqlmock) {
+				regexPattern := `^INSERT\s+INTO\s+transactions\s+\(\s*user_id,\s+sender_id,\s+beneficiary_id,\s+transferred_amount,\s+transferred_amount_currency,\s+received_amount,\s+received_amount_currency,\s+status,\s+transferred_date,\s+received_date\s*\)\s+VALUES\s+\(\s*\$1,\s*\$2,\s*\$3,\s*\$4,\s*\$5,\s*\$6,\s*\$7,\s*\$8,\s*\$9,\s*\$10\s*\);`
+
+				mock.ExpectExec(regexPattern).WithArgs(
+					13, 12, 13, 9000.0, "YEN", 9000.0, "YEN", "RECEIVED", time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC), time.Date(2022, time.January, 1, 12, 0, 0, 0, time.UTC),
+				).WillReturnResult(sqlmock.NewResult(1, 1))
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Test, func(t *testing.T) {
+			mockDB, mock, err := sqlmock.New()
+			if err != nil {
+				t.Fatalf("unexpected error when opening a stub database connection: %s", err)
+			}
+			defer mockDB.Close()
+
+			sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
+
+			r, err := NewRepo(sqlxDB)
+			require.NoError(t, err, "creating the shared repo")
+
+			mock.ExpectBegin()
+			tc.QueryExpectForSenderBalanceAmount(mock)
+			tc.QueryExpectForBeneficiaryBalanceAmount(mock)
+			tc.QueryUpdateSenderBalanceAmountById(mock)
+			tc.QueryUpdateBeneficiaryBalanceAmountById(mock)
+			tc.QueryInsertSenderBalanceAmountById(mock)
+			tc.QueryInsertBeneficiaryBalanceAmountById(mock)
+
+			if tc.ExpectErr {
+				// Expect a rollback if an error is expected
+				mock.ExpectRollback()
+			} else {
+				mock.ExpectCommit()
+			}
+
+			err = r.CreateTransactionSQLTransaction(context.Background(), tc.SenderTransaction, tc.BeneficiaryTransaction)
+
+			if !tc.ExpectErr {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		})
+	}
+}
+
 // var (
 // 	host     = "localhost"
 // 	user     = "postgres"

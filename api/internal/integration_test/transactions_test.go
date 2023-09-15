@@ -84,6 +84,13 @@ func TestMain(m *testing.M) {
 		log.Fatalf("could not connect to database: %s", err)
 	}
 
+	// create db tables
+	err = createTables()
+	if err != nil {
+		_ = pool.Purge(resource)
+		log.Fatalf("error creating tables: %s", err)
+	}
+
 	// this is going to run all the tests for the entire package; ensure that all the setup
 	// needed by all package tests id done by this point
 	code := m.Run()
@@ -96,6 +103,20 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(code)
+}
+
+func createTables() error {
+	createTablesScriptBytes, err := os.ReadFile("../testdata/init.sql")
+	if err != nil {
+		return err
+	}
+
+	_, err = testDB.Exec(string(createTablesScriptBytes))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func Test_PingDB(t *testing.T) {

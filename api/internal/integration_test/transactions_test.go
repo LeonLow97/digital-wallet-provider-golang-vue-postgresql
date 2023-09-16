@@ -91,6 +91,13 @@ func TestMain(m *testing.M) {
 		log.Fatalf("error creating tables: %s", err)
 	}
 
+	// seed database
+	err = seedDatabase()
+	if err != nil {
+		_ = pool.Purge(resource)
+		log.Fatalf("error seeding the database: %s", err)
+	}
+
 	// this is going to run all the tests for the entire package; ensure that all the setup
 	// needed by all package tests id done by this point
 	code := m.Run()
@@ -112,6 +119,20 @@ func createTables() error {
 	}
 
 	_, err = testDB.Exec(string(createTablesScriptBytes))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func seedDatabase() error {
+	seedDatabaseScriptBytes, err := os.ReadFile("../testdata/seed.sql")
+	if err != nil {
+		return err
+	}
+
+	_, err = testDB.Exec(string(seedDatabaseScriptBytes))
 	if err != nil {
 		return err
 	}

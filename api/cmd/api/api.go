@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/LeonLow97/config"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
@@ -29,7 +30,21 @@ func main() {
 }
 
 func openDB() (*sqlx.DB, error) {
-	connConfig, err := pgx.ParseConfig("postgres://postgres:postgres@db:5432/leon-db?sslmode=disable")
+	environment := "production" // TODO: make this dynamic, get from env file?
+	var databaseURL string
+
+	config, err := config.LoadConfig(environment)
+	if err != nil {
+		return nil, err
+	}
+
+	if environment == "development" {
+		databaseURL = config.Development.URL
+	} else {
+		databaseURL = config.Production.URL
+	}
+
+	connConfig, err := pgx.ParseConfig(databaseURL)
 	if err != nil {
 		errMsg := err.Error()
 		errMsg = regexp.MustCompile(`(://[^:]+:).+(@.+)`).ReplaceAllString(errMsg, "$1*****$2")

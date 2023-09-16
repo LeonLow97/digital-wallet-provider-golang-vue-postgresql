@@ -1,0 +1,6 @@
+development:
+  url: 'postgres://postgres:password@localhost:5432/leon-db?sslmode=disable'
+
+production:
+  url: 'postgres://postgres:postgres@db:5432/leon-db?sslmode=disable'
+

@@ -12,9 +12,8 @@
 
 ## Assumptions
 
-- Beneficiaries are users of the application. Added an `IsInternal` field for future use to allow external funds transfer to recipients outside of MobileWallet2023 (could be another financial institution or mobile wallet provider).
 - User can have multiple beneficiaries.
-- User must be linked to the beneficiary. (Can create a CreateBeneficiary endpoint in future to link the user to beneficiary)
+- User must be linked to the beneficiary.
 - Funds transfer was performed by mobile number of the beneficiary.
 - Transaction date and received date is instantaneous with no delay.
 - Hardcoded the currency exchange for funds transfer. (In reality, as quotations are created, the currency conversion fluctuates with the FX market. Need to call an external API in future to monitor real time currency changes).
@@ -36,6 +35,7 @@
 - Every request must be sent with a request 'Authorization' Header with the key 'Bearer <JWT_Token>' to be authorized to access resources.
 - Added `sql.NullString`, `sql.NullInt64`, and `sql.NullFloat64` for GET requests to retrieve nullable values from database (if any). There could be data patches with NULL values and by doing so, Golang can handle the nullable values.
 - Added server-side pagination in `GetTransactions` endpoint.
+- Get Transaction history endpoint was completed by using pagination with offset and limit obtained from page and pageSize in the url query params.
 
 ## SQL Tables
 

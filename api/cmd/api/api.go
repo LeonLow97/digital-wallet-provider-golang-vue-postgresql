@@ -30,7 +30,7 @@ func main() {
 }
 
 func openDB() (*sqlx.DB, error) {
-	environment := "production" // TODO: make this dynamic, get from env file?
+	environment := "development" // TODO: make this dynamic, get from env file?
 	var databaseURL string
 
 	config, err := config.LoadConfig(environment)

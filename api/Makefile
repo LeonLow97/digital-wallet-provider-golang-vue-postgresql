@@ -1,5 +1,10 @@
-hello:
-	echo "Hello Leon!"
+.PHONY: build
+build:
+	go build -o api ./cmd/api
+	./api
+
+remove:
+	@rm ./api
 
 test_nocache:
 	go test -v -count=1 ./...

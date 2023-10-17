@@ -14,10 +14,10 @@ type service struct {
 	repo Repo
 }
 
-func NewService(r Repo) (Service, error) {
+func NewService(r Repo) Service {
 	return &service{
 		repo: r,
-	}, nil
+	}
 }
 
 func (s *service) GetBeneficiaries(ctx context.Context, username string) (*Beneficiaries, error) {

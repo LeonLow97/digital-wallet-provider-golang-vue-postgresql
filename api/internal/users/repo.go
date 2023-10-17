@@ -16,10 +16,10 @@ type repo struct {
 	db *sqlx.DB
 }
 
-func NewRepo(db *sqlx.DB) (Repo, error) {
+func NewRepo(db *sqlx.DB) Repo {
 	return &repo{
 		db: db,
-	}, nil
+	}
 }
 
 func (r *repo) GetUserCurrencyAndBalanceByUsername(ctx context.Context, username string) (*GetUser, error) {

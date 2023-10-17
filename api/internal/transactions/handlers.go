@@ -12,10 +12,10 @@ type transactionHandler struct {
 	service Service
 }
 
-func NewTransactionHandler(s Service) (*transactionHandler, error) {
+func NewTransactionHandler(s Service) (*transactionHandler) {
 	return &transactionHandler{
 		service: s,
-	}, nil
+	}
 }
 
 // Retrieves a list of transactions for the user to view the transaction history

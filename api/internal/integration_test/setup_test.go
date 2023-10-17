@@ -19,7 +19,7 @@ var (
 	user     = "postgres"
 	password = "postgres"
 	dbName   = "database_test"
-	port     = "5433" // 5432 might be used for actual Postgres server
+	port     = "5450" // 5432 might be used for actual Postgres server
 	dsn      = "host=%s port=%s user=%s password=%s dbname=%s sslmode=disable timezone=UTC connect_timeout=30"
 )
 

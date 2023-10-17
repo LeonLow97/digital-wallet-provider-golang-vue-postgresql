@@ -11,10 +11,10 @@ type authHandler struct {
 	service Service
 }
 
-func NewAuthHandler(s Service) (*authHandler, error) {
+func NewAuthHandler(s Service) (*authHandler) {
 	return &authHandler{
 		service: s,
-	}, nil
+	}
 }
 
 type envelope map[string]interface{}

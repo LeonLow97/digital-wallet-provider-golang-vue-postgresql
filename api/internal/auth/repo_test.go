@@ -77,8 +77,7 @@ func Test_GetByUsername_Repo(t *testing.T) {
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
 	// Create a repository instance using the mock database connection
-	r, err := NewRepo(sqlxDB)
-	require.NoError(t, err, "creating the shared repo")
+	r := NewRepo(sqlxDB)
 
 	for _, tc := range testCases {
 		t.Run(tc.Test, func(t *testing.T) {

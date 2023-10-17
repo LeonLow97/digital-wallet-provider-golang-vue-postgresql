@@ -123,8 +123,7 @@ func Test_GetTransactions_Service(t *testing.T) {
 	}
 
 	mockRepo := mockRepo{}
-	s, err := NewService(&mockRepo)
-	require.NoError(t, err, "getting service with mock repo in GetTransactions service")
+	s := NewService(&mockRepo)
 
 	for _, tc := range testCases {
 		t.Run(tc.Test, func(t *testing.T) {
@@ -411,8 +410,7 @@ func Test_CreateTransaction_Service(t *testing.T) {
 	}
 
 	mockRepo := mockRepo{}
-	s, err := NewService(&mockRepo)
-	require.NoError(t, err, "getting service with mock repo in GetTransactions service")
+	s := NewService(&mockRepo)
 
 	for _, tc := range testCases {
 		t.Run(tc.Test, func(t *testing.T) {
@@ -424,7 +422,7 @@ func Test_CreateTransaction_Service(t *testing.T) {
 			mockRepo.On("GetCountByUserIdAndCurrency", mock.Anything, tc.UserId, tc.Transaction.TransferredAmountCurrency).Return(tc.ExpectedSenderHasTransferredCurrency, tc.ExpectedSenderBalanceId, tc.MockErrorGetCountByUserIdAndCurrencyForSender)
 			mockRepo.On("CreateTransactionSQLTransaction", mock.Anything, mock.Anything, mock.Anything).Return(tc.MockErrorCreateTransactionSQLTransaction)
 
-			err = s.CreateTransaction(context.Background(), tc.UserId, tc.Transaction)
+			err := s.CreateTransaction(context.Background(), tc.UserId, tc.Transaction)
 
 			if !tc.ExpectErr {
 				require.NoError(t, err)

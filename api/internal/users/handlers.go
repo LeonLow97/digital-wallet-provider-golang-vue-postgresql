@@ -13,10 +13,10 @@ type userHandler struct {
 	service Service
 }
 
-func NewUserHandler(s Service) (*userHandler, error) {
+func NewUserHandler(s Service) *userHandler {
 	return &userHandler{
 		service: s,
-	}, nil
+	}
 }
 
 func (h userHandler) GetUser(writer http.ResponseWriter, request *http.Request) {

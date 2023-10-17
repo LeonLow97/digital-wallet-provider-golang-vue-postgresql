@@ -84,8 +84,7 @@ func Test_GetUserCountByUserId(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-	r, err := NewRepo(sqlxDB)
-	require.NoError(t, err, "creating the shared repo")
+	r := NewRepo(sqlxDB)
 
 	for _, tc := range testCases {
 		t.Run(tc.Test, func(t *testing.T) {
@@ -154,8 +153,7 @@ func Test_GetUserIdByMobileNumber_Repo(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-	r, err := NewRepo(sqlxDB)
-	require.NoError(t, err, "creating the shared repo")
+	r := NewRepo(sqlxDB)
 
 	for _, tc := range testCases {
 		t.Run(tc.Test, func(t *testing.T) {
@@ -228,8 +226,7 @@ func Test_GetCountByUserIdAndBeneficiaryId_Repo(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-	r, err := NewRepo(sqlxDB)
-	require.NoError(t, err, "creating the shared repo")
+	r := NewRepo(sqlxDB)
 
 	for _, tc := range testCases {
 		t.Run(tc.Test, func(t *testing.T) {
@@ -309,8 +306,7 @@ func Test_GetCountByUserIdAndCurrency_Repo(t *testing.T) {
 
 			sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-			r, err := NewRepo(sqlxDB)
-			require.NoError(t, err, "creating the shared repo")
+			r := NewRepo(sqlxDB)
 
 			tc.QueryExpect(mock)
 
@@ -386,8 +382,7 @@ func Test_GetBalanceIdByUserIdAndPrimary_Repo(t *testing.T) {
 
 			sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-			r, err := NewRepo(sqlxDB)
-			require.NoError(t, err, "creating the shared repo")
+			r := NewRepo(sqlxDB)
 
 			tc.QueryExpect(mock)
 
@@ -459,8 +454,7 @@ func Test_GetBalanceAmountById_Repo(t *testing.T) {
 
 			sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-			r, err := NewRepo(sqlxDB)
-			require.NoError(t, err, "creating the shared repo")
+			r := NewRepo(sqlxDB)
 
 			mock.ExpectBegin()
 			tc.QueryExpect(mock)
@@ -532,8 +526,7 @@ func Test_UpdateBalanceAmountById_Repo(t *testing.T) {
 
 			sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-			r, err := NewRepo(sqlxDB)
-			require.NoError(t, err, "creating the shared repo")
+			r := NewRepo(sqlxDB)
 
 			mock.ExpectBegin()
 			tc.QueryExpect(mock)
@@ -631,8 +624,7 @@ func Test_InsertIntoTransactions_Repo(t *testing.T) {
 
 			sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-			r, err := NewRepo(sqlxDB)
-			require.NoError(t, err, "creating the shared repo")
+			r := NewRepo(sqlxDB)
 
 			mock.ExpectBegin()
 			tc.QueryExpect(mock)
@@ -701,8 +693,7 @@ func Test_GetTransactionsCountByUserId_Repo(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-	r, err := NewRepo(sqlxDB)
-	require.NoError(t, err, "creating the shared repo")
+	r := NewRepo(sqlxDB)
 
 	for _, tc := range testCases {
 		t.Run(tc.Test, func(t *testing.T) {
@@ -792,7 +783,7 @@ func Test_GetTransactionsByUserId_Repo(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-	r, err := NewRepo(sqlxDB)
+	r := NewRepo(sqlxDB)
 	require.NoError(t, err, "creating the shared repo")
 
 	for _, tc := range testCases {
@@ -1404,8 +1395,7 @@ func Test_CreateTransactionSQLTransaction_Repo(t *testing.T) {
 
 			sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
-			r, err := NewRepo(sqlxDB)
-			require.NoError(t, err, "creating the shared repo")
+			r := NewRepo(sqlxDB)
 
 			mock.ExpectBegin()
 			tc.QueryExpectForSenderBalanceAmount(mock)

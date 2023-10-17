@@ -13,10 +13,10 @@ type beneficiaryHandler struct {
 	service Service
 }
 
-func NewBeneficiaryHandler(s Service) (*beneficiaryHandler, error) {
+func NewBeneficiaryHandler(s Service) *beneficiaryHandler {
 	return &beneficiaryHandler{
 		service: s,
-	}, nil
+	}
 }
 
 func (b beneficiaryHandler) GetBeneficiaries(writer http.ResponseWriter, request *http.Request) {

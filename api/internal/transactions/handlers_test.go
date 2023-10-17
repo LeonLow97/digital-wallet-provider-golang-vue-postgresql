@@ -102,8 +102,7 @@ func Test_GetTransactions_Handler(t *testing.T) {
 
 	// creating the mock service
 	mockService := mockService{}
-	transactionHandler, err := NewTransactionHandler(&mockService)
-	require.NoError(t, err, "getting transactionHandler with mockService in Transaction handler")
+	transactionHandler := NewTransactionHandler(&mockService)
 
 	for _, tc := range testCases {
 		t.Run(tc.Test, func(t *testing.T) {
@@ -195,8 +194,7 @@ func Test_CreateTransaction_Handler(t *testing.T) {
 
 	// creating the mock service
 	mockService := mockService{}
-	transactionHandler, err := NewTransactionHandler(&mockService)
-	require.NoError(t, err, "getting transactionHandler with mockService in Transaction handler")
+	transactionHandler := NewTransactionHandler(&mockService)
 
 	for _, tc := range testCases {
 		t.Run(tc.Test, func(t *testing.T) {

@@ -89,8 +89,7 @@ func Test_Login_Handler(t *testing.T) {
 
 	// creating the mock service
 	mockService := mockService{}
-	authHandler, err := NewAuthHandler(&mockService)
-	require.NoError(t, err, "getting authHandler with mockService in Login handler")
+	authHandler := NewAuthHandler(&mockService)
 
 	for _, tc := range testCases {
 		t.Run(tc.Test, func(t *testing.T) {

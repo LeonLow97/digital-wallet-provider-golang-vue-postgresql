@@ -17,10 +17,10 @@ type service struct {
 	repo Repo
 }
 
-func NewService(r Repo) (Service, error) {
+func NewService(r Repo) Service {
 	return &service{
 		repo: r,
-	}, nil
+	}
 }
 
 // Pagination on GetTransactions which returns a list of transactions

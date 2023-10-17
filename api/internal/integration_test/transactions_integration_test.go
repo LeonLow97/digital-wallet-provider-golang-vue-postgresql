@@ -10,10 +10,7 @@ import (
 )
 
 func TestIntegration_GetUserCountById(t *testing.T) {
-	testRepo, err := transactions.NewRepo(testDB)
-	if err != nil {
-		require.NoError(t, err)
-	}
+	testRepo := transactions.NewRepo(testDB)
 
 	count, err := testRepo.GetUserCountByUserId(context.Background(), 1)
 	if err != nil {
@@ -30,10 +27,7 @@ func TestIntegration_GetUserCountById(t *testing.T) {
 }
 
 func TestIntegration_GetUserIdByMobileNumber(t *testing.T) {
-	testRepo, err := transactions.NewRepo(testDB)
-	if err != nil {
-		require.NoError(t, err)
-	}
+	testRepo := transactions.NewRepo(testDB)
 
 	userId, err := testRepo.GetUserIdByMobileNumber(context.Background(), "+44 7712345678")
 	if err != nil {

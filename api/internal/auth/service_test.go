@@ -90,8 +90,7 @@ func Test_Login_Service(t *testing.T) {
 
 	// Creating a mock repository and a service with the mock repository
 	mockRepo := mockRepo{}
-	s, err := NewService(&mockRepo)
-	require.NoError(t, err, "getting service with mock repo in LoginService")
+	s := NewService(&mockRepo)
 
 	for _, tc := range testCases {
 		t.Run(tc.Test, func(t *testing.T) {

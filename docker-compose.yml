@@ -1,61 +1,42 @@
 version: '3.8'
 
 services:
-  # web:
-  #   image: leon-web
-  #   build:
-  #     context: ./web
-  #   volumes:
-  #     - ./web:/app
-  #     - node_modules:/app/node_modules
-  #   ports:
-  #     - 8080:8080
-  #   # links:
-  #   #   - api
-  #   networks:
-  #     - mobile-wallet-network
-  api:
-    image: leon-api
-    build:
-      context: ./api
-    volumes:
-      - ./api:/app
+  server:
+    build: ./server
     ports:
-      - 4000:4000
+      - 8080:8080
     restart: always
-    env_file:
-      - .env.development
-      # - .env.production
     depends_on:
       db:
         condition: service_healthy
-    # links:
-    #   - db
-    networks:
-      - mobile-wallet-network
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: mydb
+      SERVICE_PORT: 8080
+
   db:
-    image: leon-db
-    # docker restrict shared memory to 64MB
-    shm_size: 1g
-    build:
-      context: ./db
+    image: 'postgres:14.2'
+    ports:
+      - '5432:5432'
     restart: always
     environment:
-      - POSTGRES_DB=leon-db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    ports:
-      - 6432:5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydb
+    volumes:
+      # - postgres_mobile_wallet:/var/lib/postgresql/data
+      - ./server/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - mobile-wallet-network
-
-volumes:
-  node_modules:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 10s
+      timeout: 2s
 
 networks:
   mobile-wallet-network:
+
+volumes:
+  postgres_mobile_wallet:
+    name: postgres_mobile_wallet

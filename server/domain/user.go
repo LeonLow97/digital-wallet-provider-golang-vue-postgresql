@@ -12,7 +12,7 @@ type User struct {
 	Username string `db:"username"`
 	Email    string `db:"email"`
 	Password string `db:"password"`
-	Active   bool    `db:"active"`
+	Active   bool   `db:"active"`
 	Admin    bool   `db:"admin"`
 }
 

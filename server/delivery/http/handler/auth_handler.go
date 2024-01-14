@@ -25,8 +25,9 @@ func NewAuthHandler(router *mux.Router, uc domain.UserUsecase) {
 		AuthUseCase: uc,
 	}
 
-	router.HandleFunc("/login", handler.LoginHandler).Methods("POST")
-	router.HandleFunc("/signup", handler.SignUpHandler).Methods("POST")
+	router.HandleFunc("/login", handler.LoginHandler)
+	router.HandleFunc("/signup", handler.SignUpHandler).Methods(http.MethodPost)
+	router.HandleFunc("/logout", handler.LogoutHandler).Methods(http.MethodPost)
 }
 
 func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +64,7 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			Value:    token.AccessToken,
 			MaxAge:   3600,
 			Path:     "/",
-			Domain:   "mobilewallet.com",
+			Domain:   "localhost", // TODO: replace with config domain name
 			Secure:   false,
 			HttpOnly: true,
 		}
@@ -86,7 +87,7 @@ func (h *AuthHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
-		log.Println("error validating req struct in sign up handler", err)
+		log.Println("error validating req struct in sign up handler", errMessage)
 		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
@@ -103,4 +104,19 @@ func (h *AuthHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		utils.WriteNoContent(w, http.StatusOK)
 	}
+}
+
+func (h *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	cookie := &http.Cookie{
+		Name:     "mw-token",
+		Value:    "",
+		MaxAge:   -1,
+		Path:     "",
+		Domain:   "",
+		Secure:   false,
+		HttpOnly: true,
+	}
+	http.SetCookie(w, cookie)
+
+	utils.WriteNoContent(w, http.StatusOK)
 }

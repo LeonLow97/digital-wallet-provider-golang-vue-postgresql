@@ -8,6 +8,7 @@ import (
 	"regexp"
 
 	handlers "github.com/LeonLow97/go-clean-architecture/delivery/http/handler"
+	"github.com/LeonLow97/go-clean-architecture/delivery/http/middleware"
 	"github.com/LeonLow97/go-clean-architecture/repository"
 	"github.com/LeonLow97/go-clean-architecture/usecase"
 	"github.com/gorilla/mux"
@@ -24,6 +25,12 @@ func main() {
 	defer dbConn.Close()
 
 	r := mux.NewRouter()
+
+	r.Use(middleware.CorsMiddleware)
+
+	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Healthy!"))
+	}).Methods(http.MethodGet)
 
 	userRepo := repository.NewUserRepository(dbConn)
 	authUsecase := usecase.NewAuthUsecase(userRepo)

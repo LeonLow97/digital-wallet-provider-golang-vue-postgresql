@@ -53,8 +53,8 @@ const handleSubmit = async () => {
 
       alert('sign up!');
     }
-  } catch (error) {
-    alert(error.response.data.message);
+  } catch (error: any) {
+    alert(error.response?.data?.message || 'An unexpected error occurred');
   }
 };
 </script>

@@ -7,11 +7,11 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(60) NOT NULL,
     active INT NOT NULL DEFAULT 1,
     admin INT NOT NULL DEFAULT 0,
-    mobile_number VARCHAR(50) NOT NULL UNIQUE,
+    mobile_number VARCHAR(255) NOT NULL UNIQUE,
     creation_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE UNIQUE INDEX ON users(username);
+CREATE UNIQUE INDEX ON users(email);
 
 CREATE TABLE IF NOT EXISTS user_balance (
     id SERIAL PRIMARY KEY,
@@ -37,7 +37,8 @@ VALUES
 ('Alice', 'Tan', 'alice', 'alicetan@email.com', '$2a$10$CerQd299qowq2ck8k/EqQeB7Jpjd/4Cut/Df.f8jnq9kYsuG0W7zG', 1, 1, '+65 90399012', NOW()),
 ('Bob', 'Smith', 'bob', 'bobsmith@email.com', '$2a$10$MVLL5BT/nIQKk6OYbgzK7.fbT0XKMBtNdeoy64ihYUUhr8Ag6358u', 1, 1, '+65 89230122', NOW()),
 ('Charlie', 'Brown', 'charlie', 'charliebrown@email.com', '$2a$10$yKz0rguTzykTec4Bgke7LempFl/GQVTw9w9qEXfGUpI/XGK97VHFq', 1, 1, '+1 5551234567', NOW()),
-('David', 'Johnson', 'david', 'davidjohnson@email.com', '$2a$10$p444biF49.py2HOTVe5TSuUNAhSKqelEtlbLtZXghUh3o21Et7DNO', 1, 1, '+49 1234567890', NOW());
+('David', 'Johnson', 'david', 'davidjohnson@email.com', '$2a$10$p444biF49.py2HOTVe5TSuUNAhSKqelEtlbLtZXghUh3o21Et7DNO', 1, 1, '+49 1234567890', NOW()),
+('Leon', 'Low', 'leon', 'leonlow@email.com', '$2a$10$p444biF49.py2HOTVe5TSuUNAhSKqelEtlbLtZXghUh3o21Et7DNO', 1, 1, '+65 1234567890', NOW());
 
 INSERT INTO user_balance (user_id, balance, currency, country_iso_code, is_primary)
 VALUES

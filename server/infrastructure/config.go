@@ -1,4 +1,4 @@
-package bootstrap
+package infrastructure
 
 import "github.com/spf13/viper"
 

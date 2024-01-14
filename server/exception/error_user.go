@@ -3,10 +3,13 @@ package exception
 import "errors"
 
 var (
-	ErrUserNotFound = errors.New("User not found")
+	ErrUserNotFound = errors.New("user not found")
+	ErrUserFound    = errors.New("user already exists")
+
+	ErrInvalidPassword = errors.New("invalid password format")
 )
 
 var (
-	ErrInvalidCredentials = errors.New("Invalid credentials. Please try again.")
-	ErrInactiveUser       = errors.New("User is inactive. Please contact system administrator.")
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrInactiveUser       = errors.New("user is inactive")
 )

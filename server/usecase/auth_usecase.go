@@ -9,6 +9,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/domain"
 	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
+	"github.com/LeonLow97/go-clean-architecture/utils"
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -23,13 +24,13 @@ func NewAuthUsecase(userRepository domain.UserRepository) domain.UserUsecase {
 	}
 }
 
-func (uc *loginUsecase) Login(ctx context.Context, dto dto.LoginRequest) (*domain.User, *dto.Token, error) {
-	user, err := uc.userRepository.GetUserByEmail(ctx, dto.Email)
+func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, *dto.Token, error) {
+	user, err := uc.userRepository.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(dto.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	switch {
 	case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) || errors.Is(err, bcrypt.ErrHashTooShort):
 		return nil, nil, exception.ErrInvalidCredentials
@@ -41,13 +42,66 @@ func (uc *loginUsecase) Login(ctx context.Context, dto dto.LoginRequest) (*domai
 		return nil, nil, exception.ErrInactiveUser
 	}
 
-	token, err := generateJwtAccessTokenAndRefreshToken(user, time.Minute*20)
+	token, err := generateJwtAccessTokenAndRefreshToken(user, jwtTokenExpiry)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	return user, token, nil
+	resp := dto.LoginResponse{
+		Email:    user.Email,
+		Username: user.Username,
+	}
+
+	return &resp, token, nil
+}
+
+func (uc *loginUsecase) SignUp(ctx context.Context, req dto.SignUpRequest) error {
+	user, err := uc.userRepository.GetUserByEmailOrMobileNumber(ctx, req.Email, req.MobileNumber)
+	if err != nil {
+		if err != exception.ErrUserNotFound {
+			return err
+		}
+	}
+
+	// user already exist
+	if user != nil {
+		return exception.ErrUserFound
+	}
+
+	if !utils.IsValidPassword(req.Password) {
+		return exception.ErrInvalidPassword
+	}
+
+	hashedPasswordBytes, err := bcrypt.GenerateFromPassword([]byte(req.Password), 10)
+	if err != nil {
+		return err
+	}
+	req.Password = string(hashedPasswordBytes)
+
+	insertUser := domain.User{
+		Username:     req.Username,
+		Email:        req.Email,
+		Password:     req.Password,
+		MobileNumber: req.MobileNumber,
+	}
+
+	if req.FirstName != nil {
+		insertUser.FirstName = *req.FirstName
+	}
+	if req.LastName != nil {
+		insertUser.LastName = *req.LastName
+	}
+
+	// create one user
+	if err = uc.userRepository.InsertUser(ctx, &insertUser); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 var (
-	jwtTokenExpiry     = time.Minute * 15
+	jwtTokenExpiry     = time.Minute * 20
 	refreshTokenExpiry = time.Hour * 24
 	jwtSecretKey       = os.Getenv("JWT_SECRET_KEY")
 	issuer             = os.Getenv("API_DOMAIN")

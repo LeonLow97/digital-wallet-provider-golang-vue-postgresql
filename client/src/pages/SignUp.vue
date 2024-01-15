@@ -17,7 +17,7 @@
 import { ref } from 'vue';
 import TextInput from '@/components/TextInput.vue';
 import ActionButton from '@/components/ActionButton.vue';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 const firstName = ref('');
 const lastName = ref('');
@@ -53,8 +53,12 @@ const handleSubmit = async () => {
 
       alert('sign up!');
     }
-  } catch (error: any) {
-    alert(error.response?.data?.message || 'An unexpected error occurred');
+  } catch (error: unknown) {
+    if (error instanceof AxiosError) {
+      if (error.response) {
+        alert(error.response?.data?.message);
+      }
+    } else console.error('Unexpected error', error);
   }
 };
 </script>

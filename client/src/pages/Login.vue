@@ -5,9 +5,10 @@
       <text-input v-model.trim="email" placeholder="Email" />
       <text-input
         v-model.trim="password"
-        type="password"
+        :type="showPassword ? 'text' : 'password'"
         placeholder="Password"
       />
+      <input type="checkbox" v-model="showPassword" />
       <action-button text="Login" />
     </form>
     <router-link :to="{ name: 'SignUp' }"
@@ -20,7 +21,7 @@
 import { ref } from 'vue';
 import TextInput from '@/components/TextInput.vue';
 import ActionButton from '@/components/ActionButton.vue';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 
@@ -29,6 +30,8 @@ interface User {
   username: string;
   mobileNumber: string;
 }
+
+const showPassword = ref(false);
 
 const email = ref('');
 const password = ref('');
@@ -65,8 +68,12 @@ const handleSubmit = async () => {
 
       router.push({ name: 'Home' });
     }
-  } catch (error: any) {
-    alert(error.response?.data?.message || 'An unexpected error occurred');
+  } catch (error: unknown) {
+    if (error instanceof AxiosError) {
+      if (error.response) {
+        alert(error.response?.data?.message);
+      }
+    } else console.error('Unexpected error', error);
   }
 };
 </script>

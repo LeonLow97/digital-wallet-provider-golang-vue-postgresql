@@ -2,11 +2,14 @@
   <div>
     <h1>Login Page</h1>
     <form @submit.prevent="handleSubmit">
-      <text-input v-model.trim="email" placeholder="Email" />
+      <label for="email">Email</label>
+      <text-input id="email" v-model.trim="email" placeholder="Email" />
+      <label for="password">Password</label>
       <text-input
+        id="password"
         v-model.trim="password"
-        :type="showPassword ? 'text' : 'password'"
         placeholder="Password"
+        :type="showPassword ? 'text' : 'password'"
       />
       <input type="checkbox" v-model="showPassword" />
       <action-button text="Login" />
@@ -14,6 +17,7 @@
     <router-link :to="{ name: 'SignUp' }"
       >New here? Click to create an account!</router-link
     >
+    <span>Temporary message: {{ responseMessage }}</span>
   </div>
 </template>
 
@@ -21,44 +25,38 @@
 import { ref } from 'vue';
 import TextInput from '@/components/TextInput.vue';
 import ActionButton from '@/components/ActionButton.vue';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
-
-interface User {
-  email: string;
-  username: string;
-  mobileNumber: string;
-}
+import type { User } from '@/types/user';
+import postLogin from '@/api/user';
 
 const showPassword = ref(false);
 
 const email = ref('');
 const password = ref('');
 
+const responseMessage = ref('');
+
 const router = useRouter();
 const userStore = useUserStore();
 
 const handleSubmit = async () => {
   try {
-    const body = {
+    const body: { email: string; password: string } = {
       email: email.value,
       password: password.value,
     };
 
-    const response = await axios.post(
-      'http://localhost:8080/login',
-      JSON.stringify(body),
-      { withCredentials: true }
-    );
+    const { data, status } = await postLogin(body);
 
     const user: User = {
-      email: response?.data?.email,
-      username: response?.data?.username,
+      email: data?.email,
+      username: data?.username,
       mobileNumber: '',
     };
 
-    if (response.status === 200) {
+    if (status === 200) {
       email.value = '';
       password.value = '';
 
@@ -68,12 +66,14 @@ const handleSubmit = async () => {
 
       router.push({ name: 'Home' });
     }
-  } catch (error: unknown) {
+  } catch (error: any) {
     if (error instanceof AxiosError) {
       if (error.response) {
-        alert(error.response?.data?.message);
+        responseMessage.value = error.response?.data?.message;
       }
-    } else console.error('Unexpected error', error);
+    } else {
+      responseMessage.value = 'Unexpected error occurred';
+    }
   }
 };
 </script>

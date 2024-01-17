@@ -58,3 +58,24 @@ server
 - **init-db.sql**: Initialization script for setting up the database schema and initial data.
 - **tests**: Reserved for test files, including unit tests and integration tests.
 - **README.md**: Documentation file providing an overview of the project structure and usage.
+
+## Endpoints
+
+| Method | Endpoint                          | Description                                                                             | Completed |
+| :----: | --------------------------------- | --------------------------------------------------------------------------------------- | :-------: |
+|  POST  | `/api/users/register`             | Register a new user with required information like email, password and personal details |    [X]    |
+|  POST  | `/api/users/login`                | Authenticate a user and generate an access token for authentication                     |    [X]    |
+|  POST  | `/api/users/logout`               | Invalidate the user's access token, logging them out                                    |    [X]    |
+|  POST  | `/api/wallets`                    | Create a new wallet for a user                                                          |    [ ]    |
+|  GET   | `/api/wallets/{walletId}/balance` | Retrieve the balance of a user's wallet                                                 |    [ ]    |
+|  POST  | `/api/transactions/deposit`       | Deposit money into the user's wallet                                                    |    [ ]    |
+|  POST  | `/api/transactions/withdraw`      | Withdraw money from the user's wallet                                                   |    [ ]    |
+|  POST  | `/api/transactions/transfer`      | Transfer money between two user wallets                                                 |    [ ]    |
+|  GET   | `/api/transactions/history`       | Retrieve the transaction history for a user                                             |    [ ]    |
+|  GET   | `/api/users/profile`              | Retrieve the user's profile information                                                 |    [ ]    |
+|  PUT   | `/api/users/profile`              | Update the user's profile information                                                   |    [ ]    |
+|  PUT   | `/api/users/password`             | Change the user's password                                                              |    [ ]    |
+|  POST  | `/api/token/refresh`              | Request a new access token using a refresh token                                        |    [ ]    |
+|  POST  | `/api/exchange`                   | Allow users to exchange one currency for another                                        |    [ ]    |
+|  POST  | `/api/kyc`                        | Implement KYC processes for user verification                                           |    [ ]    |
+| DELETE | `/api/users/close`                | Close a user's account and deactivate the associated wallet                             |    [ ]    |

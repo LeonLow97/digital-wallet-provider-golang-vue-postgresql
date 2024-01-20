@@ -85,7 +85,7 @@ func WriteJSON(w http.ResponseWriter, status int, data interface{}, headers ...h
 }
 
 // WriteNoContent takes a response status code with no content
-func WriteNoContent(w http.ResponseWriter, status int, headers ...http.Header) error {
+func WriteNoContent(w http.ResponseWriter, status int, headers ...http.Header) {
 	if len(headers) > 0 {
 		for key, value := range headers[0] {
 			w.Header()[key] = value
@@ -94,8 +94,6 @@ func WriteNoContent(w http.ResponseWriter, status int, headers ...http.Header) e
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-
-	return nil
 }
 
 // ErrorJSON takes an error message, and optionally a status code, generates and sends an error response json

@@ -27,3 +27,9 @@ var (
 	ErrNoWalletsFound = "No wallets found."
 	ErrNoWalletFound  = "Wallet not found."
 )
+
+// Balance
+var (
+	ErrBalanceNotFound   = "Balance not found."
+	ErrInsufficientFunds = "The specified amount for withdrawal is more than the current balance amount. Please lower the withdrawal amount."
+)

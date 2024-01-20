@@ -107,7 +107,7 @@ func (h *WalletHandler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.CreateWalletRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Println("error decoding req body in create wallet handler")
+		log.Println("error decoding req body in create wallet handler", err)
 		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}

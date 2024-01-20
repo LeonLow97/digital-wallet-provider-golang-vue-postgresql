@@ -61,16 +61,16 @@ server
 
 ## Endpoints
 
-| Method | Endpoint                     | Description                                                                             | Completed |
-| :----: | ---------------------------- | --------------------------------------------------------------------------------------- | :-------: |
+| Method | Endpoint                        | Description                                                                             | Completed |
+| :----: | ------------------------------- | --------------------------------------------------------------------------------------- | :-------: |
 |  POST  | `/api/v1/users/register`        | Register a new user with required information like email, password and personal details |    [X]    |
 |  POST  | `/api/v1/users/login`           | Authenticate a user and generate an access token for authentication                     |    [X]    |
 |  POST  | `/api/v1/users/logout`          | Invalidate the user's access token, logging them out                                    |    [X]    |
-|  POST  | `/api/v1/wallets`               | Create a new wallet for a user                                                          |    [X]    |
-|  GET   | `/api/v1/wallets`               | Retrieve all wallets for a user                                                         |    [X]    |
-|  GET   | `/api/v1/v1/wallet`             | Retrieve one wallet for a user                                                          |    [X]    |
-|  POST  | `/api/v1/transactions/deposit`  | Deposit money into the user's wallet                                                    |    [ ]    |
-|  POST  | `/api/v1/transactions/withdraw` | Withdraw money from the user's wallet                                                   |    [ ]    |
+|  POST  | `/api/v1/wallet`                | Create a new wallet for a user                                                          |    [X]    |
+|  GET   | `/api/v1/wallet/all`            | Retrieve all wallets for a user                                                         |    [X]    |
+|  GET   | `/api/v1/wallet`                | Retrieve one wallet for a user                                                          |    [X]    |
+|  POST  | `/api/v1/balance/deposit`       | Deposit money into the user's wallet                                                    |    [X]    |
+|  POST  | `/api/v1/balance/withdraw`      | Withdraw money from the user's wallet                                                   |    [X]    |
 |  POST  | `/api/v1/transactions/transfer` | Transfer money between two user wallets                                                 |    [ ]    |
 |  GET   | `/api/v1/transactions/history`  | Retrieve the transaction history for a user                                             |    [ ]    |
 |  GET   | `/api/v1/users/profile`         | Retrieve the user's profile information                                                 |    [ ]    |

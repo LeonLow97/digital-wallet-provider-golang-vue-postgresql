@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
@@ -21,13 +20,11 @@ func NewWalletUsecase(walletRepository domain.WalletRepository) domain.WalletUse
 }
 
 func (uc *walletUsecase) GetWallet(ctx context.Context, userID, walletID int) (*dto.GetWalletResponse, error) {
-	fmt.Printf("user id: %d, wallet is: %d", userID, walletID)
 	wallet, err := uc.walletRepository.GetWallet(ctx, userID, walletID)
 	if err != nil {
 		log.Println("error getting one wallet", err)
 		return nil, err
 	}
-	fmt.Println("wallet", wallet)
 
 	return &dto.GetWalletResponse{
 		WalletID:  wallet.ID,
@@ -48,8 +45,6 @@ func (uc *walletUsecase) GetWallets(ctx context.Context, userID int) (*dto.GetWa
 	if len(wallets) == 0 {
 		return nil, exception.ErrNoWalletsFound
 	}
-
-	fmt.Println("retrieved wallets!", wallets)
 
 	resp := &dto.GetWalletsResponse{}
 	for _, w := range wallets {

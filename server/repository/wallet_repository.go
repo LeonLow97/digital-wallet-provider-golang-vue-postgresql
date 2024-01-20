@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
@@ -38,9 +37,6 @@ func (r *walletRepository) GetWallet(ctx context.Context, userID, walletID int) 
 			ON w.wallet_type_id = wt.id
 		WHERE w.user_id = $1 AND w.id = $2;
 	`
-
-	fmt.Println("Query -->", query)
-	fmt.Println("Args -->", userID, walletID)
 
 	var wallet domain.Wallet
 	err := r.db.QueryRowContext(ctx, query, userID, walletID).Scan(

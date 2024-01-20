@@ -17,10 +17,14 @@ type Wallet struct {
 }
 
 type WalletUsecase interface {
+	GetWallet(ctx context.Context, userID, walletID int) (*dto.GetWalletResponse, error)
+	GetWallets(ctx context.Context, userID int) (*dto.GetWalletsResponse, error)
 	CreateWallet(ctx context.Context, req dto.CreateWalletRequest) error
 }
 
 type WalletRepository interface {
+	GetWallet(ctx context.Context, userID, walletID int) (*Wallet, error)
+	GetWallets(ctx context.Context, userID int) ([]Wallet, error)
 	GetWalletTypes(ctx context.Context) (map[string]int, error)
 	CheckWalletExistsByUserID(ctx context.Context, userID int, walletType string) (int, error)
 	CreateWallet(ctx context.Context, wallet *Wallet) error

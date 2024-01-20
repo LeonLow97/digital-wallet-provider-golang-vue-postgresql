@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/LeonLow97/go-clean-architecture/delivery/http/middleware"
@@ -30,7 +31,68 @@ func NewWalletHandler(router *mux.Router, uc domain.WalletUsecase) {
 	walletRouter := router.PathPrefix("/wallet").Subrouter()
 	walletRouter.Use(middleware.AuthenticationMiddleware)
 
+	walletRouter.HandleFunc("/{id:[0-9]+}", handler.GetWallet).Methods(http.MethodGet)
+	walletRouter.HandleFunc("/all", handler.GetWallets).Methods(http.MethodGet)
 	walletRouter.HandleFunc("", handler.CreateWallet).Methods(http.MethodPost)
+}
+
+func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
+	// retrieve wallet id from url params
+	var walletID int
+	vars := mux.Vars(r)
+	if walletIDString, ok := vars["id"]; !ok {
+		log.Println("unable to get wallet id from url params")
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		return
+	} else {
+		id, err := strconv.Atoi(walletIDString)
+		if err != nil {
+			log.Println("Unable to convert wallet ID to string")
+			utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+			return
+		}
+		walletID = id
+	}
+
+	// retrieve user id from context
+	userID, ok := r.Context().Value(utils.UserIDKey).(int)
+	if !ok {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	resp, err := h.walletUseCase.GetWallet(ctx, userID, walletID)
+	switch {
+	case errors.Is(err, exception.ErrNoWalletFound):
+		utils.ErrorJSON(w, apiErr.ErrNoWalletFound, http.StatusNotFound)
+	case err != nil:
+		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+	default:
+		utils.WriteJSON(w, http.StatusOK, resp)
+	}
+}
+
+func (h *WalletHandler) GetWallets(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
+	// retrieve user id from context
+	userID, ok := r.Context().Value(utils.UserIDKey).(int)
+	if !ok {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	resp, err := h.walletUseCase.GetWallets(ctx, userID)
+	switch {
+	case errors.Is(err, exception.ErrNoWalletsFound):
+		utils.ErrorJSON(w, apiErr.ErrNoWalletsFound, http.StatusNotFound)
+	case err != nil:
+		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+	default:
+		utils.WriteJSON(w, http.StatusOK, resp)
+	}
 }
 
 func (h *WalletHandler) CreateWallet(w http.ResponseWriter, r *http.Request) {

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
@@ -17,6 +18,52 @@ func NewWalletUsecase(walletRepository domain.WalletRepository) domain.WalletUse
 	return &walletUsecase{
 		walletRepository: walletRepository,
 	}
+}
+
+func (uc *walletUsecase) GetWallet(ctx context.Context, userID, walletID int) (*dto.GetWalletResponse, error) {
+	fmt.Printf("user id: %d, wallet is: %d", userID, walletID)
+	wallet, err := uc.walletRepository.GetWallet(ctx, userID, walletID)
+	if err != nil {
+		log.Println("error getting one wallet", err)
+		return nil, err
+	}
+	fmt.Println("wallet", wallet)
+
+	return &dto.GetWalletResponse{
+		WalletID:  wallet.ID,
+		Type:      wallet.Type,
+		TypeID:    wallet.TypeID,
+		Balance:   wallet.Balance,
+		Currency:  wallet.Currency,
+		CreatedAt: wallet.CreatedAt,
+	}, nil
+}
+
+func (uc *walletUsecase) GetWallets(ctx context.Context, userID int) (*dto.GetWalletsResponse, error) {
+	wallets, err := uc.walletRepository.GetWallets(ctx, userID)
+	if err != nil {
+		log.Println("error getting wallets", err)
+		return nil, err
+	}
+	if len(wallets) == 0 {
+		return nil, exception.ErrNoWalletsFound
+	}
+
+	fmt.Println("retrieved wallets!", wallets)
+
+	resp := &dto.GetWalletsResponse{}
+	for _, w := range wallets {
+		wallet := dto.GetWalletResponse{
+			WalletID:  w.ID,
+			Type:      w.Type,
+			TypeID:    w.TypeID,
+			Balance:   w.Balance,
+			Currency:  w.Currency,
+			CreatedAt: w.CreatedAt,
+		}
+		resp.Wallets = append(resp.Wallets, wallet)
+	}
+	return resp, nil
 }
 
 func (uc *walletUsecase) CreateWallet(ctx context.Context, req dto.CreateWalletRequest) error {

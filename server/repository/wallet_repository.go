@@ -2,9 +2,12 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
+	"github.com/LeonLow97/go-clean-architecture/exception"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -16,6 +19,71 @@ func NewWalletRepository(db *sqlx.DB) domain.WalletRepository {
 	return &walletRepository{
 		db: db,
 	}
+}
+
+func (r *walletRepository) GetWallet(ctx context.Context, userID, walletID int) (*domain.Wallet, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
+	query := `
+		SELECT
+			w.id AS id,
+			wt.type AS type,
+			wt.id AS type_id,
+			w.balance,
+			w.currency,
+			w.created_at
+		FROM wallets w
+		JOIN wallet_types wt
+			ON w.wallet_type_id = wt.id
+		WHERE w.user_id = $1 AND w.id = $2;
+	`
+
+	fmt.Println("Query -->", query)
+	fmt.Println("Args -->", userID, walletID)
+
+	var wallet domain.Wallet
+	err := r.db.QueryRowContext(ctx, query, userID, walletID).Scan(
+		&wallet.ID,
+		&wallet.Type,
+		&wallet.TypeID,
+		&wallet.Balance,
+		&wallet.Currency,
+		&wallet.CreatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, exception.ErrNoWalletFound
+		}
+	}
+	return &wallet, nil
+}
+
+func (r *walletRepository) GetWallets(ctx context.Context, userID int) ([]domain.Wallet, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
+	query := `
+		SELECT
+			w.id AS id,
+			wt.type AS type,
+			wt.id AS type_id,
+			w.balance,
+			w.currency,
+			w.created_at
+		FROM wallets w
+		JOIN wallet_types wt
+			ON w.wallet_type_id = wt.id
+		WHERE w.user_id = $1;
+	`
+
+	var wallets []domain.Wallet
+	err := r.db.SelectContext(ctx, &wallets, query, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return wallets, nil
 }
 
 func (r *walletRepository) GetWalletTypes(ctx context.Context) (map[string]int, error) {

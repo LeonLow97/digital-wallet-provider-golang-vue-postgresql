@@ -23,4 +23,7 @@ var (
 var (
 	ErrWalletTypeInvalid   = "Wallet type is invalid. Please try another wallet type."
 	ErrWalletAlreadyExists = "The wallet you are trying to create already exist. Please try again."
+
+	ErrNoWalletsFound = "No wallets found."
+	ErrNoWalletFound = "Wallet not found."
 )

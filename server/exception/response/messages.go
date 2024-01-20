@@ -1,10 +1,13 @@
 package apiErr
 
+// Generic
 var (
 	ErrBadRequest          = "Bad Request"
 	ErrInternalServerError = "Internal Server Error"
+	ErrUnauthorized        = "Unauthorized"
 )
 
+// User
 var (
 	ErrInvalidCredentials = "Invalid Credentials. Please try again."
 	ErrInactiveUser       = "User is inactive. Please contact the system administrator"
@@ -14,4 +17,10 @@ var (
 	ErrInvalidPassword = `Invalid Password Format. Password must contain at least one lowercase 
 						letter, one uppercase letter, one numeric digit, one special character, 
 						and have a minimum length of 8 characters.`
+)
+
+// Wallet
+var (
+	ErrWalletTypeInvalid   = "Wallet type is invalid. Please try another wallet type."
+	ErrWalletAlreadyExists = "The wallet you are trying to create already exist. Please try again."
 )

@@ -25,12 +25,12 @@ func NewAuthHandler(router *mux.Router, uc domain.UserUsecase) {
 		AuthUseCase: uc,
 	}
 
-	router.HandleFunc("/login", handler.LoginHandler)
-	router.HandleFunc("/signup", handler.SignUpHandler).Methods(http.MethodPost)
-	router.HandleFunc("/logout", handler.LogoutHandler).Methods(http.MethodPost)
+	router.HandleFunc("/login", handler.Login).Methods(http.MethodPost)
+	router.HandleFunc("/signup", handler.SignUp).Methods(http.MethodPost)
+	router.HandleFunc("/logout", handler.Logout).Methods(http.MethodPost)
 }
 
-func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	var req dto.LoginRequest
@@ -73,7 +73,7 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *AuthHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	var req dto.SignUpRequest
@@ -106,7 +106,7 @@ func (h *AuthHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie := &http.Cookie{
 		Name:     "mw-token",
 		Value:    "",

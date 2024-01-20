@@ -25,6 +25,7 @@ func main() {
 	defer dbConn.Close()
 
 	r := mux.NewRouter()
+	r = r.PathPrefix("/api/v1").Subrouter() // api versioning v1
 
 	r.Use(middleware.CorsMiddleware)
 
@@ -35,6 +36,10 @@ func main() {
 	userRepo := repository.NewUserRepository(dbConn)
 	authUsecase := usecase.NewAuthUsecase(userRepo)
 	handlers.NewAuthHandler(r, authUsecase)
+
+	walletRepo := repository.NewWalletRepository(dbConn)
+	walletUsecase := usecase.NewWalletUsecase(walletRepo)
+	handlers.NewWalletHandler(r, walletUsecase)
 
 	port := os.Getenv("SERVICE_PORT")
 	log.Println("Server is running on port", port)

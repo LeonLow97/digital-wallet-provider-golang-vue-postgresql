@@ -17,7 +17,6 @@ type Production struct {
 	URL string `mapstructure:"url"`
 }
 
-
 func LoadConfig(environment string) (*Config, error) {
 	// using `viper` library to simplify configuration management
 	viper.SetConfigName("config")

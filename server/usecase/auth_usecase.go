@@ -10,7 +10,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	"github.com/LeonLow97/go-clean-architecture/utils"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -101,7 +101,7 @@ func (uc *loginUsecase) SignUp(ctx context.Context, req dto.SignUpRequest) error
 }
 
 var (
-	jwtTokenExpiry     = time.Minute * 20
+	jwtTokenExpiry     = time.Hour * 99999 // for development
 	refreshTokenExpiry = time.Hour * 24
 	jwtSecretKey       = os.Getenv("JWT_SECRET_KEY")
 	issuer             = os.Getenv("API_DOMAIN")

@@ -13,22 +13,45 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE UNIQUE INDEX ON users(email);
 
-CREATE TABLE IF NOT EXISTS user_balance (
-    id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL,
-    balance DECIMAL(20,2) NOT NULL,
-    currency CHAR(3) NOT NULL,
-    country_iso_code CHAR(3) NOT NULL,
-    is_primary INT NOT NULL DEFAULT 0,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-
 CREATE TABLE IF NOT EXISTS user_beneficiary (
     user_id INT NOT NULL,
     beneficiary_id INT NOT NULL,
     PRIMARY KEY (user_id, beneficiary_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (beneficiary_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS wallet_types (
+    id SERIAL PRIMARY KEY,
+    type VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS wallets (
+    id SERIAL PRIMARY KEY,
+    balance DECIMAL(20,2) NOT NULL,
+    currency CHAR(3) NOT NULL,
+    wallet_type_id INT REFERENCES wallet_types(id) ON DELETE CASCADE,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS transactions (
+    id SERIAL PRIMARY KEY,
+    sender_wallet_id INT REFERENCES wallets(id) ON DELETE CASCADE,
+    beneficiary_wallet_id INT REFERENCES wallets(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    amount DECIMAL(20,2) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+-- temporary table (remove when connected to real Exchange Rate API)
+CREATE TABLE IF NOT EXISTS exchange_rates (
+    currency_from VARCHAR(5) NOT NULL,
+    currency_to VARCHAR(5) NOT NULL,
+    rate DECIMAL(18, 6) NOT NULL,
+    PRIMARY KEY (currency_from, currency_to)
 );
 
 
@@ -40,13 +63,9 @@ VALUES
 ('David', 'Johnson', 'david', 'davidjohnson@email.com', '$2a$10$p444biF49.py2HOTVe5TSuUNAhSKqelEtlbLtZXghUh3o21Et7DNO', 1, 1, '+49 1234567890', NOW()),
 ('Leon', 'Low', 'leon', 'leonlow@email.com', '$2a$10$p444biF49.py2HOTVe5TSuUNAhSKqelEtlbLtZXghUh3o21Et7DNO', 1, 1, '+65 1234567890', NOW());
 
-INSERT INTO user_balance (user_id, balance, currency, country_iso_code, is_primary)
-VALUES
-(1, 70000.00, 'SGD', 'SG', 1),
-(2, 15000.00, 'SGD', 'SG', 1),
-(3, 78000.00, 'USD', 'US', 1),
-(4, 4700.00, 'EUR', 'FR', 1);
-
 INSERT INTO user_beneficiary (user_id, beneficiary_id)
 VALUES
 (1,2),(1,3),(1,4),(2,1),(2,3),(3,2),(3,4),(4,1);
+
+INSERT INTO wallet_types (type)
+VALUES ('personal'), ('savings'), ('investment'), ('business');

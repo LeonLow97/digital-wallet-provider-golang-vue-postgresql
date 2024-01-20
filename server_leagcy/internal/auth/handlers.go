@@ -11,7 +11,7 @@ type authHandler struct {
 	service Service
 }
 
-func NewAuthHandler(s Service) (*authHandler) {
+func NewAuthHandler(s Service) *authHandler {
 	return &authHandler{
 		service: s,
 	}

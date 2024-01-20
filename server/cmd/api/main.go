@@ -41,6 +41,10 @@ func main() {
 	walletUsecase := usecase.NewWalletUsecase(walletRepo)
 	handlers.NewWalletHandler(r, walletUsecase)
 
+	transactionRepo := repository.NewTransactionRepository(dbConn)
+	transactionUsecase := usecase.NewTransactionUsecase(transactionRepo)
+	handlers.NewTransactionHandler(r, transactionUsecase)
+
 	port := os.Getenv("SERVICE_PORT")
 	log.Println("Server is running on port", port)
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), r); err != nil {

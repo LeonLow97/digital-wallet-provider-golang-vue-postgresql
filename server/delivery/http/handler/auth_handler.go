@@ -17,12 +17,12 @@ import (
 )
 
 type AuthHandler struct {
-	AuthUseCase domain.UserUsecase
+	authUseCase domain.UserUsecase
 }
 
 func NewAuthHandler(router *mux.Router, uc domain.UserUsecase) {
 	handler := &AuthHandler{
-		AuthUseCase: uc,
+		authUseCase: uc,
 	}
 
 	router.HandleFunc("/login", handler.Login).Methods(http.MethodPost)
@@ -49,7 +49,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	req.LoginSanitize()
 
-	resp, token, err := h.AuthUseCase.Login(ctx, req)
+	resp, token, err := h.authUseCase.Login(ctx, req)
 	switch {
 	case errors.Is(err, exception.ErrUserNotFound) || errors.Is(err, exception.ErrInvalidCredentials):
 		utils.ErrorJSON(w, apiErr.ErrInvalidCredentials, http.StatusUnauthorized)
@@ -92,7 +92,7 @@ func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.AuthUseCase.SignUp(ctx, req)
+	err = h.authUseCase.SignUp(ctx, req)
 	switch {
 	case errors.Is(err, exception.ErrUserFound):
 		utils.ErrorJSON(w, apiErr.ErrUserFound, http.StatusBadRequest)

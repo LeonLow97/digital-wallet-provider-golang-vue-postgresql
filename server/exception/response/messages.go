@@ -25,5 +25,5 @@ var (
 	ErrWalletAlreadyExists = "The wallet you are trying to create already exist. Please try again."
 
 	ErrNoWalletsFound = "No wallets found."
-	ErrNoWalletFound = "Wallet not found."
+	ErrNoWalletFound  = "Wallet not found."
 )

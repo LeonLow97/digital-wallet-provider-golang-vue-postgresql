@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS users (
     active INT NOT NULL DEFAULT 1,
     admin INT NOT NULL DEFAULT 0,
     mobile_number VARCHAR(255) NOT NULL UNIQUE,
-    creation_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
 );
 
 CREATE UNIQUE INDEX ON users(email);
@@ -36,6 +37,15 @@ CREATE TABLE IF NOT EXISTS wallets (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS balances (
+    id SERIAL PRIMARY KEY,
+    balance DECIMAL(20,2) NOT NULL,
+    currency CHAR(3) NOT NULL,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS transactions (
     id SERIAL PRIMARY KEY,
     sender_wallet_id INT REFERENCES wallets(id) ON DELETE CASCADE,
@@ -54,8 +64,7 @@ CREATE TABLE IF NOT EXISTS exchange_rates (
     PRIMARY KEY (currency_from, currency_to)
 );
 
-
-INSERT INTO users (first_name, last_name, username, email, password, active, admin, mobile_number, creation_date) 
+INSERT INTO users (first_name, last_name, username, email, password, active, admin, mobile_number, created_at) 
 VALUES
 ('Alice', 'Tan', 'alice', 'alicetan@email.com', '$2a$10$CerQd299qowq2ck8k/EqQeB7Jpjd/4Cut/Df.f8jnq9kYsuG0W7zG', 1, 1, '+65 90399012', NOW()),
 ('Bob', 'Smith', 'bob', 'bobsmith@email.com', '$2a$10$MVLL5BT/nIQKk6OYbgzK7.fbT0XKMBtNdeoy64ihYUUhr8Ag6358u', 1, 1, '+65 89230122', NOW()),

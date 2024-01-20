@@ -45,6 +45,10 @@ func main() {
 	transactionUsecase := usecase.NewTransactionUsecase(transactionRepo)
 	handlers.NewTransactionHandler(r, transactionUsecase)
 
+	balanceRepo := repository.NewBalanceRepository(dbConn)
+	balanceUsecase := usecase.NewBalanceUsecase(balanceRepo)
+	handlers.NewBalanceHandler(r, balanceUsecase)
+
 	port := os.Getenv("SERVICE_PORT")
 	log.Println("Server is running on port", port)
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), r); err != nil {

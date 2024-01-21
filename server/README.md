@@ -69,6 +69,7 @@ server
 |  POST  | `/api/v1/wallet`                | Create a new wallet for a user                                                          |    [X]    |
 |  GET   | `/api/v1/wallet/all`            | Retrieve all wallets for a user                                                         |    [X]    |
 |  GET   | `/api/v1/wallet`                | Retrieve one wallet for a user                                                          |    [X]    |
+|  PUT   | `/api/v1/wallet`                | Update balance amount for one wallet for a user                                         |    [X]    |
 |  POST  | `/api/v1/balance/deposit`       | Deposit money into the user's wallet                                                    |    [X]    |
 |  POST  | `/api/v1/balance/withdraw`      | Withdraw money from the user's wallet                                                   |    [X]    |
 |  POST  | `/api/v1/transactions/transfer` | Transfer money between two user wallets                                                 |    [ ]    |

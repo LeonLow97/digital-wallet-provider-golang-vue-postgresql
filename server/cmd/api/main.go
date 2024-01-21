@@ -37,17 +37,17 @@ func main() {
 	authUsecase := usecase.NewAuthUsecase(userRepo)
 	handlers.NewAuthHandler(r, authUsecase)
 
+	balanceRepo := repository.NewBalanceRepository(dbConn)
+	balanceUsecase := usecase.NewBalanceUsecase(balanceRepo)
+	handlers.NewBalanceHandler(r, balanceUsecase)
+
 	walletRepo := repository.NewWalletRepository(dbConn)
-	walletUsecase := usecase.NewWalletUsecase(walletRepo)
+	walletUsecase := usecase.NewWalletUsecase(walletRepo, balanceRepo)
 	handlers.NewWalletHandler(r, walletUsecase)
 
 	transactionRepo := repository.NewTransactionRepository(dbConn)
 	transactionUsecase := usecase.NewTransactionUsecase(transactionRepo)
 	handlers.NewTransactionHandler(r, transactionUsecase)
-
-	balanceRepo := repository.NewBalanceRepository(dbConn)
-	balanceUsecase := usecase.NewBalanceUsecase(balanceRepo)
-	handlers.NewBalanceHandler(r, balanceUsecase)
 
 	port := os.Getenv("SERVICE_PORT")
 	log.Println("Server is running on port", port)

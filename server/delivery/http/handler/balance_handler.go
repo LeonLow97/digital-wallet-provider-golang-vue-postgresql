@@ -85,7 +85,7 @@ func (h *BalanceHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, exception.ErrBalanceNotFound):
 		utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
 	case errors.Is(err, exception.ErrInsufficientFunds):
-		utils.ErrorJSON(w, apiErr.ErrInsufficientFunds, http.StatusBadRequest)
+		utils.ErrorJSON(w, apiErr.ErrInsufficientFundsForWithdrawal, http.StatusBadRequest)
 	case err != nil:
 		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 	default:

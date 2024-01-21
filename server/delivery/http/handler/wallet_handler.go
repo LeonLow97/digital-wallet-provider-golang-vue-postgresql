@@ -34,6 +34,7 @@ func NewWalletHandler(router *mux.Router, uc domain.WalletUsecase) {
 	walletRouter.HandleFunc("/{id:[0-9]+}", handler.GetWallet).Methods(http.MethodGet)
 	walletRouter.HandleFunc("/all", handler.GetWallets).Methods(http.MethodGet)
 	walletRouter.HandleFunc("", handler.CreateWallet).Methods(http.MethodPost)
+	walletRouter.HandleFunc("", handler.UpdateWallet).Methods(http.MethodPatch)
 }
 
 func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {
@@ -125,13 +126,62 @@ func (h *WalletHandler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 
 	err = h.walletUseCase.CreateWallet(ctx, req)
 	switch {
+	case errors.Is(err, exception.ErrBalanceNotFound):
+		utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
 	case errors.Is(err, exception.ErrWalletTypeInvalid):
 		utils.ErrorJSON(w, apiErr.ErrWalletTypeInvalid, http.StatusBadRequest)
 	case errors.Is(err, exception.ErrWalletAlreadyExists):
 		utils.ErrorJSON(w, apiErr.ErrWalletAlreadyExists, http.StatusBadRequest)
+	case errors.Is(err, exception.ErrInsufficientFunds):
+		utils.ErrorJSON(w, apiErr.ErrInsufficientFundsInAccount, http.StatusBadRequest)
 	case err != nil:
 		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 	default:
 		utils.WriteNoContent(w, http.StatusCreated)
+	}
+}
+
+func (h *WalletHandler) UpdateWallet(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
+	// retrieve user id from context
+	userID, ok := r.Context().Value(utils.UserIDKey).(int)
+	if !ok {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	var req dto.UpdateWalletRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Println("error decoding req body in create wallet handler", err)
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		return
+	}
+
+	errMessage, err := infrastructure.ValidateStruct(req)
+	if err != nil {
+		log.Println("error validating req struct in create wallet handler", err)
+		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		return
+	}
+
+	req.Type = strings.ToLower(req.Type)
+	req.UserID = userID
+	req.UpdateWalletSanitize()
+
+	resp, err := h.walletUseCase.UpdateWallet(ctx, req)
+	switch {
+	case errors.Is(err, exception.ErrNoWalletFound):
+		utils.ErrorJSON(w, apiErr.ErrNoWalletFound, http.StatusNotFound)
+	case errors.Is(err, exception.ErrBalanceNotFound):
+		utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
+	case errors.Is(err, exception.ErrInsufficientFundsForWithdrawal):
+		utils.ErrorJSON(w, apiErr.ErrInsufficientFundsForWithdrawalFromWallet, http.StatusBadRequest)
+	case errors.Is(err, exception.ErrInsufficientFundsForDeposit):
+		utils.ErrorJSON(w, apiErr.ErrInsufficientFundsForDepositToWallet, http.StatusBadRequest)
+	case err != nil:
+		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+	default:
+		utils.WriteJSON(w, http.StatusOK, resp)
 	}
 }

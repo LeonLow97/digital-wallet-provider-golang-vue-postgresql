@@ -8,4 +8,7 @@ var (
 
 	ErrNoWalletsFound = errors.New("no wallets found for this user")
 	ErrNoWalletFound  = errors.New("no wallet found for this user")
+
+	ErrInsufficientFundsForWithdrawal = errors.New("wallet has insufficient funds for withdrawal")
+	ErrInsufficientFundsForDeposit    = errors.New("insufficient funds in account to top up wallet")
 )

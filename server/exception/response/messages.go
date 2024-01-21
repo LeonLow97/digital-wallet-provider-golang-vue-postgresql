@@ -26,10 +26,15 @@ var (
 
 	ErrNoWalletsFound = "No wallets found."
 	ErrNoWalletFound  = "Wallet not found."
+
+	ErrInsufficientFundsInAccount = "Insufficient funds in account. Please top up."
+
+	ErrInsufficientFundsForWithdrawalFromWallet = "Unable to withdraw as the specified amount is higher than the amount in the wallet. Please reduce the amount."
+	ErrInsufficientFundsForDepositToWallet      = "Unable to deposit because the account balance is lower than the specified amount. Please top up your balance."
 )
 
 // Balance
 var (
-	ErrBalanceNotFound   = "Balance not found."
-	ErrInsufficientFunds = "The specified amount for withdrawal is more than the current balance amount. Please lower the withdrawal amount."
+	ErrBalanceNotFound                = "Balance not found. Please deposit to create a new balance."
+	ErrInsufficientFundsForWithdrawal = "The specified amount for withdrawal is more than the current balance amount. Please lower the withdrawal amount."
 )

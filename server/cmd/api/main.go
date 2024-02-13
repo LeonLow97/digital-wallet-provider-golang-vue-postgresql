@@ -9,6 +9,7 @@ import (
 
 	handlers "github.com/LeonLow97/go-clean-architecture/delivery/http/handler"
 	"github.com/LeonLow97/go-clean-architecture/delivery/http/middleware"
+	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/repository"
 	"github.com/LeonLow97/go-clean-architecture/usecase"
 	"github.com/gorilla/mux"
@@ -24,6 +25,13 @@ func main() {
 	}
 	defer dbConn.Close()
 
+	redisClient := infrastructure.NewRedisClient()
+	defer func() {
+		if err := redisClient.Close(); err != nil {
+			log.Fatalln("error closing redis client", err)
+		}
+	}()
+
 	r := mux.NewRouter()
 	r = r.PathPrefix("/api/v1").Subrouter() // api versioning v1
 
@@ -34,7 +42,7 @@ func main() {
 	}).Methods(http.MethodGet)
 
 	userRepo := repository.NewUserRepository(dbConn)
-	authUsecase := usecase.NewAuthUsecase(userRepo)
+	authUsecase := usecase.NewAuthUsecase(userRepo, redisClient)
 	handlers.NewAuthHandler(r, authUsecase)
 
 	balanceRepo := repository.NewBalanceRepository(dbConn)

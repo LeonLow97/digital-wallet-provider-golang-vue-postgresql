@@ -4,32 +4,46 @@ import (
 	"context"
 	"errors"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
 	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
+	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/utils"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type loginUsecase struct {
+	redisClient    infrastructure.RedisClient
 	userRepository domain.UserRepository
 }
 
-func NewAuthUsecase(userRepository domain.UserRepository) domain.UserUsecase {
+func NewAuthUsecase(userRepository domain.UserRepository, redisClient infrastructure.RedisClient) domain.UserUsecase {
 	return &loginUsecase{
+		redisClient:    redisClient,
 		userRepository: userRepository,
 	}
 }
 
+var (
+	jwtTokenExpiry     = time.Hour * 99999 // for development
+	refreshTokenExpiry = time.Hour * 24
+	jwtSecretKey       = os.Getenv("JWT_SECRET_KEY")
+	issuer             = os.Getenv("API_DOMAIN")
+)
+
 func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, *dto.Token, error) {
+	// retrieve user details from db
 	user, err := uc.userRepository.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, nil, err
 	}
 
+	// authenticating user via password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	switch {
 	case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) || errors.Is(err, bcrypt.ErrHashTooShort):
@@ -38,14 +52,37 @@ func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 		return nil, nil, err
 	}
 
+	// checking if user is active
 	if !user.Active {
 		return nil, nil, exception.ErrInactiveUser
 	}
 
-	token, err := generateJwtAccessTokenAndRefreshToken(user, jwtTokenExpiry)
+	// generate session token with uuid
+	sessionID := uuid.New().String()
+
+	// generate access token and refresh token
+	token, err := generateJwtAccessTokenAndRefreshToken(user, jwtTokenExpiry, sessionID)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	// storing sessionID => userID mapping
+	if err := uc.redisClient.Set(ctx, sessionID, user.ID); err != nil {
+		return nil, nil, err
+	}
+
+	// storing userID => sessionID mapping in Redis Set to keep track of users with multiple devices logged on
+	userIDString := strconv.Itoa(user.ID)
+	if err := uc.redisClient.SAdd(ctx, userIDString, sessionID); err != nil {
+		return nil, nil, err
+	}
+
+	// storing sessionID => sessionObject mapping
+	// TODO: Store roles, permissions, emails in sessionObject
+	// sessionObjectBytes, _ := json.Marshal(user)
+	// if err := uc.redisClient.Set(ctx, sessionID, sessionObjectBytes); err != nil {
+	// 	return nil, nil, err
+	// }
 
 	resp := dto.LoginResponse{
 		Email:    user.Email,
@@ -100,15 +137,8 @@ func (uc *loginUsecase) SignUp(ctx context.Context, req dto.SignUpRequest) error
 	return nil
 }
 
-var (
-	jwtTokenExpiry     = time.Hour * 99999 // for development
-	refreshTokenExpiry = time.Hour * 24
-	jwtSecretKey       = os.Getenv("JWT_SECRET_KEY")
-	issuer             = os.Getenv("API_DOMAIN")
-)
-
 // generateToken gives a secure token and returns it with claims
-func generateJwtAccessTokenAndRefreshToken(user *domain.User, ttl time.Duration) (*dto.Token, error) {
+func generateJwtAccessTokenAndRefreshToken(user *domain.User, ttl time.Duration, sessionID string) (*dto.Token, error) {
 	// create the token
 	token := jwt.New(jwt.SigningMethodHS256)
 
@@ -119,6 +149,7 @@ func generateJwtAccessTokenAndRefreshToken(user *domain.User, ttl time.Duration)
 	claims["aud"] = issuer // audience
 	claims["iss"] = issuer // issuer (assigned to claims.Issuer)
 	claims["admin"] = 0
+	claims["sessionID"] = sessionID
 	if user.Admin {
 		claims["admin"] = true
 	}

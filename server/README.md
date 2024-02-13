@@ -81,3 +81,48 @@ server
 |  POST  | `/api/v1/exchange`              | Allow users to exchange one currency for another                                        |    [ ]    |
 |  POST  | `/api/v1/kyc`                   | Implement KYC processes for user verification                                           |    [ ]    |
 | DELETE | `/api/v1/users/close`           | Close a user's account and deactivate the associated wallet                             |    [ ]    |
+
+# Authentication
+
+## User Authentication Flow
+
+1. User Authentication
+    - The user signs into the application using their credentials.
+    - The server authenticates the user by querying the database.
+2. Session Creation:
+    - Upon successful authentication, the server generates a unique session ID (uuid).
+    - The server stores the session data in the Redis cluster.
+    - Simultaneously, the server creates a JWT session token that includes the session ID.
+3. Token Delivery to Client
+    - The server sends back the JWT Token to the client.
+    - The token is typically included in the Authorization header or a secure Authorization cookie. 
+4. Subsequent Requests
+    - When the client makes another API call, it includes the JWT Token in the request.
+5. Token Validation:
+    - Upon receiving the request, the server validates the JWT Token using the stored secret key.
+    - If the validation is successful, the server extracts the session ID from the JWT Token.
+6. Session Data Retrieval
+    - Using the extracted session ID, the server retrieves the corresponding session data from Redis.
+7. Response Handling
+    - If the session is valid and the requested resource exists, the server responds with the requested resource.
+    - If the session is invalid or the authentication fails, the server responds with a 401 Unauthorized error.
+
+## Session Validation with JWT Token and Redis
+
+---
+
+### Server Side Flow with Redis
+
+1. User login with the credentials.
+2. If unsuccessful login, return HTTP Status 401 Unauthorized.
+3. If successful login, generate JWT Access Token and Refresh Token. Generate a session ID (uuid) and store it in the JWT Token.
+4. Store sessionID --> userID mapping in Redis using `Set` so we know this sessionID belongs to this userID.
+   - When the user logs out, delete this sessionID to invalidate the session.
+5. Store userID --> sessionID mapping in Redis Set using `SAdd` because the user can have multiple sessions on different devices.
+   - If the user changes/resets password, clear all the sessions in the Redis Set to invalidate all the sessions and the user will be logged out of all devices.
+6. Store sessionID --> sessionObject mapping in Redis using `Set`
+   - When the user changes his preferences or has new roles assigned, this change will be reflected because the data is stored on the server side (Redis).
+   - By storing the data on the server side instead of the JWT Token, we have full control over critical session data and nobody can tamper with it.
+   - If the data is stored on JWT Token, and the user accesses the application on multiple devices, the data will become stale as the user makes changes on other devices.
+
+---

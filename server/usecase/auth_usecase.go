@@ -30,7 +30,7 @@ func NewAuthUsecase(userRepository domain.UserRepository, redisClient infrastruc
 }
 
 var (
-	jwtTokenExpiry     = time.Hour * 99999 // for development
+	accessTokenExpiry  = time.Hour * 99999 // TODO: for development, reset to 15 minutes for PROD
 	refreshTokenExpiry = time.Hour * 24
 	jwtSecretKey       = os.Getenv("JWT_SECRET_KEY")
 	issuer             = os.Getenv("API_DOMAIN")
@@ -61,9 +61,17 @@ func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 	sessionID := uuid.New().String()
 
 	// generate access token and refresh token
-	token, err := generateJwtAccessTokenAndRefreshToken(user, jwtTokenExpiry, sessionID)
+	accessToken, err := generateJWTAccessToken(user, accessTokenExpiry, sessionID)
 	if err != nil {
 		return nil, nil, err
+	}
+	refreshToken, err := generateJWTRefreshToken(user, refreshTokenExpiry, sessionID)
+	if err != nil {
+		return nil, nil, err
+	}
+	token := &dto.Token{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}
 
 	// storing sessionID => userID mapping
@@ -137,8 +145,28 @@ func (uc *loginUsecase) SignUp(ctx context.Context, req dto.SignUpRequest) error
 	return nil
 }
 
-// generateToken gives a secure token and returns it with claims
-func generateJwtAccessTokenAndRefreshToken(user *domain.User, ttl time.Duration, sessionID string) (*dto.Token, error) {
+func (uc *loginUsecase) RemoveSessionFromRedis(ctx context.Context, sessionID string) error {
+	// retrieve userID from redis
+	userID, err := uc.redisClient.Get(ctx, sessionID)
+	if err != nil {
+		return err
+	}
+
+	// remove sessionID from redis
+	if err := uc.redisClient.Del(ctx, sessionID); err != nil {
+		return err
+	}
+
+	// remove sessionID from redis set, key is userID
+	if err := uc.redisClient.SRem(ctx, userID, sessionID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// generateJWTAccessToken returns the JWT Access Token with the stores session ID
+func generateJWTAccessToken(user *domain.User, ttl time.Duration, sessionID string) (string, error) {
 	// create the token
 	token := jwt.New(jwt.SigningMethodHS256)
 
@@ -157,12 +185,17 @@ func generateJwtAccessTokenAndRefreshToken(user *domain.User, ttl time.Duration,
 	// set token expiry
 	claims["exp"] = time.Now().Add(ttl).Unix()
 
-	// generate signed token
+	// generate signed access token
 	signedAccessToken, err := token.SignedString([]byte(jwtSecretKey))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
+	return signedAccessToken, nil
+}
+
+// generateJWTRefreshToken returns the JWT Refresh Token for retrieving subsequent fresh JWT Access Token
+func generateJWTRefreshToken(user *domain.User, ttl time.Duration, sessionID string) (string, error) {
 	// generate refresh token (users might not use) - less claims as compared to jwt token
 	refreshToken := jwt.New(jwt.SigningMethodHS256)
 	refreshTokenClaims := refreshToken.Claims.(jwt.MapClaims)
@@ -173,13 +206,8 @@ func generateJwtAccessTokenAndRefreshToken(user *domain.User, ttl time.Duration,
 	// generate signed refresh token
 	signedRefreshToken, err := refreshToken.SignedString([]byte(jwtSecretKey))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	var tokens = dto.Token{
-		AccessToken:  signedAccessToken,
-		RefreshToken: signedRefreshToken,
-	}
-
-	return &tokens, nil
+	return signedRefreshToken, nil
 }

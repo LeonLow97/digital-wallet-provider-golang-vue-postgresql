@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
@@ -227,8 +226,6 @@ func (r *walletRepository) UpdateWallet(ctx context.Context, wallet *domain.Wall
 		SET balance = $1, updated_at = $2
 		WHERE user_id = $3 AND wallet_type_id = $4;
 	`
-
-	fmt.Println(wallet.Balance, wallet.UserID, wallet.ID)
 
 	_, err := r.db.ExecContext(ctx, query,
 		wallet.Balance,

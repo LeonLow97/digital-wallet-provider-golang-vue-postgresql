@@ -43,7 +43,7 @@ func main() {
 
 	userRepo := repository.NewUserRepository(dbConn)
 	authUsecase := usecase.NewAuthUsecase(userRepo, redisClient)
-	handlers.NewAuthHandler(r, authUsecase)
+	handlers.NewAuthHandler(r, authUsecase, redisClient)
 
 	balanceRepo := repository.NewBalanceRepository(dbConn)
 	balanceUsecase := usecase.NewBalanceUsecase(balanceRepo)

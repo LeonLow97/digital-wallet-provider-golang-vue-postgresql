@@ -77,6 +77,15 @@ func AuthenticationMiddleware(next http.Handler) http.Handler {
 		// set user id in context
 		ctx := context.WithValue(r.Context(), utils.UserIDKey, userID)
 
+		// Retrieve sessionID from claims
+		sessionID, ok := claims["sessionID"].(string)
+		if !ok {
+			log.Println("Unable to retrieve session id from token claims")
+			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			return
+		}
+		ctx = context.WithValue(ctx, utils.SessionIDKey, sessionID)
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

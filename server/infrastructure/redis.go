@@ -19,6 +19,9 @@ type RedisClient interface {
 	Get(ctx context.Context, key string) (string, error)
 
 	SAdd(ctx context.Context, key string, members ...interface{}) error
+	SRem(ctx context.Context, key string, members ...interface{}) error
+
+	Del(ctx context.Context, keys ...string) error
 }
 
 // RedisClientImpl is the concrete implementation of RedisClient
@@ -60,5 +63,13 @@ func (rc *RedisClientImpl) Get(ctx context.Context, key string) (string, error) 
 }
 
 func (rc *RedisClientImpl) SAdd(ctx context.Context, key string, members ...interface{}) error {
-	return rc.client.SAdd(ctx, key, members).Err()
+	return rc.client.SAdd(ctx, key, members...).Err()
+}
+
+func (rc *RedisClientImpl) SRem(ctx context.Context, key string, members ...interface{}) error {
+	return rc.client.SRem(ctx, key, members...).Err()
+}
+
+func (rc *RedisClientImpl) Del(ctx context.Context, keys ...string) error {
+	return rc.client.Del(ctx, keys...).Err()
 }

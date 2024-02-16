@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/LeonLow97/go-clean-architecture/delivery/http/middleware"
 	"github.com/LeonLow97/go-clean-architecture/domain"
 	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
@@ -18,16 +19,22 @@ import (
 
 type AuthHandler struct {
 	authUseCase domain.UserUsecase
+	redisClient infrastructure.RedisClient
 }
 
-func NewAuthHandler(router *mux.Router, uc domain.UserUsecase) {
+func NewAuthHandler(router *mux.Router, uc domain.UserUsecase, redisClient infrastructure.RedisClient) {
 	handler := &AuthHandler{
 		authUseCase: uc,
+		redisClient: redisClient,
 	}
 
 	router.HandleFunc("/login", handler.Login).Methods(http.MethodPost)
 	router.HandleFunc("/signup", handler.SignUp).Methods(http.MethodPost)
-	router.HandleFunc("/logout", handler.Logout).Methods(http.MethodPost)
+
+	logoutHandler := http.HandlerFunc(handler.Logout)
+	router.Handle("/logout", middleware.AuthenticationMiddleware(logoutHandler)).Methods(http.MethodPost)
+	// TODO: reset password
+	// TODO: update user details
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -107,6 +114,19 @@ func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	// retrieve sessionID from context
+	sessionID, ok := r.Context().Value(utils.SessionIDKey).(string)
+	if !ok {
+		log.Println("Unable to retrieve session id from context")
+	}
+
+	// remove sessionID from Redis
+	if err := h.authUseCase.RemoveSessionFromRedis(r.Context(), sessionID); err != nil {
+		// failed to remove sessionID but don't block the logout
+		log.Println("failed to remove sessionID from Redis", err)
+	}
+
+	// override cookie in browser
 	cookie := &http.Cookie{
 		Name:     "mw-token",
 		Value:    "",

@@ -23,6 +23,8 @@ type User struct {
 type UserUsecase interface {
 	Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, *dto.Token, error)
 	SignUp(ctx context.Context, req dto.SignUpRequest) error
+
+	RemoveSessionFromRedis(ctx context.Context, sessionID string) error
 }
 
 // UserRepository represents the user's repository contract

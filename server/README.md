@@ -87,25 +87,25 @@ server
 ## User Authentication Flow
 
 1. User Authentication
-    - The user signs into the application using their credentials.
-    - The server authenticates the user by querying the database.
+   - The user signs into the application using their credentials.
+   - The server authenticates the user by querying the database.
 2. Session Creation:
-    - Upon successful authentication, the server generates a unique session ID (uuid).
-    - The server stores the session data in the Redis cluster.
-    - Simultaneously, the server creates a JWT session token that includes the session ID.
+   - Upon successful authentication, the server generates a unique session ID (uuid).
+   - The server stores the session data in the Redis cluster.
+   - Simultaneously, the server creates a JWT session token that includes the session ID.
 3. Token Delivery to Client
-    - The server sends back the JWT Token to the client.
-    - The token is typically included in the Authorization header or a secure Authorization cookie. 
+   - The server sends back the JWT Token to the client.
+   - The token is typically included in the Authorization header or a secure Authorization cookie.
 4. Subsequent Requests
-    - When the client makes another API call, it includes the JWT Token in the request.
+   - When the client makes another API call, it includes the JWT Token in the request.
 5. Token Validation:
-    - Upon receiving the request, the server validates the JWT Token using the stored secret key.
-    - If the validation is successful, the server extracts the session ID from the JWT Token.
+   - Upon receiving the request, the server validates the JWT Token using the stored secret key.
+   - If the validation is successful, the server extracts the session ID from the JWT Token.
 6. Session Data Retrieval
-    - Using the extracted session ID, the server retrieves the corresponding session data from Redis.
+   - Using the extracted session ID, the server retrieves the corresponding session data from Redis.
 7. Response Handling
-    - If the session is valid and the requested resource exists, the server responds with the requested resource.
-    - If the session is invalid or the authentication fails, the server responds with a 401 Unauthorized error.
+   - If the session is valid and the requested resource exists, the server responds with the requested resource.
+   - If the session is invalid or the authentication fails, the server responds with a 401 Unauthorized error.
 
 ## Session Validation with JWT Token and Redis
 
@@ -124,5 +124,14 @@ server
    - When the user changes his preferences or has new roles assigned, this change will be reflected because the data is stored on the server side (Redis).
    - By storing the data on the server side instead of the JWT Token, we have full control over critical session data and nobody can tamper with it.
    - If the data is stored on JWT Token, and the user accesses the application on multiple devices, the data will become stale as the user makes changes on other devices.
+
+---
+### Checklist
+
+- [X] In Login UseCase, add sessionID -> userID using `Set` and userID -> sessionID using Redis Set `SAdd`
+- [X] In Logout UseCase, remove sessionID from Redis using `Del` and the sessionID in userID Set using `SRem`
+- [ ] Remove all sessions when user reset password
+- [ ] Add checks in refresh endpoints to extend session expiration
+- [ ] Add session expiration to sessions in Redis
 
 ---

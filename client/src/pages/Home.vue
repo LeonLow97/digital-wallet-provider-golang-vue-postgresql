@@ -44,12 +44,6 @@ const handleClick = async () => {
 };
 
 onMounted(async () => {
-  const response = await axios.get('http://localhost:8080/api/v1/wallet/all', {
-    withCredentials: true,
-  });
-
-  console.log(response);
-
   username.value = userStore.user.username;
   email.value = userStore.user.email;
   mobileNumber.value = userStore.user.mobileNumber;

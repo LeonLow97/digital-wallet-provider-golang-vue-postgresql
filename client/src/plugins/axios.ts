@@ -8,10 +8,9 @@ axios.create({
   headers: {
     'Content-type': 'application/json',
   },
-  validateStatus: () => true,
 });
 
-// Axios Interceptor
+// Axios Interceptor for response
 // https://stackoverflow.com/questions/72370102/axios-interceptors-with-vue-3-and-vite-not-working
 export default {
   install: (app: App): void => {

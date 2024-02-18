@@ -5,7 +5,7 @@ import (
 )
 
 // CorsMiddleware is a custom middleware for CORS
-func CorsMiddleware(next http.Handler) http.Handler {
+func NewCorsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// set CORS headers
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")

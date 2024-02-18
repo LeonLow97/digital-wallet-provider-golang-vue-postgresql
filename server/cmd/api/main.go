@@ -32,34 +32,44 @@ func main() {
 		}
 	}()
 
-	r := mux.NewRouter()
-	r = r.PathPrefix("/api/v1").Subrouter() // api versioning v1
+	router := mux.NewRouter()
+	router = router.PathPrefix("/api/v1").Subrouter() // api versioning v1
 
-	r.Use(middleware.CorsMiddleware)
-
-	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Healthy!"))
 	}).Methods(http.MethodGet)
 
+	// Initiating handlers, service, and repository
 	userRepo := repository.NewUserRepository(dbConn)
 	authUsecase := usecase.NewAuthUsecase(userRepo, redisClient)
-	handlers.NewAuthHandler(r, authUsecase, redisClient)
+	handlers.NewAuthHandler(router, authUsecase, redisClient)
 
 	balanceRepo := repository.NewBalanceRepository(dbConn)
 	balanceUsecase := usecase.NewBalanceUsecase(balanceRepo)
-	handlers.NewBalanceHandler(r, balanceUsecase)
+	handlers.NewBalanceHandler(router, balanceUsecase)
 
 	walletRepo := repository.NewWalletRepository(dbConn)
 	walletUsecase := usecase.NewWalletUsecase(walletRepo, balanceRepo)
-	handlers.NewWalletHandler(r, walletUsecase)
+	handlers.NewWalletHandler(router, walletUsecase)
 
 	transactionRepo := repository.NewTransactionRepository(dbConn)
 	transactionUsecase := usecase.NewTransactionUsecase(transactionRepo)
-	handlers.NewTransactionHandler(r, transactionUsecase)
+	handlers.NewTransactionHandler(router, transactionUsecase)
+
+	// skipping endpoints
+	skipperFunc := middleware.NewSkipperFunc(
+		"/api/v1/login",
+		"/api/v1/signup",
+	)
+
+	router.Use(
+		middleware.NewCorsMiddleware,
+		middleware.NewAuthenticationMiddleware(skipperFunc, redisClient).Middleware,
+	)
 
 	port := os.Getenv("SERVICE_PORT")
 	log.Println("Server is running on port", port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), r); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), router); err != nil {
 		log.Fatalf("Failed to listen to server with error: %v\n", err)
 	}
 }

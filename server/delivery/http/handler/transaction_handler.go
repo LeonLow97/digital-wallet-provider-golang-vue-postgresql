@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/LeonLow97/go-clean-architecture/delivery/http/middleware"
 	"github.com/LeonLow97/go-clean-architecture/domain"
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
 	"github.com/LeonLow97/go-clean-architecture/utils"
@@ -21,16 +20,15 @@ func NewTransactionHandler(router *mux.Router, uc domain.TransactionUsecase) {
 	}
 
 	transactionRouter := router.PathPrefix("/transaction").Subrouter()
-	transactionRouter.Use(middleware.AuthenticationMiddleware)
 
 	transactionRouter.HandleFunc("", handler.CreateTransaction).Methods(http.MethodPost)
 }
 
 func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
-	// ctx := context.Background()
+	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, ok := r.Context().Value(utils.UserIDKey).(int)
+	userID, ok := ctx.Value(utils.UserIDKey).(int)
 	if !ok {
 		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return

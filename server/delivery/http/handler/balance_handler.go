@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/LeonLow97/go-clean-architecture/delivery/http/middleware"
 	"github.com/LeonLow97/go-clean-architecture/domain"
 	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
@@ -25,8 +24,7 @@ func NewBalanceHandler(router *mux.Router, uc domain.BalanceUsecase) {
 	}
 
 	balanceRouter := router.PathPrefix("/balance").Subrouter()
-	balanceRouter.Use(middleware.AuthenticationMiddleware)
-
+	
 	balanceRouter.HandleFunc("/deposit", handler.Deposit).Methods(http.MethodPost)
 	balanceRouter.HandleFunc("/withdraw", handler.Withdraw).Methods(http.MethodPatch)
 }

@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/LeonLow97/go-clean-architecture/delivery/http/middleware"
 	"github.com/LeonLow97/go-clean-architecture/domain"
 	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
@@ -30,9 +29,7 @@ func NewAuthHandler(router *mux.Router, uc domain.UserUsecase, redisClient infra
 
 	router.HandleFunc("/login", handler.Login).Methods(http.MethodPost)
 	router.HandleFunc("/signup", handler.SignUp).Methods(http.MethodPost)
-
-	logoutHandler := http.HandlerFunc(handler.Logout)
-	router.Handle("/logout", middleware.AuthenticationMiddleware(logoutHandler)).Methods(http.MethodPost)
+	router.HandleFunc("/logout", handler.Logout).Methods(http.MethodPost)
 	// TODO: reset password
 	// TODO: update user details
 }

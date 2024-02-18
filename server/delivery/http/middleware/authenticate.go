@@ -2,12 +2,14 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
+	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/utils"
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -16,8 +18,26 @@ var (
 	JWT_SECRET_KEY = os.Getenv("JWT_SECRET_KEY")
 )
 
-func AuthenticationMiddleware(next http.Handler) http.Handler {
+type AuthenticationMiddleware struct {
+	skipperFunc SkipperFunc
+	redisClient infrastructure.RedisClient
+}
+
+func NewAuthenticationMiddleware(skipperFunc SkipperFunc, redisClient infrastructure.RedisClient) AuthenticationMiddleware {
+	return AuthenticationMiddleware{
+		skipperFunc: skipperFunc,
+		redisClient: redisClient,
+	}
+}
+
+func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Went in authentication middleware", r.URL.EscapedPath())
+		if m.skipperFunc != nil && m.skipperFunc(r) {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		// get the jwt token from the Authorization header
 		authHeader := r.Header.Get("Authorization")
 		if len(authHeader) == 0 {
@@ -85,6 +105,13 @@ func AuthenticationMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		ctx = context.WithValue(ctx, utils.SessionIDKey, sessionID)
+
+		// check if session exists in redis string and redis set.
+		// If session exist, extend the session in redis. If session does not exist, unauthorized
+
+		// issue new JWT Token with the same session id
+
+		// set HTTP Cookie with new JWT Token
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

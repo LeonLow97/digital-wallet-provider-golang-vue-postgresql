@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/LeonLow97/go-clean-architecture/delivery/http/middleware"
 	"github.com/LeonLow97/go-clean-architecture/domain"
 	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
@@ -29,7 +28,6 @@ func NewWalletHandler(router *mux.Router, uc domain.WalletUsecase) {
 	}
 
 	walletRouter := router.PathPrefix("/wallet").Subrouter()
-	walletRouter.Use(middleware.AuthenticationMiddleware)
 
 	walletRouter.HandleFunc("/{id:[0-9]+}", handler.GetWallet).Methods(http.MethodGet)
 	walletRouter.HandleFunc("/all", handler.GetWallets).Methods(http.MethodGet)

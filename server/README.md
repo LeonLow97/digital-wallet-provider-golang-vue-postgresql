@@ -72,6 +72,11 @@ server
 |  PUT   | `/api/v1/wallet`                | Update balance amount for one wallet for a user                                         |    [X]    |
 |  POST  | `/api/v1/balance/deposit`       | Deposit money into the user's wallet                                                    |    [X]    |
 |  POST  | `/api/v1/balance/withdraw`      | Withdraw money from the user's wallet                                                   |    [X]    |
+|  POST  | `/api/v1/beneficiary`           | Add a beneficiary                                                                       |    [ ]    |
+| PATCH  | `/api/v1/beneficiary`           | Update a beneficiary                                                                    |    [ ]    |
+| PATCH  | `/api/v1/beneficiary`           | Soft delete a beneficiary                                                               |    [ ]    |
+|  GET   | `/api/v1/beneficiary`           | Get a beneficiary                                                                       |    [ ]    |
+|  GET   | `api/v1/beneficiaries`          | Get all beneficiaries                                                                   |    [ ]    |
 |  POST  | `/api/v1/transactions/transfer` | Transfer money between two user wallets                                                 |    [ ]    |
 |  GET   | `/api/v1/transactions/history`  | Retrieve the transaction history for a user                                             |    [ ]    |
 |  GET   | `/api/v1/users/profile`         | Retrieve the user's profile information                                                 |    [ ]    |

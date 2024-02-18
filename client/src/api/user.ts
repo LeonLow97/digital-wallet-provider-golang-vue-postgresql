@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { User } from '@/types/user';
 
-const postLogin = async (body: { email: string; password: string }) => {
+const LOGIN = async (body: { email: string; password: string }) => {
   try {
     const apiURL = `${import.meta.env.VITE_APP_API_URL}/login`;
     const { data, status } = await axios.post<User>(
@@ -19,4 +19,4 @@ const postLogin = async (body: { email: string; password: string }) => {
   }
 };
 
-export default postLogin;
+export default LOGIN;

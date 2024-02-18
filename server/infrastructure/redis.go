@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -16,7 +17,9 @@ type RedisClient interface {
 	Close() error
 
 	Set(ctx context.Context, key string, value interface{}) error
+	SetEx(ctx context.Context, key string, member interface{}, expiration time.Duration) error
 	Get(ctx context.Context, key string) (string, error)
+	GetEx(ctx context.Context, key string, expiration time.Duration) (string, error)
 
 	SAdd(ctx context.Context, key string, members ...interface{}) error
 	SRem(ctx context.Context, key string, members ...interface{}) error
@@ -58,8 +61,16 @@ func (rc *RedisClientImpl) Set(ctx context.Context, key string, value interface{
 	return rc.client.Set(ctx, key, value, 0).Err()
 }
 
+func (rc *RedisClientImpl) SetEx(ctx context.Context, key string, member interface{}, expiration time.Duration) error {
+	return rc.client.SetEx(ctx, key, member, expiration).Err()
+}
+
 func (rc *RedisClientImpl) Get(ctx context.Context, key string) (string, error) {
 	return rc.client.Get(ctx, key).Result()
+}
+
+func (rc *RedisClientImpl) GetEx(ctx context.Context, key string, expiration time.Duration) (string, error) {
+	return rc.client.GetEx(ctx, key, expiration).Result()
 }
 
 func (rc *RedisClientImpl) SAdd(ctx context.Context, key string, members ...interface{}) error {

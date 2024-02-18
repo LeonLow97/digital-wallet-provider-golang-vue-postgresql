@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"time"
 
 	"github.com/LeonLow97/go-clean-architecture/dto"
 )
@@ -25,6 +26,9 @@ type UserUsecase interface {
 	SignUp(ctx context.Context, req dto.SignUpRequest) error
 
 	RemoveSessionFromRedis(ctx context.Context, sessionID string) error
+
+	GenerateJWTAccessToken(userID int, ttl time.Duration, sessionID string) (string, error)
+	GenerateJWTRefreshToken(userID int, ttl time.Duration, sessionID string) (string, error)
 }
 
 // UserRepository represents the user's repository contract

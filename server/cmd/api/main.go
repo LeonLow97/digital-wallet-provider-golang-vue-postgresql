@@ -64,7 +64,7 @@ func main() {
 
 	router.Use(
 		middleware.NewCorsMiddleware,
-		middleware.NewAuthenticationMiddleware(skipperFunc, redisClient).Middleware,
+		middleware.NewAuthenticationMiddleware(skipperFunc, redisClient, authUsecase).Middleware,
 	)
 
 	port := os.Getenv("SERVICE_PORT")

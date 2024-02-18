@@ -63,16 +63,9 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		log.Println("error in login handler", err)
 		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 	default:
-		cookie := &http.Cookie{
-			Name:     "mw-token",
-			Value:    token.AccessToken,
-			MaxAge:   3600,
-			Path:     "/",
-			Domain:   "localhost", // TODO: replace with config domain name
-			Secure:   false,
-			HttpOnly: true,
-		}
-		http.SetCookie(w, cookie)
+		// TODO: utilise refresh token or remove it from auth use case
+		utils.IssueCookie(w, token.AccessToken)
+
 		utils.WriteJSON(w, http.StatusOK, resp)
 	}
 }

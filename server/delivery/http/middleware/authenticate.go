@@ -6,12 +6,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
+	"github.com/LeonLow97/go-clean-architecture/domain"
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/utils"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/redis/go-redis/v9"
 )
 
 var (
@@ -21,12 +24,14 @@ var (
 type AuthenticationMiddleware struct {
 	skipperFunc SkipperFunc
 	redisClient infrastructure.RedisClient
+	authUsecase domain.UserUsecase
 }
 
-func NewAuthenticationMiddleware(skipperFunc SkipperFunc, redisClient infrastructure.RedisClient) AuthenticationMiddleware {
+func NewAuthenticationMiddleware(skipperFunc SkipperFunc, redisClient infrastructure.RedisClient, authUsecase domain.UserUsecase) AuthenticationMiddleware {
 	return AuthenticationMiddleware{
 		skipperFunc: skipperFunc,
 		redisClient: redisClient,
+		authUsecase: authUsecase,
 	}
 }
 
@@ -108,10 +113,35 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 
 		// check if session exists in redis string and redis set.
 		// If session exist, extend the session in redis. If session does not exist, unauthorized
+		if _, err := m.redisClient.GetEx(ctx, sessionID, utils.SESSION_EXPIRY); err != nil {
+			switch {
+			case err == redis.Nil:
+				// clean up stale sessionID from Redis Set for the specified userID
+				// if sessionID has expired in string, it might still be present in Redis Set
+				userIDString := strconv.Itoa(userID)
+				_ = m.redisClient.SRem(ctx, userIDString, sessionID)
+
+				// sessionID missing, user is unauthorized (session expired or invalid sessionID provided)
+				log.Printf("failed to get key from redis for sessionID: %s and userID: %d\n", sessionID, userID)
+				utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+				return
+			case err != nil:
+				log.Println("failed to get key from redis in authentication middleware", err)
+				utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+				return
+			}
+		}
 
 		// issue new JWT Token with the same session id
+		jwtToken, err := m.authUsecase.GenerateJWTAccessToken(userID, utils.SESSION_EXPIRY, sessionID)
+		if err != nil {
+			log.Println("failed to reissue jwt access token", err)
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			return
+		}
 
 		// set HTTP Cookie with new JWT Token
+		utils.IssueCookie(w, jwtToken)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

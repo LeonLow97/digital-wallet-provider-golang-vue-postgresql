@@ -1,6 +1,5 @@
 package utils
 
-type contextKey string
+import "time"
 
-const UserIDKey contextKey = "UserID"
-const SessionIDKey contextKey = "SessionID"
+const SESSION_EXPIRY = 15 * time.Minute

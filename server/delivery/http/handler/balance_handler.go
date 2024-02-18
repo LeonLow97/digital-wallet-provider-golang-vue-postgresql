@@ -24,7 +24,7 @@ func NewBalanceHandler(router *mux.Router, uc domain.BalanceUsecase) {
 	}
 
 	balanceRouter := router.PathPrefix("/balance").Subrouter()
-	
+
 	balanceRouter.HandleFunc("/deposit", handler.Deposit).Methods(http.MethodPost)
 	balanceRouter.HandleFunc("/withdraw", handler.Withdraw).Methods(http.MethodPatch)
 }

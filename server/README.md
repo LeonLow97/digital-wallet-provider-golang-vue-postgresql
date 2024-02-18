@@ -116,7 +116,7 @@ server
 1. User login with the credentials.
 2. If unsuccessful login, return HTTP Status 401 Unauthorized.
 3. If successful login, generate JWT Access Token and Refresh Token. Generate a session ID (uuid) and store it in the JWT Token.
-4. Store sessionID --> userID mapping in Redis using `Set` so we know this sessionID belongs to this userID.
+4. Store sessionID --> userID mapping in Redis using `SetEx` so we know this sessionID belongs to this userID.
    - When the user logs out, delete this sessionID to invalidate the session.
 5. Store userID --> sessionID mapping in Redis Set using `SAdd` because the user can have multiple sessions on different devices.
    - If the user changes/resets password, clear all the sessions in the Redis Set to invalidate all the sessions and the user will be logged out of all devices.
@@ -126,12 +126,23 @@ server
    - If the data is stored on JWT Token, and the user accesses the application on multiple devices, the data will become stale as the user makes changes on other devices.
 
 ---
+
 ### Checklist
 
-- [X] In Login UseCase, add sessionID -> userID using `Set` and userID -> sessionID using Redis Set `SAdd`
-- [X] In Logout UseCase, remove sessionID from Redis using `Del` and the sessionID in userID Set using `SRem`
+- [x] In Login UseCase, add sessionID -> userID using `SetEx` and userID -> sessionID using Redis Set `SAdd`
+- [x] In Logout UseCase, remove sessionID from Redis using `Del` and the sessionID in userID Set using `SRem`
 - [ ] Remove all sessions when user reset password
-- [ ] Add checks in refresh endpoints to extend session expiration
-- [ ] Add session expiration to sessions in Redis
+- [x] Add checks in refresh endpoints to extend session expiration with `GetEx`
+- [x] Add session expiration to sessions in Redis
+- [ ] Set session object in Redis when user logs in instead of storing in JWT Token
+
+---
+
+### Logging TTL for Session Validation
+
+- Logging TTL in Authentication Middleware
+- Extended session expiry time on every request
+
+<img src="./docs/diagrams/session_TTL.png" alt="Diagram of session validation with TTL in Authentication Middleware" />
 
 ---

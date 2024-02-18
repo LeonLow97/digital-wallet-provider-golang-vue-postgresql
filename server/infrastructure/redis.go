@@ -25,6 +25,8 @@ type RedisClient interface {
 	SRem(ctx context.Context, key string, members ...interface{}) error
 
 	Del(ctx context.Context, keys ...string) error
+
+	TTL(ctx context.Context, key string) (time.Duration, error)
 }
 
 // RedisClientImpl is the concrete implementation of RedisClient
@@ -83,4 +85,9 @@ func (rc *RedisClientImpl) SRem(ctx context.Context, key string, members ...inte
 
 func (rc *RedisClientImpl) Del(ctx context.Context, keys ...string) error {
 	return rc.client.Del(ctx, keys...).Err()
+}
+
+// (used in DEVELOPMENT) For testing Redis string expiry to ensure key expiry is set correctly
+func (rc *RedisClientImpl) TTL(ctx context.Context, key string) (time.Duration, error) {
+	return rc.client.TTL(ctx, key).Result()
 }

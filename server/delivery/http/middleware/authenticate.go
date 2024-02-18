@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -37,7 +36,6 @@ func NewAuthenticationMiddleware(skipperFunc SkipperFunc, redisClient infrastruc
 
 func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Went in authentication middleware", r.URL.EscapedPath())
 		if m.skipperFunc != nil && m.skipperFunc(r) {
 			next.ServeHTTP(w, r)
 			return

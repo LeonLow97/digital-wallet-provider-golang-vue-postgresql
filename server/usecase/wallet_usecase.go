@@ -49,6 +49,7 @@ func (uc *walletUsecase) GetWallets(ctx context.Context, userID int) (*dto.GetWa
 		return nil, exception.ErrNoWalletsFound
 	}
 
+	// TODO: might remove this unnecessary for loop and just return domain.Wallet
 	resp := &dto.GetWalletsResponse{}
 	for _, w := range wallets {
 		wallet := dto.GetWalletResponse{

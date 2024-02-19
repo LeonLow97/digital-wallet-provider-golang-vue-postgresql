@@ -92,3 +92,60 @@ func (r *beneficiaryRepository) UpdateBeneficiaryIsDeleted(ctx context.Context, 
 
 	return nil
 }
+
+func (r *beneficiaryRepository) GetBeneficiary(ctx context.Context, beneficiaryID int, userID int) (*domain.Beneficiary, error) {
+	query := `
+		SELECT 
+			ub.beneficiary_id, ub.is_deleted, u.first_name, u.last_name, u.email,
+			u.username, u.active, u.mobile_number
+		FROM user_beneficiary ub
+		JOIN users u
+			ON u.id = ub.beneficiary_id
+		WHERE ub.user_id = $1 AND ub.beneficiary_id = $2;
+	`
+
+	var beneficiary domain.Beneficiary
+	err := r.db.QueryRowContext(ctx, query, userID, beneficiaryID).Scan(
+		&beneficiary.BeneficiaryID,
+		&beneficiary.IsDeleted,
+		&beneficiary.BeneficiaryFirstName,
+		&beneficiary.BeneficiaryLastName,
+		&beneficiary.BeneficiaryEmail,
+		&beneficiary.BeneficiaryUsername,
+		&beneficiary.IsActive,
+		&beneficiary.BeneficiaryMobileNumber,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, exception.ErrUserNotLinkedToBeneficiary
+		}
+		return nil, err
+	}
+
+	return &beneficiary, nil
+}
+
+func (r *beneficiaryRepository) GetBeneficiaries(ctx context.Context, userID int) (*[]domain.Beneficiary, error) {
+	query := `
+		SELECT 
+			ub.beneficiary_id, ub.is_deleted, u.first_name, u.last_name, u.email,
+			u.username, u.active, u.mobile_number
+		FROM user_beneficiary ub
+		JOIN users u
+			ON u.id = ub.beneficiary_id
+		WHERE ub.user_id = $1;
+	`
+
+	var beneficiaries []domain.Beneficiary
+	err := r.db.SelectContext(ctx, &beneficiaries, query, userID)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, exception.ErrUserHasNoBeneficiary
+		}
+		return nil, err
+	}
+
+	return &beneficiaries, nil
+}

@@ -13,6 +13,21 @@ type UpdateBeneficiaryRequest struct {
 	UserID        int
 }
 
+type GetBeneficiaryResponse struct {
+	BeneficiaryID           int    `json:"beneficiaryID"`
+	IsDeleted               int    `json:"isDeleted"`
+	BeneficiaryFirstName    string `json:"beneficiaryFirstName"`
+	BeneficiaryLastName     string `json:"beneficiaryLastName"`
+	BeneficiaryEmail        string `json:"beneficiaryEmail"`
+	BeneficiaryUsername     string `json:"beneficiaryUsername"`
+	IsActive                int    `json:"active"`
+	BeneficiaryMobileNumber string `json:"beneficiaryMobileNumber"`
+}
+
+type GetBeneficiariesResponse struct {
+	Beneficiaries []GetBeneficiaryResponse `json:"beneficiaries"`
+}
+
 func (req *CreateBeneficiaryRequest) CreateBeneficiarySanitize() {
 	req.MobileNumber = strings.TrimSpace(req.MobileNumber)
 }

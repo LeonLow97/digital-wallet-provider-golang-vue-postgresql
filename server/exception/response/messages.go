@@ -45,5 +45,6 @@ var (
 	ErrUserIDEqualBeneficiaryID = "Unable to add yourself as beneficiary. Please specify another mobile number."
 	ErrBeneficiaryAlreadyExists = "Beneficiary already exists. Please specify another mobile number."
 
-	ErrUserNotLinkedToBeneficiary = "Failed to delete. User is not linked to this beneficiary."
+	ErrUserNotLinkedToBeneficiary    = "User is not linked to this beneficiary."
+	ErrUserNotLinkedToAnyBeneficiary = "User is not linked to any beneficiary. Please add a beneficiary."
 )

@@ -61,3 +61,55 @@ func (uc *beneficiaryUsecase) UpdateBeneficiary(ctx context.Context, req dto.Upd
 
 	return nil
 }
+
+func (uc *beneficiaryUsecase) GetBeneficiary(ctx context.Context, beneficiaryID int, userID int) (*dto.GetBeneficiaryResponse, error) {
+	// check if beneficiary id equal to user id
+	if beneficiaryID == userID {
+		return nil, exception.ErrUserIDEqualBeneficiaryID
+	}
+
+	// get one beneficiary
+	beneficiary, err := uc.beneficiaryRepository.GetBeneficiary(ctx, beneficiaryID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &dto.GetBeneficiaryResponse{
+		BeneficiaryID:           beneficiary.BeneficiaryID,
+		IsDeleted:               beneficiary.IsDeleted,
+		BeneficiaryFirstName:    beneficiary.BeneficiaryFirstName,
+		BeneficiaryLastName:     beneficiary.BeneficiaryLastName,
+		BeneficiaryEmail:        beneficiary.BeneficiaryEmail,
+		BeneficiaryUsername:     beneficiary.BeneficiaryUsername,
+		IsActive:                beneficiary.IsActive,
+		BeneficiaryMobileNumber: beneficiary.BeneficiaryMobileNumber,
+	}
+
+	return resp, nil
+}
+
+func (uc *beneficiaryUsecase) GetBeneficiaries(ctx context.Context, userID int) (*dto.GetBeneficiariesResponse, error) {
+	beneficiaries, err := uc.beneficiaryRepository.GetBeneficiaries(ctx, userID)
+	if err != nil {
+		log.Println("error getting beneficiaries", err)
+		return nil, err
+	}
+
+	// TODO: might remove this unnecessary for loop and just return domain.Beneficiary
+	resp := &dto.GetBeneficiariesResponse{}
+	for _, b := range *beneficiaries {
+		beneficiary := dto.GetBeneficiaryResponse{
+			BeneficiaryID:           b.BeneficiaryID,
+			IsDeleted:               b.IsDeleted,
+			BeneficiaryFirstName:    b.BeneficiaryFirstName,
+			BeneficiaryLastName:     b.BeneficiaryLastName,
+			BeneficiaryEmail:        b.BeneficiaryEmail,
+			BeneficiaryUsername:     b.BeneficiaryUsername,
+			IsActive:                b.IsActive,
+			BeneficiaryMobileNumber: b.BeneficiaryMobileNumber,
+		}
+		resp.Beneficiaries = append(resp.Beneficiaries, beneficiary)
+	}
+
+	return resp, nil
+}

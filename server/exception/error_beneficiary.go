@@ -7,4 +7,5 @@ var (
 	ErrBeneficiaryAlreadyExists = errors.New("beneficiary already exists")
 
 	ErrUserNotLinkedToBeneficiary = errors.New("user id is not linked to beneficiary id")
+	ErrUserHasNoBeneficiary       = errors.New("user id is not linked to any beneficiaries")
 )

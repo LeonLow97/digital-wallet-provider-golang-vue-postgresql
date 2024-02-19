@@ -56,6 +56,10 @@ func main() {
 	transactionUsecase := usecase.NewTransactionUsecase(transactionRepo)
 	handlers.NewTransactionHandler(router, transactionUsecase)
 
+	beneficiaryRepo := repository.NewBeneficiaryRepository(dbConn)
+	beneficiaryUsecase := usecase.NewBeneficiaryUsecase(beneficiaryRepo)
+	handlers.NewBeneficiaryHandler(router, beneficiaryUsecase)
+
 	// skipping endpoints
 	skipperFunc := middleware.NewSkipperFunc(
 		"/api/v1/login",

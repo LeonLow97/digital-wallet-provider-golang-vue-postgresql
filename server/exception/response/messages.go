@@ -17,6 +17,7 @@ var (
 	ErrInvalidPassword = `Invalid Password Format. Password must contain at least one lowercase 
 						letter, one uppercase letter, one numeric digit, one special character, 
 						and have a minimum length of 8 characters.`
+	ErrUserNotFound = "User does not exist. Please try again."
 )
 
 // Wallet
@@ -37,4 +38,12 @@ var (
 var (
 	ErrBalanceNotFound                = "Balance not found. Please deposit to create a new balance."
 	ErrInsufficientFundsForWithdrawal = "The specified amount for withdrawal is more than the current balance amount. Please lower the withdrawal amount."
+)
+
+// Beneficiary
+var (
+	ErrUserIDEqualBeneficiaryID = "Unable to add yourself as beneficiary. Please specify another mobile number."
+	ErrBeneficiaryAlreadyExists = "Beneficiary already exists. Please specify another mobile number."
+
+	ErrUserNotLinkedToBeneficiary = "Failed to delete. User is not linked to this beneficiary."
 )

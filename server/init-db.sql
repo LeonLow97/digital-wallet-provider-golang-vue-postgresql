@@ -17,6 +17,7 @@ CREATE UNIQUE INDEX ON users(email);
 CREATE TABLE IF NOT EXISTS user_beneficiary (
     user_id INT NOT NULL,
     beneficiary_id INT NOT NULL,
+    is_deleted SMALLINT NOT NULL DEFAULT 0,
     PRIMARY KEY (user_id, beneficiary_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (beneficiary_id) REFERENCES users(id) ON DELETE CASCADE
@@ -75,7 +76,7 @@ VALUES
 
 INSERT INTO user_beneficiary (user_id, beneficiary_id)
 VALUES
-(1,2),(1,3),(1,4),(2,1),(2,3),(3,2),(3,4),(4,1);
+(5, 1);
 
 INSERT INTO wallet_types (type)
 VALUES ('personal'), ('savings'), ('investment'), ('business');

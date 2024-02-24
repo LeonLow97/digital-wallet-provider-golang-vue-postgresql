@@ -81,7 +81,7 @@ INSERT INTO balances (balance, currency, user_id)
 VALUES (70000, 'SGD', 1), (20000, 'SGD', 5);
 
 INSERT INTO wallet_types (type)
-VALUES ('main'), ('personal'), ('savings'), ('investment'), ('business');
+VALUES ('personal'), ('savings'), ('investment'), ('business');
 
 INSERT INTO wallets (balance, currency, wallet_type_id, user_id)
 VALUES (500, 'SGD', 1, 1), (1500, 'SGD', 2, 1);

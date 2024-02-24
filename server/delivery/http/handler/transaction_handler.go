@@ -49,14 +49,25 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 	req.Sanitize()
 
 	err := h.transactionUsecase.CreateTransaction(ctx, req, userID)
+	log.Println("err herer", err)
 
 	switch {
-	case err != nil:
-		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+	case errors.Is(err, exception.ErrAmountMustBePositive):
+		utils.ErrorJSON(w, apiErr.ErrAmountMustBePositive, http.StatusBadRequest)
+	case errors.Is(err, exception.ErrUserIsInactive):
+		utils.ErrorJSON(w, apiErr.ErrInactiveUser, http.StatusBadRequest)
+	case errors.Is(err, exception.ErrBeneficiaryIsInactive):
+		utils.ErrorJSON(w, apiErr.ErrBeneficiaryIsInactive, http.StatusBadRequest)
+	case errors.Is(err, exception.ErrUserIDEqualBeneficiaryID):
+		utils.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
+	case errors.Is(err, exception.ErrInsufficientFundsInWallet):
+		utils.ErrorJSON(w, apiErr.ErrInsufficientFundsInWallet, http.StatusBadRequest)
 	case errors.Is(err, exception.ErrUserNotLinkedToBeneficiary):
 		utils.ErrorJSON(w, apiErr.ErrUserNotLinkedToBeneficiary, http.StatusBadRequest)
 	case errors.Is(err, exception.ErrUserAndWalletAssociationNotFound):
 		utils.ErrorJSON(w, apiErr.ErrUserAndWalletAssociationNotFound, http.StatusBadRequest)
+	case err != nil:
+		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 	default:
 		utils.WriteNoContent(w, http.StatusCreated)
 	}

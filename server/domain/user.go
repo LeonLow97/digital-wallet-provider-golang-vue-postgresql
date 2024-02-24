@@ -9,15 +9,16 @@ import (
 
 // User is representing the User data struct
 type User struct {
-	ID           int    `db:"id"`
-	FirstName    string `db:"first_name"`
-	LastName     string `db:"last_name"`
-	Username     string `db:"username"`
-	Email        string `db:"email"`
-	Password     string `db:"password"`
-	MobileNumber string `db:"mobile_number"`
-	Active       bool   `db:"active"`
-	Admin        bool   `db:"admin"`
+	ID           int     `db:"id"`
+	FirstName    string  `db:"first_name"`
+	LastName     string  `db:"last_name"`
+	Username     string  `db:"username"`
+	Email        string  `db:"email"`
+	Password     string  `db:"password"`
+	MobileNumber string  `db:"mobile_number"`
+	Active       bool    `db:"active"`
+	Admin        bool    `db:"admin"`
+	Balance      float64 `db:"balance"`
 }
 
 // UserUsecase represents the user's use cases
@@ -36,4 +37,5 @@ type UserRepository interface {
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	GetUserByEmailOrMobileNumber(ctx context.Context, email, mobileNumber string) (*User, error)
 	InsertUser(ctx context.Context, user *User) error
+	GetUserAndBalanceByMobileNumber(ctx context.Context, mobileNumber string) (*User, error)
 }

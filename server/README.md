@@ -76,7 +76,7 @@ server
 | PATCH  | `/api/v1/beneficiary`           | Soft delete a beneficiary                                                               |    [X]    |
 |  GET   | `/api/v1/beneficiary`           | Get a beneficiary                                                                       |    [X]    |
 |  GET   | `api/v1/beneficiaries`          | Get all beneficiaries                                                                   |    [X]    |
-|  POST  | `/api/v1/transactions/transfer` | Transfer money between two user wallets                                                 |    [ ]    |
+|  POST  | `/api/v1/transactions/transfer` | Transfer money between two user wallets                                                 |    [X]    | // TODO: Use SQL Transaction for this |
 |  GET   | `/api/v1/transactions/history`  | Retrieve the transaction history for a user                                             |    [ ]    |
 |  GET   | `/api/v1/users/profile`         | Retrieve the user's profile information                                                 |    [ ]    |
 |  PUT   | `/api/v1/users/profile`         | Update the user's profile information                                                   |    [ ]    |

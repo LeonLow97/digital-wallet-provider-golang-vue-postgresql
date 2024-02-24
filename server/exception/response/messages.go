@@ -48,3 +48,8 @@ var (
 	ErrUserNotLinkedToBeneficiary    = "User is not linked to this beneficiary."
 	ErrUserNotLinkedToAnyBeneficiary = "User is not linked to any beneficiary. Please add a beneficiary."
 )
+
+// Transaction
+var (
+	ErrUserAndWalletAssociationNotFound = "User is not associated with the specified wallet."
+)

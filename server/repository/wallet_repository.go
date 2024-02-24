@@ -223,18 +223,68 @@ func (r *walletRepository) UpdateWallet(ctx context.Context, wallet *domain.Wall
 
 	query := `
 		UPDATE wallets
-		SET balance = $1, updated_at = $2
-		WHERE user_id = $3 AND wallet_type_id = $4;
+		SET balance = $1, updated_at = NOW()
+		WHERE user_id = $2 AND wallet_type_id = $3 AND currency = $4;
 	`
 
 	_, err := r.db.ExecContext(ctx, query,
 		wallet.Balance,
-		time.Now(),
 		wallet.UserID,
-		wallet.ID,
+		wallet.TypeID,
+		wallet.Currency,
 	)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (r *walletRepository) GetUserAndWalletByUserID(ctx context.Context, userID int, walletID int, walletCurrency string) (*domain.Wallet, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*15)
+	defer cancel()
+
+	query := `
+		SELECT
+			u.id 				AS user_id,
+			u.first_name 		AS first_name,
+			u.last_name 		AS last_name, 
+			u.username 			AS username, 
+			u.email 			AS email, 
+			u.mobile_number 	AS mobile_number, 
+			u.active 			AS active, 
+			w.balance 			AS balance,
+			w.currency 			AS currency,
+			wt.type 			AS type,
+			wt.id				AS type_id
+		FROM users u
+		JOIN wallets w
+			ON w.user_id = u.id
+		JOIN wallet_types wt
+			ON w.wallet_type_id = wt.id
+		WHERE u.id = $1 AND w.id = $2 AND w.currency = $3;
+	`
+
+	var wallet domain.Wallet
+	err := r.db.QueryRowContext(ctx, query, userID, walletID, walletCurrency).Scan(
+		&wallet.UserID,
+		&wallet.FirstName,
+		&wallet.LastName,
+		&wallet.Username,
+		&wallet.Email,
+		&wallet.MobileNumber,
+		&wallet.Active,
+		&wallet.Balance,
+		&wallet.Currency,
+		&wallet.Type,
+		&wallet.TypeID,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, exception.ErrUserAndWalletAssociationNotFound
+		}
+		return nil, err
+	}
+
+	return &wallet, nil
 }

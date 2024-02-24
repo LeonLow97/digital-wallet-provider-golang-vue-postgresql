@@ -1,13 +1,121 @@
 package usecase
 
-import "github.com/LeonLow97/go-clean-architecture/domain"
+import (
+	"context"
+	"log"
+
+	"github.com/LeonLow97/go-clean-architecture/domain"
+	"github.com/LeonLow97/go-clean-architecture/dto"
+	"github.com/LeonLow97/go-clean-architecture/exception"
+	"github.com/LeonLow97/go-clean-architecture/utils"
+)
 
 type transactionUsecase struct {
 	transactionRepository domain.TransactionRepository
+	walletRepository      domain.WalletRepository
+	userRepository        domain.UserRepository
+	balanceRepository     domain.BalanceRepository
 }
 
-func NewTransactionUsecase(transactionRepository domain.TransactionRepository) domain.TransactionUsecase {
+func NewTransactionUsecase(transactionRepo domain.TransactionRepository, walletRepo domain.WalletRepository, userRepo domain.UserRepository, balanceRepo domain.BalanceRepository) domain.TransactionUsecase {
 	return &transactionUsecase{
-		transactionRepository: transactionRepository,
+		transactionRepository: transactionRepo,
+		walletRepository:      walletRepo,
+		userRepository:        userRepo,
+		balanceRepository:     balanceRepo,
 	}
+}
+
+func (uc *transactionUsecase) CreateTransactionByWallet(ctx context.Context, req dto.CreateTransactionRequest, userID int) error {
+	// ensure amount specified is positive
+	if req.Amount <= 0 {
+		return exception.ErrAmountMustBePositive
+	}
+
+	////////// TODO: SQL TRANSACTION //////////
+	// check if sender id is linked to beneficiary id
+	err := uc.transactionRepository.CheckLinkageOfSenderAndBeneficiaryByMobileNumber(ctx, userID, req.MobileNumber)
+	if err != nil {
+		// if not linked, error will be thrown here
+		log.Println("failed to check linkage of sender and beneficiary", err)
+		return err
+	}
+
+	// retrieve sender details by user id
+	userWallet, err := uc.walletRepository.GetUserAndWalletByUserID(ctx, userID, req.SenderWalletID, req.SourceCurrency)
+	if err != nil {
+		log.Println("failed to get sender wallet details", err)
+		return err
+	}
+
+	// retrieve beneficiary details by mobile number
+	beneficiary, err := uc.userRepository.GetUserAndBalanceByMobileNumber(ctx, req.MobileNumber)
+	if err != nil {
+		log.Println("failed to get beneficiary details", err)
+		return err
+	}
+
+	// check if both sender and beneficiary are active
+	if !userWallet.Active {
+		return exception.ErrUserIsInactive
+	}
+	if !beneficiary.Active {
+		return exception.ErrBeneficiaryIsInactive
+	}
+
+	// check if sender id is equal to beneficiary id, cannot send money to yourself
+	if userWallet.UserID == beneficiary.ID {
+		return exception.ErrUserIDEqualBeneficiaryID
+	}
+
+	// check if sender wallet balance is sufficient for transfer and calculate final balance
+	if userWallet.Balance < req.Amount {
+		return exception.ErrInsufficientFundsInWallet
+	}
+
+	// update the balance of both sender and beneficiary
+	senderFinalBalance := userWallet.Balance - req.Amount
+	beneficiaryFinalBalance := beneficiary.Balance + req.Amount // TODO: perform currency exchange
+
+	updatedSenderWallet := &domain.Wallet{
+		Balance:  senderFinalBalance,
+		UserID:   userID,
+		TypeID:   userWallet.TypeID,
+		Currency: userWallet.Currency,
+	}
+
+	updatedBeneficiaryBalance := &domain.Balance{
+		Balance: beneficiaryFinalBalance,
+		UserID:  beneficiary.ID,
+		Currency: req.DestinationCurrency,
+	}
+
+	err = uc.walletRepository.UpdateWallet(ctx, updatedSenderWallet)
+	if err != nil {
+		log.Println("failed to update sender wallet balance", err)
+		return err
+	}
+
+	err = uc.balanceRepository.UpdateBalance(ctx, updatedBeneficiaryBalance)
+	if err != nil {
+		log.Println("failed to update beneficiary balance", err)
+		return err
+	}
+
+	transactionEntity := &domain.Transaction{
+		SentAmount:       req.Amount,
+		SourceCurrency:   req.SourceCurrency,
+		ReceivedAmount:   req.Amount, // TODO: perform currency exchange
+		ReceivedCurrency: req.DestinationCurrency,
+		SourceOfTransfer: userWallet.Type,
+		Status:           utils.SUBMITTED,
+	}
+
+	// create 2 transactions in the transactions table for sender and beneficiary
+	err = uc.transactionRepository.InsertTransaction(ctx, userID, userID, beneficiary.ID, *transactionEntity)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

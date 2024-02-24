@@ -7,13 +7,19 @@ import (
 )
 
 type Wallet struct {
-	ID        int     `db:"id"`
-	Type      string  `db:"type"`
-	TypeID    int     `db:"type_id"`
-	Balance   float64 `db:"balance"`
-	Currency  string  `db:"currency"`
-	CreatedAt string  `db:"created_at"`
-	UserID    int     `db:"user_id"`
+	ID           int     `db:"id"`
+	Type         string  `db:"type"`
+	TypeID       int     `db:"type_id"`
+	Balance      float64 `db:"balance"`
+	Currency     string  `db:"currency"`
+	CreatedAt    string  `db:"created_at"`
+	UserID       int     `db:"user_id"`
+	FirstName    string  `db:"first_name"`
+	LastName     string  `db:"last_name"`
+	Username     string  `db:"username"`
+	Email        string  `db:"email"`
+	MobileNumber string  `db:"mobile_number"`
+	Active       bool    `db:"active"`
 }
 
 type WalletUsecase interface {
@@ -32,4 +38,5 @@ type WalletRepository interface {
 	GetBalanceByUserID(ctx context.Context, userID int) (*Balance, error)
 	CreateWallet(ctx context.Context, wallet *Wallet) error
 	UpdateWallet(ctx context.Context, wallet *Wallet) error
+	GetUserAndWalletByUserID(ctx context.Context, userID int, walletID int, walletCurrency string) (*Wallet, error)
 }

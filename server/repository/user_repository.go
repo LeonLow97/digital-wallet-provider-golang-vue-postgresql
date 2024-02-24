@@ -99,3 +99,45 @@ func (r *userRepository) InsertUser(ctx context.Context, user *domain.User) erro
 
 	return err
 }
+
+func (r *userRepository) GetUserAndBalanceByMobileNumber(ctx context.Context, mobileNumber string) (*domain.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*15)
+	defer cancel()
+
+	query := `
+		SELECT 
+			u.id,
+			u.first_name 		AS first_name,
+			u.last_name 		AS last_name, 
+			u.username 			AS username, 
+			u.email 			AS email, 
+			u.mobile_number 	AS mobile_number, 
+			u.active 			AS active, 
+			b.balance
+		FROM users u
+		JOIN balances b
+			ON u.id = b.user_id
+		WHERE u.mobile_number = $1;
+	`
+
+	var user domain.User
+	err := r.db.QueryRowContext(ctx, query, mobileNumber).Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Username,
+		&user.Email,
+		&user.MobileNumber,
+		&user.Active,
+		&user.Balance,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, exception.ErrUserAndWalletAssociationNotFound
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}

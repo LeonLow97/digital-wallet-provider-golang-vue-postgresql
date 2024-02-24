@@ -53,7 +53,7 @@ func main() {
 	handlers.NewWalletHandler(router, walletUsecase)
 
 	transactionRepo := repository.NewTransactionRepository(dbConn)
-	transactionUsecase := usecase.NewTransactionUsecase(transactionRepo)
+	transactionUsecase := usecase.NewTransactionUsecase(transactionRepo, walletRepo, userRepo, balanceRepo)
 	handlers.NewTransactionHandler(router, transactionUsecase)
 
 	beneficiaryRepo := repository.NewBeneficiaryRepository(dbConn)

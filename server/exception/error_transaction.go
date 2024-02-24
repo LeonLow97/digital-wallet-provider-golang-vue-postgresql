@@ -12,4 +12,6 @@ var (
 	ErrBeneficiaryAndWalletAssociationNotFound = errors.New("beneficiary and balance association not found")
 	ErrSenderWalletIDEqualBeneficiaryWalletID  = errors.New("sender wallet id is equal to beneficiary wallet id")
 	ErrInsufficientFundsInWallet              = errors.New("insufficient funds for transfer in wallet")
+
+	ErrNoTransactionsFound = errors.New("no transactions found")
 )

@@ -26,6 +26,7 @@ func NewTransactionHandler(router *mux.Router, uc domain.TransactionUsecase) {
 	transactionRouter := router.PathPrefix("/transaction").Subrouter()
 
 	transactionRouter.HandleFunc("", handler.CreateTransaction).Methods(http.MethodPost)
+	transactionRouter.HandleFunc("/all", handler.GetTransactions).Methods(http.MethodGet)
 }
 
 func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
@@ -47,11 +48,7 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 
 	req.Sanitize()
 
-	var err error
-	if req.SenderWalletID > 0 {
-		// if sender wallet id is more than 0, user is trying to transfer funds with wallet
-		err = h.transactionUsecase.CreateTransactionByWallet(ctx, req, userID)
-	}
+	err := h.transactionUsecase.CreateTransaction(ctx, req, userID)
 
 	switch {
 	case err != nil:
@@ -62,5 +59,26 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 		utils.ErrorJSON(w, apiErr.ErrUserAndWalletAssociationNotFound, http.StatusBadRequest)
 	default:
 		utils.WriteNoContent(w, http.StatusCreated)
+	}
+}
+
+func (h *TransactionHandler) GetTransactions(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// retrieve user id from context
+	userID, ok := ctx.Value(utils.UserIDKey).(int)
+	if !ok {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	transactions, err := h.transactionUsecase.GetTransactions(ctx, userID)
+	switch {
+	case errors.Is(err, exception.ErrNoTransactionsFound):
+		utils.ErrorJSON(w, apiErr.ErrNoTransactionsFound, http.StatusNotFound)
+	case err != nil:
+		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+	default:
+		utils.WriteJSON(w, http.StatusOK, transactions)
 	}
 }

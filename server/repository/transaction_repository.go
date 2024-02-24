@@ -45,7 +45,7 @@ func (r *transactionRepository) InsertTransaction(ctx context.Context, userID in
 	query := `
 		INSERT INTO transactions (user_id, sender_id, beneficiary_id, source_of_transfer, sent_amount,
 			source_currency, received_amount, received_currency, status)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
 	`
 
 	_, err := r.db.ExecContext(ctx, query,
@@ -61,4 +61,38 @@ func (r *transactionRepository) InsertTransaction(ctx context.Context, userID in
 	)
 
 	return err
+}
+
+func (r *transactionRepository) GetTransactions(ctx context.Context, userID int) (*[]domain.Transaction, error) {
+	query := `
+		SELECT
+			sender.username 			AS sender_username,
+			sender.mobile_number 		AS sender_mobile_number,
+			beneficiary.username 		AS beneficiary_username,
+			beneficiary.mobile_number 	AS beneficiary_mobile_number,
+			t.sent_amount,
+			t.source_currency,
+			t.received_amount,
+			t.received_currency,
+			t.source_of_transfer,
+			t.status,
+			t.created_at
+		FROM transactions t
+		JOIN users AS sender
+			ON t.sender_id = sender.id
+		JOIN users AS beneficiary
+			ON t.beneficiary_id = beneficiary.id
+		WHERE t.user_id = $1
+		ORDER BY created_at DESC;
+	`
+
+	var transactions []domain.Transaction
+	err := r.db.SelectContext(ctx, &transactions, query, userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, exception.ErrNoTransactionsFound
+		}
+	}
+
+	return &transactions, nil
 }

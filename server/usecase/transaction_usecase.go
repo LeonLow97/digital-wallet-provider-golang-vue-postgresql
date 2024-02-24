@@ -26,7 +26,7 @@ func NewTransactionUsecase(transactionRepo domain.TransactionRepository, walletR
 	}
 }
 
-func (uc *transactionUsecase) CreateTransactionByWallet(ctx context.Context, req dto.CreateTransactionRequest, userID int) error {
+func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.CreateTransactionRequest, userID int) error {
 	// ensure amount specified is positive
 	if req.Amount <= 0 {
 		return exception.ErrAmountMustBePositive
@@ -85,8 +85,8 @@ func (uc *transactionUsecase) CreateTransactionByWallet(ctx context.Context, req
 	}
 
 	updatedBeneficiaryBalance := &domain.Balance{
-		Balance: beneficiaryFinalBalance,
-		UserID:  beneficiary.ID,
+		Balance:  beneficiaryFinalBalance,
+		UserID:   beneficiary.ID,
 		Currency: req.DestinationCurrency,
 	}
 
@@ -114,8 +114,18 @@ func (uc *transactionUsecase) CreateTransactionByWallet(ctx context.Context, req
 	// create 2 transactions in the transactions table for sender and beneficiary
 	err = uc.transactionRepository.InsertTransaction(ctx, userID, userID, beneficiary.ID, *transactionEntity)
 	if err != nil {
+		log.Println("failed to insert transaction", err)
 		return err
 	}
 
 	return nil
+}
+
+func (uc *transactionUsecase) GetTransactions(ctx context.Context, userID int) (*[]domain.Transaction, error) {
+	transactions, err := uc.transactionRepository.GetTransactions(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
 }

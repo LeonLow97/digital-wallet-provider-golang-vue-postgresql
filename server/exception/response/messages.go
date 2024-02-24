@@ -52,4 +52,5 @@ var (
 // Transaction
 var (
 	ErrUserAndWalletAssociationNotFound = "User is not associated with the specified wallet."
+	ErrNoTransactionsFound = "No transactions found."
 )

@@ -66,15 +66,8 @@ a:hover {
 body {
   margin: 0;
   display: flex;
-  place-items: center;
   min-width: 32px;
   min-height: 100vh;
-}
-
-#app {
-  max-width: 128rem;
-  margin: 0 auto;
-  padding: 2rem;
 }
 
 h1 {

@@ -43,6 +43,70 @@
   </div>
 </template>
 
+<script lang="ts" setup>
+import { ref } from 'vue';
+import { mdiEyeOutline, mdiEyeOffOutline } from '@mdi/js';
+import SvgIcon from '@jamescoyle/vue-icon';
+import { AxiosError } from 'axios';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/user';
+
+import type { User } from '@/types/user';
+import TextInput from '@/components/TextInput.vue';
+import ActionButton from '@/components/ActionButton.vue';
+import LOGIN from '@/api/user';
+
+const showPassword = ref(false);
+
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
+
+const email = ref('');
+const password = ref('');
+
+const responseMessage = ref('');
+
+const router = useRouter();
+const userStore = useUserStore();
+
+const handleSubmit = async () => {
+  try {
+    const body: { email: string; password: string } = {
+      email: email.value,
+      password: password.value,
+    };
+
+    const { data, status } = await LOGIN(body);
+
+    const user: User = {
+      email: data?.email,
+      username: data?.username,
+      mobileNumber: data?.mobileNumber,
+    };
+
+    if (status === 200) {
+      email.value = '';
+      password.value = '';
+
+      userStore.LOGIN_USER(user);
+
+      // TODO: add user balance
+
+      router.push({ name: 'Home' });
+    }
+  } catch (error: any) {
+    if (error instanceof AxiosError) {
+      if (error.response) {
+        responseMessage.value = error.response?.data?.message;
+      }
+    } else {
+      responseMessage.value = 'Unexpected error occurred';
+    }
+  }
+};
+</script>
+
 <style scoped>
 .login_container {
   display: flex;
@@ -51,6 +115,14 @@
   padding: 4.8rem;
   border-radius: 2.4rem;
   box-shadow: 0 1.2rem 2.4rem rgba(0, 0, 0, 0.2);
+  width: 50rem;
+
+  /** Center login container */
+  margin: 0 auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .text_input {
@@ -81,7 +153,6 @@
 form {
   display: flex;
   flex-direction: column;
-  width: 40rem;
   gap: 2.8rem;
 }
 
@@ -94,67 +165,3 @@ form div {
   cursor: pointer;
 }
 </style>
-
-<script lang="ts" setup>
-import { ref } from 'vue';
-import { mdiEyeOutline, mdiEyeOffOutline } from '@mdi/js';
-import SvgIcon from '@jamescoyle/vue-icon';
-import { AxiosError } from 'axios';
-import { useRouter } from 'vue-router';
-import { useUserStore } from '@/stores/user';
-
-import type { User } from '@/types/user';
-import TextInput from '@/components/TextInput.vue';
-import ActionButton from '@/components/ActionButton.vue';
-import postLogin from '@/api/user';
-
-const showPassword = ref(false);
-
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value;
-};
-
-const email = ref('');
-const password = ref('');
-
-const responseMessage = ref('');
-
-const router = useRouter();
-const userStore = useUserStore();
-
-const handleSubmit = async () => {
-  try {
-    const body: { email: string; password: string } = {
-      email: email.value,
-      password: password.value,
-    };
-
-    const { data, status } = await postLogin(body);
-
-    const user: User = {
-      email: data?.email,
-      username: data?.username,
-      mobileNumber: '',
-    };
-
-    if (status === 200) {
-      email.value = '';
-      password.value = '';
-
-      userStore.LOGIN_USER(user);
-
-      // TODO: add user balance
-
-      router.push({ name: 'Home' });
-    }
-  } catch (error: any) {
-    if (error instanceof AxiosError) {
-      if (error.response) {
-        responseMessage.value = error.response?.data?.message;
-      }
-    } else {
-      responseMessage.value = 'Unexpected error occurred';
-    }
-  }
-};
-</script>

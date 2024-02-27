@@ -8,8 +8,9 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
+	Email        string `json:"email"`
+	Username     string `json:"username"`
+	MobileNumber string `json:"mobileNumber"`
 }
 
 type Token struct {

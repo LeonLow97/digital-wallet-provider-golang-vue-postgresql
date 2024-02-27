@@ -21,23 +21,39 @@ export const useUserStore = defineStore('user', () => {
   if (storedUser) {
     user.value = JSON.parse(storedUser);
   }
+
+  const storedLoggedIn = localStorage.getItem('isLoggedIn');
+  if (storedLoggedIn) {
+    isLoggedIn.value = storedLoggedIn === 'true';
+  }
+
   // Persist store throughout page reloads: https://github.com/vuejs/pinia/issues/309
   watch(
-    user,
-    (userVal) => {
+    [user, isLoggedIn],
+    ([userVal, isLoggedInVal]) => {
       localStorage.setItem('user', JSON.stringify(userVal));
+      localStorage.setItem('LOGGED_IN', isLoggedInVal.toString());
     },
     { deep: true }
   );
 
   const LOGIN_USER = (data: User) => {
-    user.value.email = data.email;
-    user.value.username = data.username;
-    user.value.mobileNumber = data.mobileNumber;
+    user.value = {
+      email: data.email,
+      username: data.username,
+      mobileNumber: data.mobileNumber,
+    };
+
     isLoggedIn.value = true;
   };
 
   const LOGOUT_USER = () => {
+    user.value = {
+      email: '',
+      username: '',
+      mobileNumber: '',
+    };
+
     isLoggedIn.value = false;
   };
 

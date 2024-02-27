@@ -93,8 +93,9 @@ func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 	// }
 
 	resp := dto.LoginResponse{
-		Email:    user.Email,
-		Username: user.Username,
+		Email:        user.Email,
+		Username:     user.Username,
+		MobileNumber: user.MobileNumber,
 	}
 
 	return &resp, token, nil

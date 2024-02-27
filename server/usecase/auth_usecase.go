@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"os"
 	"strconv"
 	"time"
 
@@ -18,22 +17,22 @@ import (
 )
 
 type loginUsecase struct {
+	cfg            infrastructure.Config
 	redisClient    infrastructure.RedisClient
 	userRepository domain.UserRepository
 }
 
-func NewAuthUsecase(userRepository domain.UserRepository, redisClient infrastructure.RedisClient) domain.UserUsecase {
+func NewAuthUsecase(cfg infrastructure.Config, userRepository domain.UserRepository, redisClient infrastructure.RedisClient) domain.UserUsecase {
 	return &loginUsecase{
+		cfg:            cfg,
 		redisClient:    redisClient,
 		userRepository: userRepository,
 	}
 }
 
 var (
-	accessTokenExpiry  = time.Hour * 99999 // TODO: for development, reset to 15 minutes for PROD
+	accessTokenExpiry  = time.Minute * 15
 	refreshTokenExpiry = time.Hour * 24
-	jwtSecretKey       = os.Getenv("JWT_SECRET_KEY")
-	issuer             = os.Getenv("API_DOMAIN")
 )
 
 func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, *dto.Token, error) {
@@ -174,8 +173,8 @@ func (uc *loginUsecase) GenerateJWTAccessToken(userID int, ttl time.Duration, se
 	// set token claims
 	claims := token.Claims.(jwt.MapClaims)
 	claims["sub"] = userID
-	claims["aud"] = issuer // audience
-	claims["iss"] = issuer // issuer (assigned to claims.Issuer)
+	claims["aud"] = uc.cfg.JWT.Issuer // audience
+	claims["iss"] = uc.cfg.JWT.Issuer // issuer (assigned to claims.Issuer)
 	claims["admin"] = 0
 	claims["sessionID"] = sessionID
 
@@ -188,7 +187,7 @@ func (uc *loginUsecase) GenerateJWTAccessToken(userID int, ttl time.Duration, se
 	claims["exp"] = time.Now().Add(ttl).Unix()
 
 	// generate signed access token
-	signedAccessToken, err := token.SignedString([]byte(jwtSecretKey))
+	signedAccessToken, err := token.SignedString([]byte(uc.cfg.JWT.Secret))
 	if err != nil {
 		return "", err
 	}
@@ -206,7 +205,7 @@ func (uc *loginUsecase) GenerateJWTRefreshToken(userID int, ttl time.Duration, s
 	refreshTokenClaims["exp"] = time.Now().Add(refreshTokenExpiry).Unix()
 
 	// generate signed refresh token
-	signedRefreshToken, err := refreshToken.SignedString([]byte(jwtSecretKey))
+	signedRefreshToken, err := refreshToken.SignedString([]byte(uc.cfg.JWT.Secret))
 	if err != nil {
 		return "", err
 	}

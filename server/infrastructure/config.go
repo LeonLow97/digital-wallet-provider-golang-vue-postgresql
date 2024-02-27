@@ -1,17 +1,46 @@
 package infrastructure
 
-import "github.com/spf13/viper"
+import (
+	"errors"
+	"log"
+
+	"github.com/spf13/viper"
+)
+
+var (
+	MODE_TESTING       = "testing"
+	MODE_DEVELOPMENT   = "development"
+	MODE_DOCKER        = "docker"
+	MODE_PREPRODUCTION = "preproduction"
+	MODE_PRODUCTION    = "production"
+)
+
+type JWTConfig struct {
+	Secret string `mapstructure:"secret"`
+	Issuer string `mapstructure:"issuer"`
+}
 
 type Config struct {
+	JWT JWTConfig `mapstructure:"jwt"`
 }
 
 func LoadConfig() (*Config, error) {
+	viper.SetDefault("mode", MODE_DEVELOPMENT)
+
 	viper.SetConfigName("development")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("../config")
+	viper.AddConfigPath("./config")
 
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, err
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// Config file not found; ignore error if desired
+			log.Println("config file not found", err)
+			return nil, errors.New("config file not found")
+		} else {
+			// Config file was found but another error was produced
+			log.Println("error reading config file", err)
+			return nil, err
+		}
 	}
 
 	var config Config

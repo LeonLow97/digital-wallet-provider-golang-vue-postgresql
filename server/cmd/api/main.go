@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+	// connecting to Postgres
 	conn, err := infrastructure.NewPostgresConn()
 	if err != nil {
 		log.Fatalln("error connecting to db", err)
@@ -22,12 +23,19 @@ func main() {
 	defer conn.Close()
 	dbConn := conn.DB
 
+	// connecting to Redis
 	redisClient := infrastructure.NewRedisClient()
 	defer func() {
 		if err := redisClient.Close(); err != nil {
 			log.Fatalln("error closing redis client", err)
 		}
 	}()
+
+	// loading config file
+	cfg, err := infrastructure.LoadConfig()
+	if err != nil {
+		log.Fatalln("error loading config file", err)
+	}
 
 	router := mux.NewRouter()
 	router = router.PathPrefix("/api/v1").Subrouter() // api versioning v1
@@ -38,7 +46,7 @@ func main() {
 
 	// Initiating handlers, service, and repository
 	userRepo := repository.NewUserRepository(dbConn)
-	authUsecase := usecase.NewAuthUsecase(userRepo, redisClient)
+	authUsecase := usecase.NewAuthUsecase(*cfg, userRepo, redisClient)
 	handlers.NewAuthHandler(router, authUsecase, redisClient)
 
 	balanceRepo := repository.NewBalanceRepository(dbConn)

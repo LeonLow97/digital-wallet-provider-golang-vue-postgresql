@@ -51,30 +51,30 @@ spec:
               value: '8080'
 
 ---
-# # Used for Production environment
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: backend-cluster-ip-service
-# spec:
-#   type: ClusterIP
-#   selector:
-#     backend: mobile-wallet
-#   ports:
-#     - port: 8080 # ClusterIP Service port
-#       targetPort: 8080 # Forward traffic to this Pod on this targetPort
-
-# Used for DEV purposes to test connection to server from Postman
+# Used for Production environment
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-nodeport-service
+  name: backend-cluster-ip-service
 spec:
-  type: NodePort
-  ports:
-    - port: 8080
-      targetPort: 8080
-      nodePort: 31500
-      protocol: TCP
+  type: ClusterIP
   selector:
     backend: mobile-wallet
+  ports:
+    - port: 8080 # ClusterIP Service port
+      targetPort: 8080 # Forward traffic to this Pod on this targetPort
+
+# # Used for DEV purposes to test connection to server from Postman
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: backend-nodeport-service
+# spec:
+#   type: NodePort
+#   ports:
+#     - port: 8080
+#       targetPort: 8080
+#       nodePort: 31500
+#       protocol: TCP
+#   selector:
+#     backend: mobile-wallet

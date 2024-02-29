@@ -7,25 +7,30 @@ spec:
   selector:
     matchLabels:
       backend: database
+  strategy:
+    type: RollingUpdate # k8s gradually replaces the instances of your application
+    rollingUpdate:
+      maxSurge: 1 # one additional pod can be created
+      maxUnavailable: 1 # 1 pod can be unavailable at a time
   template:
     metadata:
       labels:
         backend: database
     spec:
-      # volumes:
-      #   - name: postgres-storage
-      #     persistentVolumeClaim:
-      #       claimName: database-persistent-volume-claim
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: database-persistent-volume-claim
       containers:
         - name: postgres
           image: postgres
           ports:
             - containerPort: 5432
           # volume to be used in the container
-          # volumeMounts:
-          #   - name: postgres-storage
-          #     mountPath: /var/lib/postgresql/data
-          #     subPath: postgres # specific to postgres
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+              subPath: postgres # specific to postgres
           env:
             - name: POSTGRES_PASSWORD
               valueFrom:

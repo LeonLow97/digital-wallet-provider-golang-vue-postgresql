@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: database-persistent-volume-claim
+spec:
+  accessModes:
+    # other modes: ReadOnlyMany (multiple Pods of different nodes can read but cannot write)
+    # ReadWriteMany (shared storage, multiple Pods of different nodes can read and write)
+    - ReadWriteOnce # one Pod in k8s cluster can read and write to the storage column at any time
+  resources:
+    requests:
+      storage: 2Gi # 2GB

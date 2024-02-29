@@ -2,7 +2,9 @@ package infrastructure
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -36,17 +38,21 @@ type RedisClientImpl struct {
 
 // NewRedisClient creates a new instance of RedisClientImpl
 func NewRedisClient() RedisClient {
+	redisHost := os.Getenv("REDIS_HOST")
+	redisPort := os.Getenv("REDIS_PORT")
+	redisAddr := fmt.Sprintf("%s:%s", redisHost, redisPort)
+
 	// initialize redis client
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "redis-server:6379", // redis server address
-		Password: "",                  // No Password
-		DB:       0,                   // Default DB
+		Addr:     redisAddr, // redis server address
+		Password: "",        // No Password
+		DB:       0,         // Default DB
 	})
 
 	// check if Redis is reachable via Ping command
 	pong, err := redisClient.Ping(context.Background()).Result()
 	if err != nil {
-		log.Fatal("Error connecting to Redis server", err)
+		log.Fatalf("Error connecting to Redis server: %v\n", err)
 	}
 	log.Println("Connected to Redis:", pong)
 

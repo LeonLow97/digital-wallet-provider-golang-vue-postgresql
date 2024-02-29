@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      backend: mobile-wallet
+  template:
+    metadata:
+      labels:
+        backend: mobile-wallet
+    spec:
+      containers:
+        - name: mobile-wallet
+          image: lowjiewei/mobile-wallet-be:v1.1
+          ports:
+            - containerPort: 8080
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: pguser
+                  key: PGUSER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pgpassword
+                  key: PGPASSWORD
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: pghost
+                  key: PGHOST
+            - name: POSTGRES_PORT
+              value: '5432'
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: pgdb
+                  key: PGDB
+            - name: REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: redishost
+                  key: REDISHOST
+            - name: REDIS_PORT
+              value: '6379'
+            - name: SERVICE_PORT
+              value: '8080'
+
+---
+# # Used for Production environment
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: backend-cluster-ip-service
+# spec:
+#   type: ClusterIP
+#   selector:
+#     backend: mobile-wallet
+#   ports:
+#     - port: 8080 # ClusterIP Service port
+#       targetPort: 8080 # Forward traffic to this Pod on this targetPort
+
+# Used for DEV purposes to test connection to server from Postman
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-nodeport-service
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 31500
+      protocol: TCP
+  selector:
+    backend: mobile-wallet

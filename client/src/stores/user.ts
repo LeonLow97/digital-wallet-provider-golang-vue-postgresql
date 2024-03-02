@@ -22,7 +22,7 @@ export const useUserStore = defineStore('user', () => {
     user.value = JSON.parse(storedUser);
   }
 
-  const storedLoggedIn = localStorage.getItem('isLoggedIn');
+  const storedLoggedIn = localStorage.getItem('LOGGED_IN');
   if (storedLoggedIn) {
     isLoggedIn.value = storedLoggedIn === 'true';
   }
@@ -31,6 +31,7 @@ export const useUserStore = defineStore('user', () => {
   watch(
     [user, isLoggedIn],
     ([userVal, isLoggedInVal]) => {
+      console.log('from watch', userVal, isLoggedInVal);
       localStorage.setItem('user', JSON.stringify(userVal));
       localStorage.setItem('LOGGED_IN', isLoggedInVal.toString());
     },
@@ -48,6 +49,7 @@ export const useUserStore = defineStore('user', () => {
   };
 
   const LOGOUT_USER = () => {
+    console.log('logging out...');
     user.value = {
       email: '',
       username: '',

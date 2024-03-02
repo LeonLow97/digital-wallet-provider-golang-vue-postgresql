@@ -2,9 +2,9 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
@@ -15,18 +15,16 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-var (
-	JWT_SECRET_KEY = os.Getenv("JWT_SECRET_KEY")
-)
-
 type AuthenticationMiddleware struct {
+	cfg         infrastructure.Config
 	skipperFunc SkipperFunc
 	redisClient infrastructure.RedisClient
 	authUsecase domain.UserUsecase
 }
 
-func NewAuthenticationMiddleware(skipperFunc SkipperFunc, redisClient infrastructure.RedisClient, authUsecase domain.UserUsecase) AuthenticationMiddleware {
+func NewAuthenticationMiddleware(cfg infrastructure.Config, skipperFunc SkipperFunc, redisClient infrastructure.RedisClient, authUsecase domain.UserUsecase) AuthenticationMiddleware {
 	return AuthenticationMiddleware{
+		cfg:         cfg,
 		skipperFunc: skipperFunc,
 		redisClient: redisClient,
 		authUsecase: authUsecase,
@@ -65,6 +63,8 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 
 		// jwtTokenString := headerParts[1]
 
+		fmt.Println("Secret key value: ", m.cfg.JWT.Secret)
+
 		cookie, err := r.Cookie("mw-token")
 		if err != nil {
 			log.Println("Missing token cookie:", err)
@@ -78,7 +78,7 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, jwt.ErrSignatureInvalid
 			}
-			return []byte(JWT_SECRET_KEY), nil
+			return []byte(m.cfg.JWT.Secret), nil
 		})
 
 		if err != nil || !token.Valid {

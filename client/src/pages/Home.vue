@@ -1,5 +1,4 @@
 <template>
-  <h1>Home Page</h1>
   <h3>Welcome Back {{ username }}</h3>
   <h3>Email {{ email }}</h3>
   <h3>Mobile Number {{ mobileNumber }}</h3>
@@ -25,8 +24,8 @@ const handleLogout = async () => {
   try {
     const { status } = await LOGOUT();
 
-    if (status === 200) {
-      userStore.LOGOUT_USER();
+    if (status !== 200) {
+      console.log('logout was unsuccessful');
     }
   } catch (error: unknown) {
     if (error instanceof AxiosError) {
@@ -37,6 +36,7 @@ const handleLogout = async () => {
     } else console.error('Unexpected error', error);
   } finally {
     // regardless of error, logout the user
+    userStore.LOGOUT_USER();
     router.push({ name: 'Login' });
   }
 };

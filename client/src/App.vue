@@ -1,4 +1,5 @@
 <template>
+  {{ isLoggedIn }}
   <main-nav v-if="isLoggedIn" />
   <router-view />
 </template>

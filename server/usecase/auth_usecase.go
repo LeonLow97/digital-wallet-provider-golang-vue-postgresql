@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -185,6 +186,8 @@ func (uc *loginUsecase) GenerateJWTAccessToken(userID int, ttl time.Duration, se
 
 	// set token expiry
 	claims["exp"] = time.Now().Add(ttl).Unix()
+
+	fmt.Println("Access token key", uc.cfg.JWT.Secret)
 
 	// generate signed access token
 	signedAccessToken, err := token.SignedString([]byte(uc.cfg.JWT.Secret))

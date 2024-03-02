@@ -1,9 +1,11 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
+import { IS_LOGGED_IN } from '@/stores/constants';
+import type { RouteRecordName } from 'vue-router';
 
 const routes = [
   {
     path: '/',
-    redirect: '/home'
+    redirect: '/home',
   },
   {
     path: '/login',
@@ -22,6 +24,8 @@ const routes = [
   },
 ];
 
+const skippedProtectedEndpoints: RouteRecordName[] = ['Login', 'SignUp'];
+
 const router = createRouter({
   // createWebHashHistory is for SPA to manage different states or views by using
   // hash in the URL for smooth navigation without reloading the entire page
@@ -35,6 +39,18 @@ const router = createRouter({
       behavior: 'smooth',
     };
   },
+});
+
+// Navigation guard: https://router.vuejs.org/guide/advanced/navigation-guards.html
+router.beforeEach((to, from, next) => {
+  const isLoggedIn = localStorage.getItem(IS_LOGGED_IN);
+
+  // Added `to.name` to Avoid an infinite redirect
+  if (isLoggedIn !== 'true' && !skippedProtectedEndpoints.includes(to.name!)) {
+    next({ name: 'Login' });
+  } else {
+    next();
+  }
 });
 
 export default router;

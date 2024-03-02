@@ -38,7 +38,6 @@ COLORS:
 /***********************/
 /* GENERAL */
 /***********************/
-
 * {
   margin: 0;
   padding: 0;
@@ -49,6 +48,11 @@ html {
   scroll-behavior: smooth;
   font-size: 62.5%;
 }
+
+input:focus {
+  outline: none;
+}
+
 
 /***********************/
 /* REUSABLE COMPONENTS */

@@ -1,4 +1,4 @@
-import { ref, watch, onBeforeMount } from 'vue';
+import { ref, watch } from 'vue';
 import { defineStore } from 'pinia';
 
 interface User {
@@ -17,12 +17,12 @@ export const useUserStore = defineStore('user', () => {
   const isLoggedIn = ref(false);
 
   // initialize the store after the reactivity system is set up
-  const storedUser = localStorage.getItem('user');
+  const storedUser = localStorage.getItem('USER_DETAILS');
   if (storedUser) {
     user.value = JSON.parse(storedUser);
   }
 
-  const storedLoggedIn = localStorage.getItem('LOGGED_IN');
+  const storedLoggedIn = localStorage.getItem('IS_LOGGED_IN');
   if (storedLoggedIn) {
     isLoggedIn.value = storedLoggedIn === 'true';
   }
@@ -31,9 +31,8 @@ export const useUserStore = defineStore('user', () => {
   watch(
     [user, isLoggedIn],
     ([userVal, isLoggedInVal]) => {
-      console.log('from watch', userVal, isLoggedInVal);
-      localStorage.setItem('user', JSON.stringify(userVal));
-      localStorage.setItem('LOGGED_IN', isLoggedInVal.toString());
+      localStorage.setItem('USER_DETAILS', JSON.stringify(userVal));
+      localStorage.setItem('IS_LOGGED_IN', isLoggedInVal.toString());
     },
     { deep: true }
   );
@@ -49,7 +48,6 @@ export const useUserStore = defineStore('user', () => {
   };
 
   const LOGOUT_USER = () => {
-    console.log('logging out...');
     user.value = {
       email: '',
       username: '',

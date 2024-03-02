@@ -51,10 +51,10 @@ import { AxiosError } from 'axios';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 
-import type { User } from '@/types/user';
+import type { User, LOGIN_BODY } from '@/types/user';
 import TextInput from '@/components/TextInput.vue';
 import ActionButton from '@/components/ActionButton.vue';
-import LOGIN from '@/api/user';
+import { LOGIN } from '@/api/user';
 
 const showPassword = ref(false);
 
@@ -72,7 +72,7 @@ const userStore = useUserStore();
 
 const handleSubmit = async () => {
   try {
-    const body: { email: string; password: string } = {
+    const body: LOGIN_BODY = {
       email: email.value,
       password: password.value,
     };

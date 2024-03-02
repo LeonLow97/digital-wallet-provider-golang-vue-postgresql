@@ -42,9 +42,11 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
+import { AxiosError } from 'axios';
 import TextInput from '@/components/TextInput.vue';
 import ActionButton from '@/components/ActionButton.vue';
-import axios, { AxiosError } from 'axios';
+import { SIGNUP } from '@/api/user';
+import type { SIGNUP_BODY } from '@/types/user';
 
 const firstName = ref('');
 const lastName = ref('');
@@ -55,7 +57,7 @@ const mobileNumber = ref('');
 
 const handleSubmit = async () => {
   try {
-    const body = {
+    const body: SIGNUP_BODY = {
       first_name: firstName.value === '' ? null : firstName.value,
       last_name: lastName.value === '' ? null : lastName.value,
       username: username.value,
@@ -64,13 +66,9 @@ const handleSubmit = async () => {
       mobile_number: mobileNumber.value,
     };
 
-    const response = await axios.post(
-      'http://localhost:8080/api/v1/signup',
-      JSON.stringify(body),
-      { withCredentials: true }
-    );
+    const { status } = await SIGNUP(body);
 
-    if (response.status) {
+    if (status === 204) {
       firstName.value = '';
       lastName.value = '';
       username.value = '';
@@ -78,7 +76,7 @@ const handleSubmit = async () => {
       password.value = '';
       mobileNumber.value = '';
 
-      alert('sign up!');
+      alert('Signed up successfully!');
     }
   } catch (error: unknown) {
     if (error instanceof AxiosError) {

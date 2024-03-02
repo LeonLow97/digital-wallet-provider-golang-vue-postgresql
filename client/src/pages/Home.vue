@@ -3,15 +3,16 @@
   <h3>Welcome Back {{ username }}</h3>
   <h3>Email {{ email }}</h3>
   <h3>Mobile Number {{ mobileNumber }}</h3>
-  <action-button @click="handleClick" text="Logout" />
+  <action-button @click="handleLogout" text="Logout" />
 </template>
 
 <script lang="ts" setup>
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import { useRouter } from 'vue-router';
 import ActionButton from '@/components/ActionButton.vue';
 import { useUserStore } from '@/stores/user';
 import { onMounted, ref } from 'vue';
+import { LOGOUT } from '@/api/user';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -20,14 +21,11 @@ const username = ref('');
 const email = ref('');
 const mobileNumber = ref('');
 
-const handleClick = async () => {
+const handleLogout = async () => {
   try {
-    const response = await axios.post(
-      'http://localhost:8080/api/v1/logout',
-      JSON.stringify({}),
-      { withCredentials: true }
-    );
-    if (response.status === 200) {
+    const { status } = await LOGOUT();
+
+    if (status === 200) {
       userStore.LOGOUT_USER();
     }
   } catch (error: unknown) {

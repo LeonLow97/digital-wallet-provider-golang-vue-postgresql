@@ -1,30 +1,60 @@
-import { createRouter, createWebHashHistory } from 'vue-router';
-import { IS_LOGGED_IN } from '@/stores/constants';
-import type { RouteRecordName } from 'vue-router';
+import { createRouter, createWebHashHistory } from "vue-router";
+import { IS_LOGGED_IN } from "@/stores/constants";
+import type { RouteRecordName } from "vue-router";
 
 const routes = [
   {
-    path: '/',
-    redirect: '/home',
+    path: "/",
+    redirect: "/home",
   },
   {
-    path: '/login',
-    name: 'Login',
-    component: () => import('@/pages/Login.vue'),
+    path: "/login",
+    name: "Login",
+    component: () => import("@/pages/Login.vue"),
   },
   {
-    path: '/home',
-    name: 'Home',
-    component: () => import('@/pages/Home.vue'),
+    path: "/home",
+    name: "Home",
+    component: () => import("@/pages/Home.vue"),
   },
   {
-    path: '/signup',
-    name: 'SignUp',
-    component: () => import('@/pages/SignUp.vue'),
+    path: "/signup",
+    name: "SignUp",
+    component: () => import("@/pages/SignUp.vue"),
+  },
+  {
+    path: "/profile",
+    name: "UserProfile",
+    component: () => import("@/pages/UserProfile.vue"),
+  },
+  {
+    path: "/settings",
+    name: "Settings",
+    component: () => import("@/pages/Settings.vue"),
+  },
+  {
+    path: "/balances",
+    name: "Balances",
+    component: () => import("@/pages/Balances.vue"),
+  },
+  {
+    path: "/transactions",
+    name: "Transactions",
+    component: () => import("@/pages/Transactions.vue"),
+  },
+  {
+    path: "/transfer",
+    name: "Transfer",
+    component: () => import("@/pages/Transfer.vue"),
+  },
+  {
+    path: "/wallets",
+    name: "Wallets",
+    component: () => import("@/pages/Wallets.vue"),
   },
 ];
 
-const skippedProtectedEndpoints: RouteRecordName[] = ['Login', 'SignUp'];
+const skippedProtectedEndpoints: RouteRecordName[] = ["Login", "SignUp"];
 
 const router = createRouter({
   // createWebHashHistory is for SPA to manage different states or views by using
@@ -36,7 +66,7 @@ const router = createRouter({
     return {
       top: 0,
       left: 0,
-      behavior: 'smooth',
+      behavior: "smooth",
     };
   },
 });
@@ -46,8 +76,8 @@ router.beforeEach((to, from, next) => {
   const isLoggedIn = localStorage.getItem(IS_LOGGED_IN);
 
   // Added `to.name` to Avoid an infinite redirect
-  if (isLoggedIn !== 'true' && !skippedProtectedEndpoints.includes(to.name!)) {
-    next({ name: 'Login' });
+  if (isLoggedIn !== "true" && !skippedProtectedEndpoints.includes(to.name!)) {
+    next({ name: "Login" });
   } else {
     next();
   }

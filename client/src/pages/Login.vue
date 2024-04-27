@@ -96,8 +96,6 @@ const handleSubmit = async () => {
       mobileNumber: data?.mobileNumber,
     };
 
-    alert(status)
-
     if (status === 200) {
       email.value = "";
       password.value = "";
@@ -109,10 +107,6 @@ const handleSubmit = async () => {
       alert("Logged In!");
 
       router.push({ name: "Home" });
-    }
-
-    if (status === 401) {
-      console.log('gg')
     }
   } catch (error: any) {
     if (error instanceof AxiosError) {

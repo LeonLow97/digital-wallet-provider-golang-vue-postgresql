@@ -1,45 +1,20 @@
 <template>
-  <h3>Welcome Back {{ username }}</h3>
-  <h3>Email {{ email }}</h3>
-  <h3>Mobile Number {{ mobileNumber }}</h3>
-  <action-button @click="handleLogout" text="Logout" />
+  <div class="pt-6">
+    <h3 class="text-center text-xl font-bold">
+      Welcome Back <span class="uppercase">{{ username }}</span> !
+    </h3>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { AxiosError } from 'axios';
-import { useRouter } from 'vue-router';
-import ActionButton from '@/components/ActionButton.vue';
-import { useUserStore } from '@/stores/user';
-import { onMounted, ref } from 'vue';
-import { LOGOUT } from '@/api/user';
+import { useUserStore } from "@/stores/user";
+import { onMounted, ref } from "vue";
 
-const router = useRouter();
 const userStore = useUserStore();
 
-const username = ref('');
-const email = ref('');
-const mobileNumber = ref('');
-
-const handleLogout = async () => {
-  try {
-    const { status } = await LOGOUT();
-
-    if (status !== 200) {
-      console.log('logout was unsuccessful');
-    }
-  } catch (error: unknown) {
-    if (error instanceof AxiosError) {
-      if (error.response) {
-        console.log(error.response);
-        alert(error.response?.data?.message);
-      }
-    } else console.error('Unexpected error', error);
-  } finally {
-    // regardless of error, logout the user
-    userStore.LOGOUT_USER();
-    router.push({ name: 'Login' });
-  }
-};
+const username = ref("");
+const email = ref("");
+const mobileNumber = ref("");
 
 onMounted(async () => {
   username.value = userStore.user.username;

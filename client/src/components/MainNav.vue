@@ -1,37 +1,50 @@
 <template>
-  <div class="nav_container">
-    <div>
-      <h2 class="nav_logo">Mobile Wallet</h2>
-    </div>
-    <div>
-      <ul class="nav_list_items">
-        <li><a href="">Wallets</a></li>
-        <li><a href="">Make a Transfer</a></li>
-        <li><a href="">Balance</a></li>
-        <li><a href="">Profile</a></li>
+  <div class="flex justify-between bg-blue-900 p-4 text-white">
+    <h2 class="pl-8 font-mono text-lg font-bold uppercase">Mobile Wallet</h2>
+    <div class="pr-8">
+      <ul class="flex gap-x-8">
+        <li class="cursor-pointer hover:bg-blue-500">
+          <svg-icon type="mdi" :path="mdiAccount" />
+        </li>
+        <li class="cursor-pointer hover:bg-blue-500" @click="handleLogout">
+          <svg-icon type="mdi" :path="mdiLogout" />
+        </li>
       </ul>
     </div>
   </div>
 </template>
 
-<style scoped>
-.nav_container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 3.2rem;
-  padding-top: 2rem;
-}
+<script lang="ts" setup>
+import { mdiLogout, mdiAccount } from "@mdi/js";
+import SvgIcon from "@jamescoyle/vue-icon";
+import { AxiosError } from "axios";
+import { LOGOUT } from "@/api/user";
+import { useUserStore } from "@/stores/user";
+import { useRouter } from "vue-router";
 
-.nav_logo { 
-  margin-left: 2.4rem;
-}
+const router = useRouter();
+const userStore = useUserStore();
 
-.nav_list_items {
-  display: flex;
-  gap: 2.4rem;
-  list-style: none;
-  font-size: 2rem;
-  margin-right: 2.4rem;
-}
-</style>
+const handleLogout = async () => {
+  try {
+    const { status } = await LOGOUT();
+
+    if (status !== 200) {
+      console.log("logout was unsuccessful");
+    }
+
+    alert("logged out!");
+  } catch (error: unknown) {
+    if (error instanceof AxiosError) {
+      if (error.response) {
+        console.log(error.response);
+        alert(error.response?.data?.message);
+      }
+    } else console.error("Unexpected error", error);
+  } finally {
+    // regardless of error, logout the user
+    userStore.LOGOUT_USER();
+    router.push({ name: "Login" });
+  }
+};
+</script>

@@ -1,6 +1,11 @@
-import axios from 'axios';
-import type { User } from '@/types/user';
-import type { LOGIN_BODY, SIGNUP_BODY, SIGNUP_RESPONSE, LOGOUT_RESPONSE } from '@/types/user';
+import axios from "axios";
+import type { User } from "@/types/user";
+import type {
+  LOGIN_BODY,
+  SIGNUP_BODY,
+  SIGNUP_RESPONSE,
+  LOGOUT_RESPONSE,
+} from "@/types/user";
 
 const BASE_URL = import.meta.env.VITE_APP_API_URL;
 
@@ -12,7 +17,7 @@ export const LOGIN = async (body: LOGIN_BODY) => {
       JSON.stringify(body),
       {
         withCredentials: true,
-      }
+      },
     );
 
     // Return an object containing both data and status

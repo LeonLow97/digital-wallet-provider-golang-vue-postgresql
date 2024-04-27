@@ -16,3 +16,26 @@ If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has a
    1. Run `Extensions: Show Built-in Extensions` from VSCode's command palette
    2. Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
 2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+
+## Installing Tailwind with Vue 3 (Vite)
+
+- [Install Tailwind CSS with Vue 3 and Vite](https://v2.tailwindcss.com/docs/guides/vue-3-vite)
+
+```
+## Install Tailwind and its peer-dependencies using npm:
+npm install -D tailwindcss@latest postcss@latest autoprefixer@latest
+
+## Next, generate your tailwind.config.js and postcss.config.js files:
+npx tailwindcss init -p
+
+## Add Prettier class sorting in tailwind css
+## Link: https://tailwindcss.com/blog/automatic-class-sorting-with-prettier
+npm install -D prettier prettier-plugin-tailwindcss
+
+## Create a `.prettierrc` file and add the following
+{
+    "plugins": [
+        "prettier-plugin-tailwindcss"
+    ]
+}
+```

@@ -1,65 +1,100 @@
 <template>
-  <div class="signup_container">
-    <h1>Register an Account</h1>
-    <form @submit.prevent="handleSubmit">
-      <div>
-        <text-input
-          class="text_input"
-          v-model.trim="firstName"
-          placeholder="First Name"
-        />
-        <text-input
-          class="text_input"
-          v-model.trim="lastName"
-          placeholder="Last Name"
-        />
-        <text-input
-          class="text_input"
-          v-model.trim="username"
-          placeholder="Username"
-        />
-        <text-input
-          class="text_input"
-          v-model="mobileNumber"
-          placeholder="Mobile Number"
-        />
-        <text-input class="text_input" v-model="email" placeholder="Email" />
-        <text-input
-          class="text_input"
-          v-model="password"
-          placeholder="Password"
-          type="password"
-        />
-      </div>
+  <div class="grid h-screen place-items-center">
+    <div class="container w-2/5 rounded-lg border px-10 py-8 shadow-lg">
+      <h1 class="mb-8 text-2xl font-bold">Register an Account</h1>
+      <form @submit.prevent="handleSubmit">
+        <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+          <text-input
+            class="rounded-lg border px-4 py-2"
+            v-model.trim="firstName"
+            placeholder="First Name"
+          />
+          <text-input
+            class="rounded-lg border px-4 py-2"
+            v-model.trim="lastName"
+            placeholder="Last Name"
+          />
+          <text-input
+            class="col-span-2 rounded-lg border px-4 py-2"
+            v-model="mobileNumber"
+            placeholder="Mobile Number"
+          />
+          <text-input
+            class="col-span-2 rounded-lg border px-4 py-2"
+            v-model.trim="username"
+            placeholder="Username"
+          />
+          <text-input
+            class="col-span-2 rounded-lg border px-4 py-2"
+            v-model="email"
+            placeholder="Email"
+          />
+          <div class="relative col-span-2 flex w-full flex-wrap items-stretch">
+            <text-input
+              class="w-full rounded-lg border px-4 py-2"
+              v-model="password"
+              placeholder="Password"
+              type="password"
+            />
+            <span
+              class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+            >
+              <svg-icon
+                v-model="showPassword"
+                type="mdi"
+                :path="showPassword ? mdiEyeOutline : mdiEyeOffOutline"
+                @click="togglePasswordVisibility"
+              ></svg-icon>
+            </span>
+          </div>
+        </div>
 
-      <div class="button_container">
-        <action-button text="Sign Up" />
-      </div>
-    </form>
-    <router-link :to="{ name: 'Login' }">Back to Login</router-link>
+        <div class="mt-5 flex items-center justify-between">
+          <router-link
+            :to="{ name: 'Login' }"
+            class="text-cyan-900 underline underline-offset-4 transition hover:underline-offset-8"
+            >Back to Login</router-link
+          >
+          <action-button
+            text="Sign Up"
+            class="rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
+          />
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { AxiosError } from 'axios';
-import TextInput from '@/components/TextInput.vue';
-import ActionButton from '@/components/ActionButton.vue';
-import { SIGNUP } from '@/api/user';
-import type { SIGNUP_BODY } from '@/types/user';
+import { ref } from "vue";
+import { mdiEyeOutline, mdiEyeOffOutline } from "@mdi/js";
+import SvgIcon from "@jamescoyle/vue-icon";
+import { AxiosError } from "axios";
+import TextInput from "@/components/TextInput.vue";
+import ActionButton from "@/components/ActionButton.vue";
+import { SIGNUP } from "@/api/user";
+import type { SIGNUP_BODY } from "@/types/user";
 
-const firstName = ref('');
-const lastName = ref('');
-const username = ref('');
-const email = ref('');
-const password = ref('');
-const mobileNumber = ref('');
+// Data Fields
+const firstName = ref("");
+const lastName = ref("");
+const username = ref("");
+const email = ref("");
+const password = ref("");
+const mobileNumber = ref("");
+
+const showPassword = ref(false);
+
+// Methods
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
 
 const handleSubmit = async () => {
   try {
     const body: SIGNUP_BODY = {
-      first_name: firstName.value === '' ? null : firstName.value,
-      last_name: lastName.value === '' ? null : lastName.value,
+      first_name: firstName.value === "" ? null : firstName.value,
+      last_name: lastName.value === "" ? null : lastName.value,
       username: username.value,
       email: email.value,
       password: password.value,
@@ -69,68 +104,21 @@ const handleSubmit = async () => {
     const { status } = await SIGNUP(body);
 
     if (status === 204) {
-      firstName.value = '';
-      lastName.value = '';
-      username.value = '';
-      email.value = '';
-      password.value = '';
-      mobileNumber.value = '';
+      firstName.value = "";
+      lastName.value = "";
+      username.value = "";
+      email.value = "";
+      password.value = "";
+      mobileNumber.value = "";
 
-      alert('Signed up successfully!');
+      alert("Signed up successfully!");
     }
   } catch (error: unknown) {
     if (error instanceof AxiosError) {
       if (error.response) {
         alert(error.response?.data?.message);
       }
-    } else console.error('Unexpected error', error);
+    } else console.error("Unexpected error", error);
   }
 };
 </script>
-
-<style scoped>
-.signup_container {
-  display: flex;
-  flex-direction: column;
-  gap: 2.4rem;
-  width: 80rem;
-
-  padding: 4.8rem;
-  border-radius: 2.4rem;
-  box-shadow: 0 1.2rem 2.4rem rgba(0, 0, 0, 0.2);
-
-  /** Center signup container */
-  margin: 0 auto;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 3.2rem;
-}
-
-form div {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  row-gap: 3.2rem;
-  column-gap: 2.4rem;
-}
-
-.text_input {
-  border-top: none;
-  border-left: none;
-  border-right: none;
-  padding: 1.2rem 1rem 1.2rem 1rem;
-  font-size: 1.8rem;
-}
-
-.button_container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-</style>

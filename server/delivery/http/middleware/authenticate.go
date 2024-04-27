@@ -1,8 +1,7 @@
 package middleware
 
 import (
-	"context"
-	"fmt"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -38,32 +37,7 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// // get the jwt token from the Authorization header
-		// authHeader := r.Header.Get("Authorization")
-		// if len(authHeader) == 0 {
-		// 	log.Println("Missing Authorization in request header")
-		// 	utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
-		// 	return
-		// }
-
-		// // split the header on spaces
-		// headerParts := strings.Split(authHeader, " ")
-		// if len(headerParts) != 2 {
-		// 	log.Println("Authorization header does not contain 2 parts")
-		// 	utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
-		// 	return
-		// }
-
-		// // check to see if we have the word "Bearer"
-		// if headerParts[0] != "Bearer" {
-		// 	log.Println("Bearer is missing in the authentication header")
-		// 	utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
-		// 	return
-		// }
-
-		// jwtTokenString := headerParts[1]
-
-		fmt.Println("Secret key value: ", m.cfg.JWT.Secret)
+		ctx := r.Context()
 
 		cookie, err := r.Cookie("mw-token")
 		if err != nil {
@@ -82,7 +56,7 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 		})
 
 		if err != nil || !token.Valid {
-			log.Println("Token is invalid", err)
+			log.Println("JWT Token is invalid", err)
 			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 			return
 		}
@@ -105,7 +79,7 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 		userID := int(userIDFloat)
 
 		// set user id in context
-		ctx := context.WithValue(r.Context(), utils.UserIDKey, userID)
+		ctx = utils.UserIDWithContext(ctx, userID)
 
 		// Retrieve sessionID from claims
 		sessionID, ok := claims["sessionID"].(string)
@@ -114,13 +88,12 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 			return
 		}
-		ctx = context.WithValue(ctx, utils.SessionIDKey, sessionID)
+		ctx = utils.SessionIDWithContext(ctx, sessionID)
 
 		// check if session exists in redis string and redis set.
 		// If session exist, extend the session in redis. If session does not exist, unauthorized
 		if _, err := m.redisClient.GetEx(ctx, sessionID, utils.SESSION_EXPIRY); err != nil {
-			switch {
-			case err == redis.Nil:
+			if errors.Is(err, redis.Nil) {
 				// clean up stale sessionID from Redis Set for the specified userID
 				// if sessionID has expired in string, it might still be present in Redis Set
 				userIDString := strconv.Itoa(userID)
@@ -130,7 +103,7 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 				log.Printf("failed to get key from redis for sessionID: %s and userID: %d\n", sessionID, userID)
 				utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 				return
-			case err != nil:
+			} else {
 				log.Println("failed to get key from redis in authentication middleware", err)
 				utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 				return

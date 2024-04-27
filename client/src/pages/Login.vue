@@ -1,74 +1,85 @@
 <template>
-  <div class="login_container">
-    <h1>Login</h1>
-    <form @submit.prevent="handleSubmit">
-      <div>
-        <label for="email">Email</label>
-        <text-input
-          class="text_input"
-          id="email"
-          v-model.trim="email"
-          placeholder="leonlow@example.com"
-        />
-      </div>
-
-      <div>
-        <label for="password">Password</label>
-        <div class="text_input-container">
+  <div class="grid h-screen place-items-center">
+    <div class="container w-1/3 rounded-lg border px-10 py-8 shadow-lg">
+      <h1 class="mb-6 text-2xl font-bold">Login</h1>
+      <form @submit.prevent="handleSubmit">
+        <div class="mb-4 flex flex-col gap-2">
+          <label for="email">Email</label>
           <text-input
-            class="text_input"
-            id="password"
-            v-model.trim="password"
-            placeholder="Password"
-            :type="showPassword ? 'text' : 'password'"
+            class="rounded-lg border px-4 py-2"
+            id="email"
+            v-model.trim="email"
+            placeholder="leonlow@example.com"
           />
-          <span class="icon">
-            <svg-icon
-              v-model="showPassword"
-              type="mdi"
-              :path="showPassword ? mdiEyeOutline : mdiEyeOffOutline"
-              @click="togglePasswordVisibility"
-            ></svg-icon>
-          </span>
         </div>
-      </div>
 
-      <div class="button_container">
-        <action-button text="Login" />
-      </div>
-    </form>
-    <router-link :to="{ name: 'SignUp' }"
-      >New here? Click to create an account!</router-link
-    >
+        <div class="mb-6 flex flex-col gap-2">
+          <label for="password">Password</label>
+          <div class="relative flex w-full flex-wrap items-stretch">
+            <text-input
+              class="w-full rounded-lg border px-4 py-2"
+              id="password"
+              v-model.trim="password"
+              placeholder="Password"
+              :type="showPassword ? 'text' : 'password'"
+            />
+            <span
+              class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+            >
+              <svg-icon
+                v-model="showPassword"
+                type="mdi"
+                :path="showPassword ? mdiEyeOutline : mdiEyeOffOutline"
+                @click="togglePasswordVisibility"
+              ></svg-icon>
+            </span>
+          </div>
+        </div>
+
+        <action-button
+          class="mb-4 w-full rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
+          text="Login"
+        />
+      </form>
+
+      <router-link
+        :to="{ name: 'SignUp' }"
+        class="flex justify-center text-cyan-900 underline underline-offset-4 transition hover:underline-offset-8"
+        >New here? Click to create an account!</router-link
+      >
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { mdiEyeOutline, mdiEyeOffOutline } from '@mdi/js';
-import SvgIcon from '@jamescoyle/vue-icon';
-import { AxiosError } from 'axios';
-import { useRouter } from 'vue-router';
-import { useUserStore } from '@/stores/user';
+import { ref } from "vue";
+import { mdiEyeOutline, mdiEyeOffOutline } from "@mdi/js";
+import SvgIcon from "@jamescoyle/vue-icon";
+import { AxiosError } from "axios";
+import { useRouter } from "vue-router";
+import { useUserStore } from "@/stores/user";
 
-import type { User, LOGIN_BODY } from '@/types/user';
-import TextInput from '@/components/TextInput.vue';
-import ActionButton from '@/components/ActionButton.vue';
-import { LOGIN } from '@/api/user';
+import type { User, LOGIN_BODY } from "@/types/user";
+import TextInput from "@/components/TextInput.vue";
+import ActionButton from "@/components/ActionButton.vue";
+import { LOGIN } from "@/api/user";
 
+// Data Fields
 const showPassword = ref(false);
 
+const email = ref("");
+const password = ref("");
+
+const responseMessage = ref("");
+
+// Stores
+const router = useRouter();
+const userStore = useUserStore();
+
+// Methods
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
 };
-
-const email = ref('');
-const password = ref('');
-
-const responseMessage = ref('');
-
-const router = useRouter();
-const userStore = useUserStore();
 
 const handleSubmit = async () => {
   try {
@@ -85,83 +96,32 @@ const handleSubmit = async () => {
       mobileNumber: data?.mobileNumber,
     };
 
+    alert(status)
+
     if (status === 200) {
-      email.value = '';
-      password.value = '';
+      email.value = "";
+      password.value = "";
 
       userStore.LOGIN_USER(user);
 
       // TODO: add user balance
 
-      router.push({ name: 'Home' });
+      alert("Logged In!");
+
+      router.push({ name: "Home" });
+    }
+
+    if (status === 401) {
+      console.log('gg')
     }
   } catch (error: any) {
     if (error instanceof AxiosError) {
       if (error.response) {
-        responseMessage.value = error.response?.data?.message;
+        alert(error.response?.data?.message);
       }
     } else {
-      responseMessage.value = 'Unexpected error occurred';
+      responseMessage.value = "Unexpected error occurred";
     }
   }
 };
 </script>
-
-<style scoped>
-.login_container {
-  display: flex;
-  flex-direction: column;
-  gap: 2.4rem;
-  padding: 4.8rem;
-  border-radius: 2.4rem;
-  box-shadow: 0 1.2rem 2.4rem rgba(0, 0, 0, 0.2);
-  width: 50rem;
-
-  /** Center login container */
-  margin: 0 auto;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.text_input {
-  border-top: none;
-  border-left: none;
-  border-right: none;
-  padding: 1.2rem 1rem 1.2rem 1rem;
-  font-size: 1.8rem;
-}
-
-.text_input-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-direction: row;
-}
-
-.text_input-container .text_input {
-  width: 90%;
-}
-
-.button_container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 2.8rem;
-}
-
-form div {
-  display: flex;
-  flex-direction: column;
-}
-
-.icon {
-  cursor: pointer;
-}
-</style>

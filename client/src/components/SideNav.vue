@@ -1,5 +1,5 @@
 <template>
-  <div class="mr-8 h-screen border-r-2 border-gray-200 px-12 pt-6">
+  <div class="mr-8 h-screen border-r-2 border-gray-200 dark:border-gray-500 px-12 pt-6">
     <ul class="flex cursor-pointer flex-col gap-6">
       <router-link :to="{ name: 'Home' }">
         <li class="grid grid-cols-3">

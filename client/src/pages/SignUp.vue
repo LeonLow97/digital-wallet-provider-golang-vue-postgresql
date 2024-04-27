@@ -3,35 +3,22 @@
     <div class="container w-2/5 rounded-lg border px-10 py-8 shadow-lg">
       <h1 class="mb-8 text-2xl font-bold">Register an Account</h1>
       <form @submit.prevent="handleSubmit">
-        <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+        <div class="grid grid-cols-2 gap-x-8 gap-y-6">
+          <text-input v-model.trim="firstName" placeholder="First Name" />
+          <text-input v-model.trim="lastName" placeholder="Last Name" />
           <text-input
-            class="rounded-lg border px-4 py-2"
-            v-model.trim="firstName"
-            placeholder="First Name"
-          />
-          <text-input
-            class="rounded-lg border px-4 py-2"
-            v-model.trim="lastName"
-            placeholder="Last Name"
-          />
-          <text-input
-            class="col-span-2 rounded-lg border px-4 py-2"
+            class="col-span-2"
             v-model="mobileNumber"
             placeholder="Mobile Number"
           />
           <text-input
-            class="col-span-2 rounded-lg border px-4 py-2"
+            class="col-span-2"
             v-model.trim="username"
             placeholder="Username"
           />
-          <text-input
-            class="col-span-2 rounded-lg border px-4 py-2"
-            v-model="email"
-            placeholder="Email"
-          />
+          <text-input class="col-span-2" v-model="email" placeholder="Email" />
           <div class="relative col-span-2 flex w-full flex-wrap items-stretch">
             <text-input
-              class="w-full rounded-lg border px-4 py-2"
               v-model="password"
               placeholder="Password"
               type="password"
@@ -52,7 +39,7 @@
         <div class="mt-5 flex items-center justify-between">
           <router-link
             :to="{ name: 'Login' }"
-            class="text-cyan-900 underline underline-offset-4 transition hover:underline-offset-8"
+            class="text-cyan-900 underline underline-offset-4 transition hover:underline-offset-8 dark:text-cyan-50"
             >Back to Login</router-link
           >
           <action-button

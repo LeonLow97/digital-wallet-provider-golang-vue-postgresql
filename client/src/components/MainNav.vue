@@ -1,5 +1,5 @@
 <template>
-  <div class="flex justify-between bg-blue-900 p-4 text-white">
+  <div class="flex justify-between bg-blue-950 p-4 text-white">
     <router-link
       class="cursor-pointer pl-8 font-mono text-lg font-bold uppercase"
       :to="{ name: 'Home' }"

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-    html {
-        @apply text-black;
+    body {
+        @apply text-black dark:bg-gray-900 dark:text-gray-50;
     }
 }

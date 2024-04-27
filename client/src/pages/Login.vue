@@ -6,7 +6,6 @@
         <div class="mb-4 flex flex-col gap-2">
           <label for="email">Email</label>
           <text-input
-            class="rounded-lg border px-4 py-2"
             id="email"
             v-model.trim="email"
             placeholder="leonlow@example.com"
@@ -17,7 +16,6 @@
           <label for="password">Password</label>
           <div class="relative flex w-full flex-wrap items-stretch">
             <text-input
-              class="w-full rounded-lg border px-4 py-2"
               id="password"
               v-model.trim="password"
               placeholder="Password"
@@ -44,7 +42,7 @@
 
       <router-link
         :to="{ name: 'SignUp' }"
-        class="flex justify-center text-cyan-900 underline underline-offset-4 transition hover:underline-offset-8"
+        class="flex justify-center text-cyan-900 underline underline-offset-4 transition hover:underline-offset-8 dark:text-cyan-50"
         >New here? Click to create an account!</router-link
       >
     </div>

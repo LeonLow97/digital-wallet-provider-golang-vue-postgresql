@@ -1,9 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" id="html-root">
 
 <head>
   <meta charset="UTF-8" />
-  <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
   <link rel="icon" type="image/x-icon" href="src/assets/favicon/wallet.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mobile Wallet</title>
@@ -12,6 +11,18 @@
 <body>
   <div id="app"></div>
   <script type="module" src="/src/main.ts"></script>
+
+  <script>
+    const isDarkModeEnabled = localStorage.getItem("MODE") === "TRUE"
+
+    const htmlElement = document.getElementById('html-root')
+
+    if (isDarkModeEnabled) {
+      htmlElement.classList.add("dark")
+    } else {
+      htmlElement.classList.remove("dark")
+    }
+  </script>
 </body>
 
 </html>

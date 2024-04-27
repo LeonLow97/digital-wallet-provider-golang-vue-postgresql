@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -42,6 +43,8 @@ func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 	if err != nil {
 		return nil, nil, err
 	}
+
+	fmt.Println("User", user)
 
 	// authenticating user via password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
@@ -93,10 +96,14 @@ func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 	// }
 
 	resp := dto.LoginResponse{
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
 		Email:        user.Email,
 		Username:     user.Username,
 		MobileNumber: user.MobileNumber,
 	}
+
+	fmt.Println("Response", resp)
 
 	return &resp, token, nil
 }
@@ -104,9 +111,8 @@ func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 func (uc *loginUsecase) SignUp(ctx context.Context, req dto.SignUpRequest) error {
 	user, err := uc.userRepository.GetUserByEmailOrMobileNumber(ctx, req.Email, req.MobileNumber)
 	if err != nil {
-		if err != exception.ErrUserNotFound {
-			return err
-		}
+		log.Println("failed to get user by email or mobile number")
+		return err
 	}
 
 	// user already exist
@@ -186,8 +192,6 @@ func (uc *loginUsecase) GenerateJWTAccessToken(userID int, ttl time.Duration, se
 
 	// set token expiry
 	claims["exp"] = time.Now().Add(ttl).Unix()
-
-	fmt.Println("Access token key", uc.cfg.JWT.Secret)
 
 	// generate signed access token
 	signedAccessToken, err := token.SignedString([]byte(uc.cfg.JWT.Secret))

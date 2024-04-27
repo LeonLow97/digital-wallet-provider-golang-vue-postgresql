@@ -25,7 +25,7 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*dom
 	defer cancel()
 
 	query := `
-		SELECT id, email, username, password, mobile_number, active, admin
+		SELECT id, first_name, last_name, email, username, password, mobile_number, active, admin
 		FROM users 
 		WHERE email = $1;
 	`
@@ -33,6 +33,8 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*dom
 	var user domain.User
 	err := r.db.QueryRowContext(ctx, query, email).Scan(
 		&user.ID,
+		&user.FirstName,
+		&user.LastName,
 		&user.Email,
 		&user.Username,
 		&user.Password,

@@ -1,9 +1,7 @@
 <template>
-  <div class="pt-6">
-    <h3 class="text-center text-xl font-bold">
-      Welcome Back <span class="uppercase">{{ username }}</span> !
-    </h3>
-  </div>
+  <h3 class="text-xl font-bold text-center">
+    Welcome Back <span class="uppercase">{{ username }}</span> !
+  </h3>
 </template>
 
 <script lang="ts" setup>

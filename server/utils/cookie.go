@@ -9,7 +9,7 @@ func IssueCookie(writer http.ResponseWriter, token string) {
 	cookieExpiration := time.Now().Add(14 * time.Minute).Second()
 
 	cookie := &http.Cookie{
-		Name:     "mw-token",
+		Name:     JWT_COOKIE,
 		Value:    token,
 		MaxAge:   cookieExpiration,
 		Path:     "/",

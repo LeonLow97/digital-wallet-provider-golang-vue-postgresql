@@ -39,7 +39,7 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 
 		ctx := r.Context()
 
-		cookie, err := r.Cookie("mw-token")
+		cookie, err := r.Cookie(utils.JWT_COOKIE)
 		if err != nil {
 			log.Println("Missing token cookie:", err)
 			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)

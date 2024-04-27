@@ -1,3 +1,3 @@
 <template>
-  <h1>Wallets</h1>
+  <h1 class="text-xl font-bold">Wallets</h1>
 </template>

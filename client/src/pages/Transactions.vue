@@ -1,3 +1,3 @@
 <template>
-    <h1>Transactions</h1>
+    <h1 class="text-xl font-bold">Transactions</h1>
 </template>

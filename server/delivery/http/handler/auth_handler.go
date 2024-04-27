@@ -118,7 +118,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	// override cookie in browser
 	cookie := &http.Cookie{
-		Name:     "mw-token",
+		Name:     utils.JWT_COOKIE,
 		Value:    "",
 		MaxAge:   -1,
 		Path:     "",

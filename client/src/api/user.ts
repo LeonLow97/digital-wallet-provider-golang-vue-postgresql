@@ -30,9 +30,13 @@ export const LOGIN = async (body: LOGIN_BODY) => {
 export const LOGOUT = async (): Promise<LOGOUT_RESPONSE> => {
   try {
     const apiURL = `${BASE_URL}/logout`;
-    const { status } = await axios.post(apiURL, JSON.stringify({}), {
-      withCredentials: true,
-    });
+    const { status } = await axios.post(
+      apiURL,
+      {},
+      {
+        withCredentials: true,
+      },
+    );
 
     return { status };
   } catch (error: unknown) {

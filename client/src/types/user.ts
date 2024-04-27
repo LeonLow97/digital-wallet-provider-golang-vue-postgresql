@@ -1,4 +1,6 @@
 export interface User {
+  firstName: string;
+  lastName: string;
   email: string;
   username: string;
   mobileNumber: string;
@@ -23,5 +25,5 @@ export interface SIGNUP_RESPONSE {
 }
 
 export interface LOGOUT_RESPONSE {
-  status: number
+  status: number;
 }

@@ -88,7 +88,11 @@ const handleSubmit = async () => {
 
     const { data, status } = await LOGIN(body);
 
+    console.log(data)
+
     const user: User = {
+      firstName: data?.firstName,
+      lastName: data?.lastName,
       email: data?.email,
       username: data?.username,
       mobileNumber: data?.mobileNumber,

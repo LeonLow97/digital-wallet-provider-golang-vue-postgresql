@@ -51,10 +51,10 @@ var (
 
 // Transaction
 var (
-	ErrAmountMustBePositive = "Amount must be greater than 0."
+	ErrAmountMustBePositive             = "Amount must be greater than 0."
 	ErrUserAndWalletAssociationNotFound = "User is not associated with the specified wallet."
-	ErrNoTransactionsFound = "No transactions found."
+	ErrNoTransactionsFound              = "No transactions found."
 
-	ErrBeneficiaryIsInactive = "Beneficiary is inactive. Please contact the system administrator."
+	ErrBeneficiaryIsInactive     = "Beneficiary is inactive. Please contact the system administrator."
 	ErrInsufficientFundsInWallet = "Insufficient funds in the specified wallet. Please top up."
 )

@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -44,8 +43,6 @@ func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 		return nil, nil, err
 	}
 
-	fmt.Println("User", user)
-
 	// authenticating user via password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	switch {
@@ -68,7 +65,7 @@ func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 	if err != nil {
 		return nil, nil, err
 	}
-	refreshToken, err := uc.GenerateJWTRefreshToken(user.ID, refreshTokenExpiry, sessionID)
+	refreshToken, err := uc.generateJWTRefreshToken(user.ID, refreshTokenExpiry, sessionID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -102,8 +99,6 @@ func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 		Username:     user.Username,
 		MobileNumber: user.MobileNumber,
 	}
-
-	fmt.Println("Response", resp)
 
 	return &resp, token, nil
 }
@@ -146,6 +141,30 @@ func (uc *loginUsecase) SignUp(ctx context.Context, req dto.SignUpRequest) error
 
 	// create one user
 	if err = uc.userRepository.InsertUser(ctx, &insertUser); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (uc *loginUsecase) UpdateUser(ctx context.Context, userID int, req dto.UpdateUserRequest) error {
+	updatedUser := domain.User{
+		ID:           userID,
+		Username:     req.Username,
+		MobileNumber: req.MobileNumber,
+		Email:        req.Email,
+	}
+
+	if req.FirstName != nil {
+		updatedUser.FirstName = *req.FirstName
+	}
+	if req.LastName != nil {
+		updatedUser.LastName = *req.LastName
+	}
+
+	// update one user
+	if err := uc.userRepository.UpdateUser(ctx, &updatedUser); err != nil {
+		log.Printf("error updating one user with user id: %d\n", userID)
 		return err
 	}
 
@@ -203,7 +222,7 @@ func (uc *loginUsecase) GenerateJWTAccessToken(userID int, ttl time.Duration, se
 }
 
 // generateJWTRefreshToken returns the JWT Refresh Token for retrieving subsequent fresh JWT Access Token
-func (uc *loginUsecase) GenerateJWTRefreshToken(userID int, ttl time.Duration, sessionID string) (string, error) {
+func (uc *loginUsecase) generateJWTRefreshToken(userID int, ttl time.Duration, sessionID string) (string, error) {
 	// generate refresh token (users might not use) - less claims as compared to jwt token
 	refreshToken := jwt.New(jwt.SigningMethodHS256)
 	refreshTokenClaims := refreshToken.Claims.(jwt.MapClaims)

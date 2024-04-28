@@ -47,7 +47,7 @@ func main() {
 	// Initiating handlers, service, and repository
 	userRepo := repository.NewUserRepository(dbConn)
 	authUsecase := usecase.NewAuthUsecase(*cfg, userRepo, redisClient)
-	handlers.NewAuthHandler(router, authUsecase, redisClient)
+	handlers.NewUserHandler(router, authUsecase, redisClient)
 
 	balanceRepo := repository.NewBalanceRepository(dbConn)
 	balanceUsecase := usecase.NewBalanceUsecase(balanceRepo)

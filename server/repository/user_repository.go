@@ -144,3 +144,31 @@ func (r *userRepository) GetUserAndBalanceByMobileNumber(ctx context.Context, mo
 
 	return &user, nil
 }
+
+func (r *userRepository) UpdateUser(ctx context.Context, user *domain.User) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*15)
+	defer cancel()
+
+	query := `
+		UPDATE users
+		SET first_name = $1,
+			last_name = $2,
+			username = $3,
+			mobile_number = $4,
+			email = $5
+		WHERE id = $6;
+	`
+
+	if _, err := r.db.ExecContext(ctx, query,
+		user.FirstName,
+		user.LastName,
+		user.Username,
+		user.MobileNumber, 
+		user.Email,
+		user.ID,
+	); err != nil {
+		return err
+	}
+
+	return nil
+}

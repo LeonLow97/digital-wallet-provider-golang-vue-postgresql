@@ -16,25 +16,30 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type AuthHandler struct {
-	authUseCase domain.UserUsecase
+type UserHandler struct {
+	userUsecase domain.UserUsecase
 	redisClient infrastructure.RedisClient
 }
 
-func NewAuthHandler(router *mux.Router, uc domain.UserUsecase, redisClient infrastructure.RedisClient) {
-	handler := &AuthHandler{
-		authUseCase: uc,
+func NewUserHandler(router *mux.Router, uc domain.UserUsecase, redisClient infrastructure.RedisClient) {
+	handler := &UserHandler{
+		userUsecase: uc,
 		redisClient: redisClient,
 	}
 
+	// authentication routes
 	router.HandleFunc("/login", handler.Login).Methods(http.MethodPost)
 	router.HandleFunc("/signup", handler.SignUp).Methods(http.MethodPost)
 	router.HandleFunc("/logout", handler.Logout).Methods(http.MethodPost)
+
+	// user routes
+	userRouter := router.PathPrefix("/users").Subrouter()
+	userRouter.HandleFunc("/profile", handler.UpdateUser).Methods(http.MethodPut)
 	// TODO: reset password
 	// TODO: update user details
 }
 
-func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	var req dto.LoginRequest
@@ -53,7 +58,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	req.LoginSanitize()
 
-	resp, token, err := h.authUseCase.Login(ctx, req)
+	resp, token, err := h.userUsecase.Login(ctx, req)
 	switch {
 	case errors.Is(err, exception.ErrUserNotFound) || errors.Is(err, exception.ErrInvalidCredentials):
 		utils.ErrorJSON(w, apiErr.ErrInvalidCredentials, http.StatusUnauthorized)
@@ -63,14 +68,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		log.Println("error in login handler", err)
 		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 	default:
-		// TODO: utilise refresh token or remove it from auth use case
+		// TODO: utilise refresh token or remove it from user use case
 		utils.IssueCookie(w, token.AccessToken)
 
 		utils.WriteJSON(w, http.StatusOK, resp)
 	}
 }
 
-func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	var req dto.SignUpRequest
@@ -89,7 +94,7 @@ func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.authUseCase.SignUp(ctx, req)
+	err = h.userUsecase.SignUp(ctx, req)
 	switch {
 	case errors.Is(err, exception.ErrUserFound):
 		utils.ErrorJSON(w, apiErr.ErrUserFound, http.StatusBadRequest)
@@ -103,7 +108,7 @@ func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	// retrieve sessionID from context
 	sessionID, ok := r.Context().Value(utils.SessionIDKey).(string)
 	if !ok {
@@ -111,7 +116,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// remove sessionID from Redis
-	if err := h.authUseCase.RemoveSessionFromRedis(r.Context(), sessionID); err != nil {
+	if err := h.userUsecase.RemoveSessionFromRedis(r.Context(), sessionID); err != nil {
 		// failed to remove sessionID but don't block the logout
 		log.Println("failed to remove sessionID from Redis", err)
 	}
@@ -129,4 +134,38 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, cookie)
 
 	utils.WriteNoContent(w, http.StatusOK)
+}
+
+func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// retrieve user id from context
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	var req dto.UpdateUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Println("error decoding req body in update user handler", err)
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		return
+	}
+
+	errMessage, err := infrastructure.ValidateStruct(req)
+	if err != nil {
+		log.Println("error validating req struct", err)
+		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		return
+	}
+
+	req.UpdateUserSanitize()
+
+	if err := h.userUsecase.UpdateUser(ctx, userID, req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	utils.WriteNoContent(w, http.StatusNoContent)
 }

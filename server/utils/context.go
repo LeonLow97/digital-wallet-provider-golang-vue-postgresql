@@ -1,6 +1,9 @@
 package utils
 
-import "context"
+import (
+	"context"
+	"log"
+)
 
 type contextKey string
 
@@ -11,6 +14,7 @@ const SessionIDKey contextKey = "SessionID"
 func SessionIDFromContext(ctx context.Context) (string, error) {
 	sessionID, ok := ctx.Value(SessionIDKey).(string)
 	if !ok {
+		log.Println("session id not found in context")
 		return "", ErrSessionIDNotInContext
 	}
 	return sessionID, nil
@@ -25,6 +29,7 @@ func SessionIDWithContext(ctx context.Context, sessionID string) context.Context
 func UserIDFromContext(ctx context.Context) (int, error) {
 	userID, ok := ctx.Value(UserIDKey).(int)
 	if !ok {
+		log.Println("user id not found in context")
 		return 0, ErrUserIDNotInContext
 	}
 	return userID, nil

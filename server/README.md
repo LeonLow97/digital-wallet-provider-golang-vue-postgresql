@@ -86,12 +86,6 @@ server
 |  POST  | `/api/v1/kyc`                   | Implement KYC processes for user verification                                           |    [ ]    |
 | DELETE | `/api/v1/users/close`           | Close a user's account and deactivate the associated wallet                             |    [ ]    |
 
----
-#### TODO: 
-
-- Use SQL Transaction for Money Transfer endpoint.
----
-
 # Authentication
 
 ## User Authentication Flow

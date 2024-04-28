@@ -163,7 +163,7 @@ func (r *userRepository) UpdateUser(ctx context.Context, user *domain.User) erro
 		user.FirstName,
 		user.LastName,
 		user.Username,
-		user.MobileNumber, 
+		user.MobileNumber,
 		user.Email,
 		user.ID,
 	); err != nil {

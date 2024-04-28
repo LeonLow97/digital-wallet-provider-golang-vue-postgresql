@@ -1,13 +1,14 @@
-import axios, { AxiosError } from 'axios';
-import type { AxiosResponse } from 'axios';
-import type { App } from 'vue';
+import axios, { AxiosError } from "axios";
+import type { AxiosResponse } from "axios";
+import type { App } from "vue";
+import { useUserStore } from "@/stores/user";
 
 const baseURL = import.meta.env.VITE_APP_BASE_URL;
 
 axios.create({
   baseURL,
   headers: {
-    'Content-type': 'application/json',
+    "Content-type": "application/json",
   },
 });
 
@@ -25,6 +26,7 @@ export default {
 
     const handleError = (err: AxiosError) => {
       if (err.response?.status === 401) {
+        useUserStore().LOGOUT_USER();
         const loginUrl = `${baseURL}/login`;
         window.location.replace(loginUrl);
       }

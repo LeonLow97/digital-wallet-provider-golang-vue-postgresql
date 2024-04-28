@@ -60,7 +60,7 @@ import { AxiosError } from "axios";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { SIGNUP } from "@/api/user";
-import type { SIGNUP_BODY } from "@/types/user";
+import type { SIGNUP_REQUEST } from "@/types/user";
 
 // Data Fields
 const firstName = ref("");
@@ -79,7 +79,7 @@ const togglePasswordVisibility = () => {
 
 const handleSubmit = async () => {
   try {
-    const body: SIGNUP_BODY = {
+    const body: SIGNUP_REQUEST = {
       first_name: firstName.value === "" ? null : firstName.value,
       last_name: lastName.value === "" ? null : lastName.value,
       username: username.value,

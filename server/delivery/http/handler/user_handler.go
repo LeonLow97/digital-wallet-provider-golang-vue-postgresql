@@ -34,7 +34,7 @@ func NewUserHandler(router *mux.Router, uc domain.UserUsecase, redisClient infra
 
 	// user routes
 	userRouter := router.PathPrefix("/users").Subrouter()
-	userRouter.HandleFunc("/profile", handler.UpdateUser).Methods(http.MethodPut)
+	userRouter.HandleFunc("/profile", handler.UpdateUser).Methods(http.MethodPost)
 	// TODO: reset password
 	// TODO: update user details
 }

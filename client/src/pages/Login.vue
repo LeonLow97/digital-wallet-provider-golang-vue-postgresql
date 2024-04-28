@@ -57,7 +57,7 @@ import { AxiosError } from "axios";
 import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/user";
 
-import type { User, LOGIN_BODY } from "@/types/user";
+import type { User, LOGIN_REQUEST } from "@/types/user";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { LOGIN } from "@/api/user";
@@ -81,14 +81,12 @@ const togglePasswordVisibility = () => {
 
 const handleSubmit = async () => {
   try {
-    const body: LOGIN_BODY = {
+    const body: LOGIN_REQUEST = {
       email: email.value,
       password: password.value,
     };
 
     const { data, status } = await LOGIN(body);
-
-    console.log(data)
 
     const user: User = {
       firstName: data?.firstName,

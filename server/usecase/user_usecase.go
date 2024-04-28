@@ -23,7 +23,7 @@ type loginUsecase struct {
 	userRepository domain.UserRepository
 }
 
-func NewAuthUsecase(cfg infrastructure.Config, userRepository domain.UserRepository, redisClient infrastructure.RedisClient) domain.UserUsecase {
+func NewUserUsecase(cfg infrastructure.Config, userRepository domain.UserRepository, redisClient infrastructure.RedisClient) domain.UserUsecase {
 	return &loginUsecase{
 		cfg:            cfg,
 		redisClient:    redisClient,

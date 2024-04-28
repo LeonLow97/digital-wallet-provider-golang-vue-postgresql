@@ -6,12 +6,12 @@ export interface User {
   mobileNumber: string;
 }
 
-export interface LOGIN_BODY {
+export interface LOGIN_REQUEST {
   email: string;
   password: string;
 }
 
-export interface SIGNUP_BODY {
+export interface SIGNUP_REQUEST {
   first_name: string | null;
   last_name: string | null;
   username: string;
@@ -25,5 +25,17 @@ export interface SIGNUP_RESPONSE {
 }
 
 export interface LOGOUT_RESPONSE {
+  status: number;
+}
+
+export interface UPDATE_USER_REQUEST {
+  first_name: string | null;
+  last_name: string | null;
+  username: string;
+  email: string;
+  mobile_number: string;
+}
+
+export interface UPDATE_USER_RESPONSE {
   status: number;
 }

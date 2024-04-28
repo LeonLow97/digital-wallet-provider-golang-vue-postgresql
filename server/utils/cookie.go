@@ -2,16 +2,13 @@ package utils
 
 import (
 	"net/http"
-	"time"
 )
 
 func IssueCookie(writer http.ResponseWriter, token string) {
-	cookieExpiration := time.Now().Add(14 * time.Minute).Second()
-
 	cookie := &http.Cookie{
 		Name:     JWT_COOKIE,
 		Value:    token,
-		MaxAge:   cookieExpiration,
+		MaxAge:   3600,
 		Path:     "/",
 		Domain:   "localhost", // TODO: replace with config domain name
 		Secure:   false,

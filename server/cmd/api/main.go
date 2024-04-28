@@ -46,8 +46,8 @@ func main() {
 
 	// Initiating handlers, service, and repository
 	userRepo := repository.NewUserRepository(dbConn)
-	authUsecase := usecase.NewAuthUsecase(*cfg, userRepo, redisClient)
-	handlers.NewUserHandler(router, authUsecase, redisClient)
+	Usecase := usecase.NewUserUsecase(*cfg, userRepo, redisClient)
+	handlers.NewUserHandler(router, Usecase, redisClient)
 
 	balanceRepo := repository.NewBalanceRepository(dbConn)
 	balanceUsecase := usecase.NewBalanceUsecase(balanceRepo)
@@ -75,7 +75,7 @@ func main() {
 	router.Use(
 		middleware.CorsMiddleware,
 		// TODO: Add SessionMiddleware to inject user object and session details into context
-		middleware.NewAuthenticationMiddleware(*cfg, skipperFunc, redisClient, authUsecase).Middleware,
+		middleware.NewAuthenticationMiddleware(*cfg, skipperFunc, redisClient, Usecase).Middleware,
 	)
 
 	port := os.Getenv("SERVICE_PORT")

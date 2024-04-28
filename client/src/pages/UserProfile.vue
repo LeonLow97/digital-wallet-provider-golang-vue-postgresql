@@ -37,6 +37,9 @@ import { onMounted, ref } from "vue";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import type { User } from "@/types/user";
+import { UPDATE_USER } from "@/api/user";
+import type { UPDATE_USER_REQUEST } from "@/types/user";
+import { AxiosError } from "axios";
 
 const userStore = useUserStore();
 
@@ -56,15 +59,38 @@ onMounted(async () => {
 });
 
 const handleSaveChanges = async () => {
-  const user: User = {
-    firstName: firstName.value,
-    lastName: lastName.value,
-    username: username.value,
-    mobileNumber: mobileNumber.value,
-    email: email.value,
-  };
+  try {
+    const req: UPDATE_USER_REQUEST = {
+      first_name: firstName.value === "" ? null : firstName.value,
+      last_name: lastName.value === "" ? null : lastName.value,
+      username: username.value,
+      mobile_number: mobileNumber.value,
+      email: email.value,
+    };
 
-  userStore.SAVE_USER(user);
-  alert("Changes Saved Successfully!");
+    const { status } = await UPDATE_USER(req);
+
+    if (status === 204) {
+      const user: User = {
+        firstName: firstName.value,
+        lastName: lastName.value,
+        username: username.value,
+        mobileNumber: mobileNumber.value,
+        email: email.value,
+      };
+
+      userStore.SAVE_USER(user);
+
+      alert("Changes Saved Successfully!");
+    }
+  } catch (error: unknown) {
+    if (error instanceof AxiosError) {
+      if (error.response) {
+        alert(error.response?.data?.message);
+      }
+    } else {
+      console.error("Unexpected error", error);
+    }
+  }
 };
 </script>

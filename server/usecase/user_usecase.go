@@ -105,7 +105,7 @@ func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 
 func (uc *loginUsecase) SignUp(ctx context.Context, req dto.SignUpRequest) error {
 	user, err := uc.userRepository.GetUserByEmailOrMobileNumber(ctx, req.Email, req.MobileNumber)
-	if err != nil {
+	if err != nil && !errors.Is(err, exception.ErrUserNotFound) {
 		log.Println("failed to get user by email or mobile number")
 		return err
 	}

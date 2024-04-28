@@ -104,7 +104,7 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		log.Println("error in sign up handler", err)
 		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 	default:
-		utils.WriteNoContent(w, http.StatusOK)
+		utils.WriteNoContent(w, http.StatusNoContent)
 	}
 }
 

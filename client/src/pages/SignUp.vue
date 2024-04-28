@@ -19,9 +19,10 @@
           <text-input class="col-span-2" v-model="email" placeholder="Email" />
           <div class="relative col-span-2 flex w-full flex-wrap items-stretch">
             <text-input
-              v-model="password"
+              id="password"
+              v-model.trim="password"
               placeholder="Password"
-              type="password"
+              :type="showPassword ? 'text' : 'password'"
             />
             <span
               class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"

@@ -1,6 +1,6 @@
 <template>
-  <h3 class="text-xl font-bold text-center">
-    Welcome Back <span class="uppercase">{{ username }}</span> !
+  <h3 class="text-center text-2xl font-bold text-gray-900">
+    Welcome Back <span class="uppercase text-blue-600">{{ username }}</span> !
   </h3>
 </template>
 

@@ -35,8 +35,8 @@ func NewUserHandler(router *mux.Router, uc domain.UserUsecase, redisClient infra
 	// user routes
 	userRouter := router.PathPrefix("/users").Subrouter()
 	userRouter.HandleFunc("/profile", handler.UpdateUser).Methods(http.MethodPost)
+	userRouter.HandleFunc("/me", handler.GetUserDetail).Methods(http.MethodGet)
 	// TODO: reset password
-	// TODO: update user details
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -109,10 +109,11 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
-	// retrieve sessionID from context
-	sessionID, ok := r.Context().Value(utils.SessionIDKey).(string)
-	if !ok {
-		log.Println("Unable to retrieve session id from context")
+	ctx := r.Context()
+
+	sessionID, err := utils.SessionIDFromContext(ctx)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 	}
 
 	// remove sessionID from Redis
@@ -168,4 +169,23 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteNoContent(w, http.StatusNoContent)
+}
+
+func (h *UserHandler) GetUserDetail(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	sessionID, err := utils.SessionIDFromContext(ctx)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	err = h.userUsecase.ExtendUserSessionInRedis(ctx, sessionID, utils.SESSION_EXPIRY)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	// TODO: UPDATE TO get user details
+	utils.WriteNoContent(w, http.StatusOK)
 }

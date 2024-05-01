@@ -84,4 +84,4 @@ INSERT INTO wallet_types (type)
 VALUES ('personal'), ('savings'), ('investment'), ('business');
 
 INSERT INTO wallets (balance, currency, wallet_type_id, user_id)
-VALUES (500, 'SGD', 1, 1), (1500, 'SGD', 2, 1);
+VALUES (500, 'SGD', 1, 1), (1500, 'SGD', 2, 1), (70000, 'CHN', 3, 1), (95600, 'IDR', 4, 1);

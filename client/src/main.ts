@@ -4,10 +4,10 @@ import { createPinia } from 'pinia';
 import App from './App.vue';
 import './index.css';
 import router from '@/router';
-import axios from '@/plugins/axios';
+import interceptor from '@/plugins/interceptor';
 
 const pinia = createPinia();
 
-const app = createApp(App).use(router).use(axios).use(pinia);
+const app = createApp(App).use(router).use(interceptor).use(pinia);
 
 app.mount('#app');

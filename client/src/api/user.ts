@@ -57,6 +57,17 @@ export const SIGNUP = async (
   }
 };
 
+export const GET_USER = async () => {
+  try {
+    const apiURL = `${API_URL}/users/me`;
+    const { status } = await axios.get(apiURL, { withCredentials: true });
+
+    return status;
+  } catch (error: unknown) {
+    throw error;
+  }
+};
+
 export const UPDATE_USER = async (
   body: UPDATE_USER_REQUEST,
 ): Promise<UPDATE_USER_RESPONSE> => {

@@ -1,7 +1,8 @@
 import axios, { AxiosError } from "axios";
-import type { AxiosResponse } from "axios";
+import type { Axios, AxiosResponse } from "axios";
 import type { App } from "vue";
 import { useUserStore } from "@/stores/user";
+import { GET_USER } from "@/api/user";
 
 const baseURL = import.meta.env.VITE_APP_BASE_URL;
 
@@ -24,7 +25,7 @@ export default {
       return response;
     };
 
-    const handleError = (err: AxiosError) => {
+    const handleResponseError = (err: AxiosError) => {
       if (err.response?.status === 401) {
         useUserStore().LOGOUT_USER();
         const loginUrl = `${baseURL}/login`;
@@ -33,6 +34,6 @@ export default {
       return err;
     };
 
-    $http.interceptors.response.use(handleResponse, handleError);
+    $http.interceptors.response.use(handleResponse, handleResponseError);
   },
 };

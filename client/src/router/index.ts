@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import { IS_LOGGED_IN } from "@/stores/constants";
 import type { RouteRecordName } from "vue-router";
+import { GET_USER } from "@/api/user";
 
 const routes = [
   {
@@ -52,9 +53,12 @@ const routes = [
     name: "Wallets",
     component: () => import("@/pages/Wallets.vue"),
   },
+  {
+    path: "/error",
+    name: "Error",
+    component: () => import("@/pages/Error.vue"),
+  },
 ];
-
-const skippedProtectedEndpoints: RouteRecordName[] = ["Login", "SignUp"];
 
 const router = createRouter({
   // createWebHashHistory is for SPA to manage different states or views by using
@@ -71,15 +75,43 @@ const router = createRouter({
   },
 });
 
+const skippedProtectedEndpoints: RouteRecordName[] = ["Login", "SignUp"];
 // Navigation guard: https://router.vuejs.org/guide/advanced/navigation-guards.html
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const isLoggedIn = localStorage.getItem(IS_LOGGED_IN);
 
-  // Added `to.name` to Avoid an infinite redirect
+  // Skip calling GET_USER() if navigating to the login page
+  if (skippedProtectedEndpoints.includes(to.name!)) {
+    next();
+    return;
+  }
+
+  // Redirect to login page if not logged in and not on a skipped protected endpoint
   if (isLoggedIn !== "true" && !skippedProtectedEndpoints.includes(to.name!)) {
     next({ name: "Login" });
-  } else {
-    next();
+    return;
+  }
+
+  try {
+    // Call GET_USER() to refresh session
+    const status = await GET_USER();
+    switch (status) {
+      case 200:
+        next();
+        break;    
+      case 401:
+        localStorage.setItem(IS_LOGGED_IN, "false");
+        next({ name: "Login" });
+        break;
+      default:
+        localStorage.setItem(IS_LOGGED_IN, "false");
+        next({ name: "Error" }); // Redirect to an error page
+        break;
+    }
+  } catch (error) {
+    // Handle error refreshing session
+    console.error("Error refreshing session:", error);
+    next({ name: "Login" });
   }
 });
 

@@ -171,6 +171,15 @@ func (uc *loginUsecase) UpdateUser(ctx context.Context, userID int, req dto.Upda
 	return nil
 }
 
+func (uc *loginUsecase) ExtendUserSessionInRedis(ctx context.Context, sessionID string, sessionExpiryInMinutes time.Duration) error {
+	if err := uc.redisClient.Expire(ctx, sessionID, sessionExpiryInMinutes); err != nil {
+		log.Println("error extending user session")
+		return err
+	}
+
+	return nil
+}
+
 func (uc *loginUsecase) RemoveSessionFromRedis(ctx context.Context, sessionID string) error {
 	// retrieve userID from redis
 	userID, err := uc.redisClient.Get(ctx, sessionID)

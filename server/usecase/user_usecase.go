@@ -147,6 +147,37 @@ func (uc *loginUsecase) SignUp(ctx context.Context, req dto.SignUpRequest) error
 	return nil
 }
 
+func (uc *loginUsecase) ChangePassword(ctx context.Context, userID int, req dto.ChangePasswordRequest) error {
+	// get user by user id
+	user, err := uc.userRepository.GetUserByID(ctx, userID)
+	if err != nil {
+		log.Printf("failed to get user by user id %d with error %v\n", userID, err)
+		return err
+	}
+
+	// ensure new password is different from current password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if err == nil {
+		log.Printf("new password is the same as the current password for user id %d\n", userID)
+		return exception.ErrSamePassword
+	}
+
+	// hash the new password
+	hashedNewPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), 10)
+	if err != nil {
+		log.Printf("failed to hash new password with error %v\n", err)
+		return err
+	}
+
+	// set user password to new password
+	if err := uc.userRepository.ChangePassword(ctx, string(hashedNewPassword), userID); err != nil {
+		log.Printf("failed to update user password for user id %d with error %v\n", userID, err)
+		return err
+	}
+
+	return nil
+}
+
 func (uc *loginUsecase) UpdateUser(ctx context.Context, userID int, req dto.UpdateUserRequest) error {
 	updatedUser := domain.User{
 		ID:           userID,

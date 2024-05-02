@@ -31,6 +31,7 @@ func NewUserHandler(router *mux.Router, uc domain.UserUsecase, redisClient infra
 	router.HandleFunc("/login", handler.Login).Methods(http.MethodPost)
 	router.HandleFunc("/signup", handler.SignUp).Methods(http.MethodPost)
 	router.HandleFunc("/logout", handler.Logout).Methods(http.MethodPost)
+	router.HandleFunc("/change-password", handler.ChangePassword).Methods(http.MethodPost)
 
 	// user routes
 	userRouter := router.PathPrefix("/users").Subrouter()
@@ -135,6 +136,46 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, cookie)
 
 	utils.WriteNoContent(w, http.StatusOK)
+}
+
+func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// retrieve user id from context
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	var req dto.ChangePasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Println("error decoding req body in change password handler", err)
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	errMessage, err := infrastructure.ValidateStruct(req)
+	if err != nil {
+		log.Println("error validating req struct", err)
+		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		return
+	}
+
+	req.ChangePasswordSanitize()
+
+	if err := h.userUsecase.ChangePassword(ctx, userID, req); err != nil {
+		switch {
+		case errors.Is(err, exception.ErrUserNotFound):
+			utils.ErrorJSON(w, apiErr.ErrUserNotFound, http.StatusNotFound)
+			return
+		default:
+			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			return
+		}
+	}
+
+	utils.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {

@@ -20,6 +20,38 @@ func NewUserRepository(db *sqlx.DB) domain.UserRepository {
 	}
 }
 
+func (r *userRepository) GetUserByID(ctx context.Context, userID int) (*domain.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*15)
+	defer cancel()
+
+	query := `
+		SELECT id, first_name, last_name, email, username, password, mobile_number, active, admin
+		FROM users 
+		WHERE id = $1;
+	`
+
+	var user domain.User
+	err := r.db.QueryRowContext(ctx, query, userID).Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&user.Username,
+		&user.Password,
+		&user.MobileNumber,
+		&user.Active,
+		&user.Admin,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, exception.ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*15)
 	defer cancel()
@@ -167,6 +199,23 @@ func (r *userRepository) UpdateUser(ctx context.Context, user *domain.User) erro
 		user.Email,
 		user.ID,
 	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *userRepository) ChangePassword(ctx context.Context, hashedPassword string, userID int) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*15)
+	defer cancel()
+
+	query := `
+		UPDATE users
+		SET password = $1
+		WHERE id = $2;
+	`
+
+	if _, err := r.db.ExecContext(ctx, query, hashedPassword, userID); err != nil {
 		return err
 	}
 

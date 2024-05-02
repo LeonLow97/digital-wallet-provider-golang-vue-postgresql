@@ -7,6 +7,7 @@ var (
 	ErrUserFound    = errors.New("user already exists")
 
 	ErrInvalidPassword = errors.New("invalid password format")
+	ErrSamePassword    = errors.New("new password cannot be the same as the current password")
 )
 
 var (

@@ -169,6 +169,12 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, exception.ErrUserNotFound):
 			utils.ErrorJSON(w, apiErr.ErrUserNotFound, http.StatusNotFound)
 			return
+		case errors.Is(err, exception.ErrInvalidCredentials):
+			utils.ErrorJSON(w, apiErr.ErrCurrentPasswordIncorrect, http.StatusBadRequest)
+			return
+		case errors.Is(err, exception.ErrSamePassword):
+			utils.ErrorJSON(w, apiErr.ErrSamePassword, http.StatusBadRequest)
+			return
 		default:
 			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 			return

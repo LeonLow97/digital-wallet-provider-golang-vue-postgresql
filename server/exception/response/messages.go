@@ -18,6 +18,8 @@ var (
 						letter, one uppercase letter, one numeric digit, one special character, 
 						and have a minimum length of 8 characters.`
 	ErrUserNotFound = "User does not exist. Please try again."
+	ErrCurrentPasswordIncorrect = "Current password is incorrect. Please try again."
+	ErrSamePassword = "New password is same as current password. Please choose a different password."
 )
 
 // Wallet

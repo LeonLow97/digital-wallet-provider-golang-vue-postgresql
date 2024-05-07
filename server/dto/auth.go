@@ -48,11 +48,13 @@ func (req *SignUpRequest) SignUpSanitize() {
 }
 
 type ChangePasswordRequest struct {
-	Password string `json:"password" validate:"required,min=7,max=60"`
+	CurrentPassword string `json:"current_password" validate:"required,min=7,max=60"`
+	NewPassword     string `json:"new_password" validate:"required,min=7,max=60"`
 }
 
 func (req *ChangePasswordRequest) ChangePasswordSanitize() {
-	req.Password = strings.TrimSpace(req.Password)
+	req.CurrentPassword = strings.TrimSpace(req.CurrentPassword)
+	req.NewPassword = strings.TrimSpace(req.NewPassword)
 }
 
 type UpdateUserRequest struct {

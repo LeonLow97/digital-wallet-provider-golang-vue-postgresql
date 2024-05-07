@@ -1,12 +1,11 @@
 import axios from "axios";
-import type { User } from "@/types/user";
 import type {
+  User,
   LOGIN_REQUEST,
   SIGNUP_REQUEST,
-  SIGNUP_RESPONSE,
-  LOGOUT_RESPONSE,
   UPDATE_USER_REQUEST,
-  UPDATE_USER_RESPONSE,
+  GENERIC_STATUS_RESPONSE,
+  CHANGE_PASSWORD_REQUEST,
 } from "@/types/user";
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
@@ -29,7 +28,7 @@ export const LOGIN = async (body: LOGIN_REQUEST) => {
   }
 };
 
-export const LOGOUT = async (): Promise<LOGOUT_RESPONSE> => {
+export const LOGOUT = async (): Promise<GENERIC_STATUS_RESPONSE> => {
   try {
     const apiURL = `${API_URL}/logout`;
     const { status } = await axios.post(apiURL, `{}`, {
@@ -44,9 +43,24 @@ export const LOGOUT = async (): Promise<LOGOUT_RESPONSE> => {
 
 export const SIGNUP = async (
   body: SIGNUP_REQUEST,
-): Promise<SIGNUP_RESPONSE> => {
+): Promise<GENERIC_STATUS_RESPONSE> => {
   try {
     const apiURL = `${API_URL}/signup`;
+    const { status } = await axios.post(apiURL, JSON.stringify(body), {
+      withCredentials: true,
+    });
+
+    return { status };
+  } catch (error: unknown) {
+    throw error;
+  }
+};
+
+export const CHANGE_PASSWORD = async (
+  body: CHANGE_PASSWORD_REQUEST,
+): Promise<GENERIC_STATUS_RESPONSE> => {
+  try {
+    const apiURL = `${API_URL}/change-password`;
     const { status } = await axios.post(apiURL, JSON.stringify(body), {
       withCredentials: true,
     });
@@ -70,7 +84,7 @@ export const GET_USER = async () => {
 
 export const UPDATE_USER = async (
   body: UPDATE_USER_REQUEST,
-): Promise<UPDATE_USER_RESPONSE> => {
+): Promise<GENERIC_STATUS_RESPONSE> => {
   try {
     const apiURL = `${API_URL}/users/profile`;
     const { status } = await axios.post(apiURL, JSON.stringify(body), {

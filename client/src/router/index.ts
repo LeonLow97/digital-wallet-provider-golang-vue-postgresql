@@ -98,7 +98,7 @@ router.beforeEach(async (to, from, next) => {
     switch (status) {
       case 200:
         next();
-        break;    
+        break;
       case 401:
         localStorage.setItem(IS_LOGGED_IN, "false");
         next({ name: "Login" });

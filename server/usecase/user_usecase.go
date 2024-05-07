@@ -155,15 +155,22 @@ func (uc *loginUsecase) ChangePassword(ctx context.Context, userID int, req dto.
 		return err
 	}
 
+	// ensure current password is same as db password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.CurrentPassword))
+	if err != nil {
+		log.Printf("current password is not the same as the password in db for user id %d\n", userID)
+		return exception.ErrInvalidCredentials
+	}
+
 	// ensure new password is different from current password
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.NewPassword))
 	if err == nil {
 		log.Printf("new password is the same as the current password for user id %d\n", userID)
 		return exception.ErrSamePassword
 	}
 
 	// hash the new password
-	hashedNewPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), 10)
+	hashedNewPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), 10)
 	if err != nil {
 		log.Printf("failed to hash new password with error %v\n", err)
 		return err

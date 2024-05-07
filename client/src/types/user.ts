@@ -20,11 +20,12 @@ export interface SIGNUP_REQUEST {
   mobile_number: string;
 }
 
-export interface SIGNUP_RESPONSE {
-  status: number;
+export interface CHANGE_PASSWORD_REQUEST {
+  current_password: string | null;
+  new_password: string | null;
 }
 
-export interface LOGOUT_RESPONSE {
+export interface GENERIC_STATUS_RESPONSE {
   status: number;
 }
 
@@ -34,8 +35,4 @@ export interface UPDATE_USER_REQUEST {
   username: string;
   email: string;
   mobile_number: string;
-}
-
-export interface UPDATE_USER_RESPONSE {
-  status: number;
 }

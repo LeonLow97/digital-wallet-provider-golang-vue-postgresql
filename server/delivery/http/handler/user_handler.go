@@ -33,11 +33,41 @@ func NewUserHandler(router *mux.Router, uc domain.UserUsecase, redisClient infra
 	router.HandleFunc("/logout", handler.Logout).Methods(http.MethodPost)
 	router.HandleFunc("/change-password", handler.ChangePassword).Methods(http.MethodPost)
 
+	// password reset
+	router.HandleFunc("/password-reset/send", handler.SendPasswordResetEmail).Methods(http.MethodPost)
+
 	// user routes
 	userRouter := router.PathPrefix("/users").Subrouter()
 	userRouter.HandleFunc("/profile", handler.UpdateUser).Methods(http.MethodPost)
 	userRouter.HandleFunc("/me", handler.GetUserDetail).Methods(http.MethodGet)
 	// TODO: reset password
+}
+
+func (h *UserHandler) SendPasswordResetEmail(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
+	var req dto.SendPasswordResetEmailRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Println("error decoding req body in send password reset email handler", err)
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		return
+	}
+
+	errMessage, err := infrastructure.ValidateStruct(req)
+	if err != nil {
+		log.Println("error validating req struct in login handler", err)
+		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		return
+	}
+
+	req.SendPasswordResetEmailSanitize()
+
+	if err := h.userUsecase.SendPasswordResetEmail(ctx, req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	utils.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {

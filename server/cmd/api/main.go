@@ -37,6 +37,9 @@ func main() {
 		log.Fatalln("error loading config file", err)
 	}
 
+	// setting up SMTP instance
+	smtpClient := infrastructure.NewSMTPInstance(cfg)
+
 	router := mux.NewRouter()
 	router = router.PathPrefix("/api/v1").Subrouter() // api versioning v1
 
@@ -46,7 +49,7 @@ func main() {
 
 	// Initiating handlers, service, and repository
 	userRepo := repository.NewUserRepository(dbConn)
-	Usecase := usecase.NewUserUsecase(*cfg, userRepo, redisClient)
+	Usecase := usecase.NewUserUsecase(*cfg, userRepo, redisClient, *smtpClient)
 	handlers.NewUserHandler(router, Usecase, redisClient)
 
 	balanceRepo := repository.NewBalanceRepository(dbConn)
@@ -68,6 +71,7 @@ func main() {
 	// skipping endpoints
 	skipperFunc := middleware.NewSkipperFunc(
 		"/api/v1/login",
+		"/api/v1/password-reset/send",
 		"/api/v1/signup",
 		"/api/v1/health",
 	)

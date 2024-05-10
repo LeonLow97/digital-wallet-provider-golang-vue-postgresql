@@ -1,3 +1,12 @@
+environment:
+  mode: "development"
+
 jwt:
   secret: 0e769cb0ceb3927fc41620a889fdfa6999cd4cf09fd282f5b89be65c0a711774
   issuer: mobile-wallet
+
+smtp:
+  username: ''
+  password: ''
+  host: 'host.docker.internal'
+  port: 1025

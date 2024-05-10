@@ -3,8 +3,10 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
@@ -20,13 +22,15 @@ import (
 type loginUsecase struct {
 	cfg            infrastructure.Config
 	redisClient    infrastructure.RedisClient
+	smtpClient     infrastructure.SMTPClient
 	userRepository domain.UserRepository
 }
 
-func NewUserUsecase(cfg infrastructure.Config, userRepository domain.UserRepository, redisClient infrastructure.RedisClient) domain.UserUsecase {
+func NewUserUsecase(cfg infrastructure.Config, userRepository domain.UserRepository, redisClient infrastructure.RedisClient, smtpClient infrastructure.SMTPClient) domain.UserUsecase {
 	return &loginUsecase{
 		cfg:            cfg,
 		redisClient:    redisClient,
+		smtpClient:     smtpClient,
 		userRepository: userRepository,
 	}
 }
@@ -183,6 +187,64 @@ func (uc *loginUsecase) ChangePassword(ctx context.Context, userID int, req dto.
 	}
 
 	return nil
+}
+
+func (uc *loginUsecase) SendPasswordResetEmail(ctx context.Context, req dto.SendPasswordResetEmailRequest) error {
+	// check if user is valid by email
+	user, err := uc.userRepository.GetUserByEmail(ctx, req.Email)
+	if err != nil {
+		log.Printf("failed to retrieve user %s with error: %v\n", req.Email, err)
+		return err
+	}
+
+	// generate authentication token
+	authToken, err := utils.GenerateAuthenticationToken(32)
+	if err != nil {
+		log.Println("error generating authentication token")
+		return err
+	}
+
+	// construct reset url with authentication token
+	resetUrl := fmt.Sprintf("http://localhost:3000/#/password-reset/%s", authToken)
+	emailBody := strings.Replace(utils.PasswordResetEmailBody, "{{.ResetURL}}", resetUrl, 1)
+
+	// using 2 goroutines to send email and store authentication token in redis
+	// Channels to receive errors from go routines
+	emailErrChan := make(chan error)
+	redisErrChan := make(chan error)
+
+	// start a new go routine to send email
+	go func() {
+		err := uc.smtpClient.SendEmail(ctx, "digital-wallet@email.com", "Digital Wallet", []string{req.Email}, "Reset Your Password", emailBody)
+		emailErrChan <- err
+	}()
+
+	// start a new go routine to store the token in redis
+	go func() {
+		key := fmt.Sprintf("reset-password-%s", user.Email)
+		if err := uc.redisClient.SetEx(ctx, key, authToken, utils.PASSWORD_RESET_AUTH_TOKEN_EXPIRY); err != nil {
+			redisErrChan <- err
+		}
+	}()
+
+	// wait for both go routines to complete
+	var emailErr, redisErr error
+	select {
+	case emailErr = <-emailErrChan:
+	case redisErr = <-redisErrChan:
+	}
+
+	if emailErr != nil {
+		log.Println("failed to send email", emailErr)
+		return emailErr
+	}
+	if redisErr != nil {
+		log.Println("failed to store authentication token in redis", redisErr)
+		return redisErr
+	}
+
+	return nil
+
 }
 
 func (uc *loginUsecase) UpdateUser(ctx context.Context, userID int, req dto.UpdateUserRequest) error {

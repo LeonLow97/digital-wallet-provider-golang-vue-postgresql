@@ -26,6 +26,8 @@ type RedisClient interface {
 	SAdd(ctx context.Context, key string, members ...interface{}) error
 	SRem(ctx context.Context, key string, members ...interface{}) error
 
+	HSet(ctx context.Context, key string, values map[string]interface{}) error
+
 	Del(ctx context.Context, keys ...string) error
 
 	Expire(ctx context.Context, key string, sessionExpiryInMinutes time.Duration) error
@@ -97,6 +99,10 @@ func (rc *RedisClientImpl) Del(ctx context.Context, keys ...string) error {
 
 func (rc *RedisClientImpl) Expire(ctx context.Context, key string, sessionExpiryInMinutes time.Duration) error {
 	return rc.client.Expire(ctx, key, sessionExpiryInMinutes).Err()
+}
+
+func (rc *RedisClientImpl) HSet(ctx context.Context, key string, values map[string]interface{}) error {
+	return rc.client.HSet(ctx, key, values).Err()
 }
 
 // (used in DEVELOPMENT) For testing Redis string expiry to ensure key expiry is set correctly

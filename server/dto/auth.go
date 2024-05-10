@@ -77,3 +77,11 @@ func (req *UpdateUserRequest) UpdateUserSanitize() {
 	req.Email = strings.TrimSpace(req.Email)
 	req.MobileNumber = strings.TrimSpace(req.MobileNumber)
 }
+
+type SendPasswordResetEmailRequest struct {
+	Email string `json:"email" validate:"required,email,max=255"`
+}
+
+func (req *SendPasswordResetEmailRequest) SendPasswordResetEmailSanitize() {
+	req.Email = strings.TrimSpace(req.Email)
+}

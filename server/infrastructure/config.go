@@ -15,13 +15,26 @@ var (
 	MODE_PRODUCTION    = "production"
 )
 
+type Environment struct {
+	Mode string `mapstructure:"mode"`
+}
+
 type JWTConfig struct {
 	Secret string `mapstructure:"secret"`
 	Issuer string `mapstructure:"issuer"`
 }
 
+type SMTPConfig struct {
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+}
+
 type Config struct {
-	JWT JWTConfig `mapstructure:"jwt"`
+	Env  Environment `mapstructure:"environment"`
+	JWT  JWTConfig   `mapstructure:"jwt"`
+	SMTP SMTPConfig  `mapstructure:"smtp"`
 }
 
 func LoadConfig() (*Config, error) {

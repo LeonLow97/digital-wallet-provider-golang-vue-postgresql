@@ -21,8 +21,17 @@ export interface SIGNUP_REQUEST {
 }
 
 export interface CHANGE_PASSWORD_REQUEST {
-  current_password: string | null;
-  new_password: string | null;
+  current_password: string;
+  new_password: string;
+}
+
+export interface SEND_PASSWORD_RESET_EMAIL_REQUEST {
+  email: string;
+}
+
+export interface PASSWORD_RESET_REQUEST {
+  token: string;
+  password: string;
 }
 
 export interface GENERIC_STATUS_RESPONSE {

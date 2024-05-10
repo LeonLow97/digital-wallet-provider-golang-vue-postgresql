@@ -31,6 +31,7 @@ type UserUsecase interface {
 	UpdateUser(ctx context.Context, userID int, req dto.UpdateUserRequest) error
 	ExtendUserSessionInRedis(ctx context.Context, sessionID string, sessionExpiryInMinutes time.Duration) error
 	SendPasswordResetEmail(ctx context.Context, req dto.SendPasswordResetEmailRequest) error
+	PasswordReset(ctx context.Context, req dto.PasswordResetRequest) error
 }
 
 // UserRepository represents the user's repository contract

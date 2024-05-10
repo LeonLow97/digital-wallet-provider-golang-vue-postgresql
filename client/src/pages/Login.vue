@@ -34,8 +34,14 @@
           </div>
         </div>
 
+        <router-link
+          :to="{ name: 'ForgotPassword' }"
+          class="text-slate-300 underline underline-offset-4"
+          >Forgot your password?</router-link
+        >
+
         <action-button
-          class="mb-4 w-full rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
+          class="mb-4 mt-4 w-full rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
           text="Login"
         />
       </form>
@@ -108,7 +114,7 @@ const handleSubmit = async () => {
 
       router.push({ name: "Home" });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof AxiosError) {
       if (error.response) {
         alert(error.response?.data?.message);

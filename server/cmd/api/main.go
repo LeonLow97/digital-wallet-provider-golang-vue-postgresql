@@ -72,6 +72,7 @@ func main() {
 	skipperFunc := middleware.NewSkipperFunc(
 		"/api/v1/login",
 		"/api/v1/password-reset/send",
+		"/api/v1/password-reset/reset",
 		"/api/v1/signup",
 		"/api/v1/health",
 	)

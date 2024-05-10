@@ -221,8 +221,19 @@ func (uc *loginUsecase) SendPasswordResetEmail(ctx context.Context, req dto.Send
 
 	// start a new go routine to store the token in redis
 	go func() {
-		key := fmt.Sprintf("reset-password-%s", user.Email)
-		if err := uc.redisClient.SetEx(ctx, key, authToken, utils.PASSWORD_RESET_AUTH_TOKEN_EXPIRY); err != nil {
+		key := fmt.Sprintf("password-reset-%s", authToken)
+
+		values := map[string]interface{}{
+			"email": user.Email,
+			"id":    user.ID,
+		}
+
+		if err := uc.redisClient.HSet(ctx, key, values); err != nil {
+			redisErrChan <- err
+		}
+
+		// set expiration time for the hash table
+		if err := uc.redisClient.Expire(ctx, key, utils.PASSWORD_RESET_AUTH_TOKEN_EXPIRY); err != nil {
 			redisErrChan <- err
 		}
 	}()
@@ -244,7 +255,49 @@ func (uc *loginUsecase) SendPasswordResetEmail(ctx context.Context, req dto.Send
 	}
 
 	return nil
+}
 
+func (uc loginUsecase) PasswordReset(ctx context.Context, req dto.PasswordResetRequest) error {
+	// retrieve user email by auth token
+	key := fmt.Sprintf("password-reset-%s", req.Token)
+	values, err := uc.redisClient.HGetAll(ctx, key)
+	if err != nil {
+		log.Println("failed to get user email in redis client with error:", err)
+		return err
+	}
+	email := values["email"]
+
+	// retrieve user details from db by email
+	user, err := uc.userRepository.GetUserByEmail(ctx, email)
+	if err != nil {
+		log.Println("failed to get user by email in db with error:", err)
+		return err
+	}
+
+	// check if new password is same as the previous password
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err == nil {
+		return exception.ErrSamePassword
+	}
+
+	// update user password
+	hashedNewPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), 10)
+	if err != nil {
+		log.Println("failed to hash new password with error:", err)
+		return err
+	}
+
+	if err := uc.userRepository.ChangePassword(ctx, string(hashedNewPassword), user.ID); err != nil {
+		log.Printf("failed to update user password for user id %d with error %v\n", user.ID, err)
+		return err
+	}
+
+	// delete the authentication token key in redis
+	if err := uc.redisClient.Del(ctx, req.Token); err != nil {
+		log.Println("failed to delete auth token key in redis with error:", err)
+		return err
+	}
+
+	return nil
 }
 
 func (uc *loginUsecase) UpdateUser(ctx context.Context, userID int, req dto.UpdateUserRequest) error {

@@ -6,6 +6,8 @@ import type {
   UPDATE_USER_REQUEST,
   GENERIC_STATUS_RESPONSE,
   CHANGE_PASSWORD_REQUEST,
+  SEND_PASSWORD_RESET_EMAIL_REQUEST,
+  PASSWORD_RESET_REQUEST,
 } from "@/types/user";
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
@@ -64,6 +66,36 @@ export const CHANGE_PASSWORD = async (
     const { status } = await axios.post(apiURL, JSON.stringify(body), {
       withCredentials: true,
     });
+
+    return { status };
+  } catch (error: unknown) {
+    throw error;
+  }
+};
+
+export const PASSWORD_RESET = async (
+  body: PASSWORD_RESET_REQUEST,
+): Promise<GENERIC_STATUS_RESPONSE> => {
+  try {
+    const apiURL = `${API_URL}/password-reset/reset`;
+    const { status } = await axios.post(apiURL, JSON.stringify(body), undefined);
+
+    return { status };
+  } catch (error: unknown) {
+    throw error;
+  }
+};
+
+export const SEND_PASSWORD_RESET_EMAIL = async (
+  body: SEND_PASSWORD_RESET_EMAIL_REQUEST,
+): Promise<GENERIC_STATUS_RESPONSE> => {
+  try {
+    const apiURL = `${API_URL}/password-reset/send`;
+    const { status } = await axios.post(
+      apiURL,
+      JSON.stringify(body),
+      undefined,
+    );
 
     return { status };
   } catch (error: unknown) {

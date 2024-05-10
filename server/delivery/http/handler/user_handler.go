@@ -35,39 +35,12 @@ func NewUserHandler(router *mux.Router, uc domain.UserUsecase, redisClient infra
 
 	// password reset
 	router.HandleFunc("/password-reset/send", handler.SendPasswordResetEmail).Methods(http.MethodPost)
+	router.HandleFunc("/password-reset/reset", handler.PasswordReset).Methods(http.MethodPost)
 
 	// user routes
 	userRouter := router.PathPrefix("/users").Subrouter()
 	userRouter.HandleFunc("/profile", handler.UpdateUser).Methods(http.MethodPost)
 	userRouter.HandleFunc("/me", handler.GetUserDetail).Methods(http.MethodGet)
-	// TODO: reset password
-}
-
-func (h *UserHandler) SendPasswordResetEmail(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
-
-	var req dto.SendPasswordResetEmailRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Println("error decoding req body in send password reset email handler", err)
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
-		return
-	}
-
-	errMessage, err := infrastructure.ValidateStruct(req)
-	if err != nil {
-		log.Println("error validating req struct in login handler", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
-		return
-	}
-
-	req.SendPasswordResetEmailSanitize()
-
-	if err := h.userUsecase.SendPasswordResetEmail(ctx, req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-		return
-	}
-
-	utils.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -207,6 +180,74 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 			return
 		default:
 			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			return
+		}
+	}
+
+	utils.WriteNoContent(w, http.StatusNoContent)
+}
+
+func (h *UserHandler) PasswordReset(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
+	var req dto.PasswordResetRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Println("error decoding req body in password reset handler", err)
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		return
+	}
+
+	errMessage, err := infrastructure.ValidateStruct(req)
+	if err != nil {
+		log.Println("error validating req struct", err)
+		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		return
+	}
+
+	req.PasswordResetSanitize()
+
+	if err := h.userUsecase.PasswordReset(ctx, req); err != nil {
+		switch {
+		case errors.Is(err, exception.ErrSamePassword):
+			utils.ErrorJSON(w, apiErr.ErrSamePassword, http.StatusBadRequest)
+			return
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	utils.WriteNoContent(w, http.StatusNoContent)
+}
+
+func (h *UserHandler) SendPasswordResetEmail(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
+	var req dto.SendPasswordResetEmailRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Println("error decoding req body in send password reset email handler", err)
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		return
+	}
+
+	errMessage, err := infrastructure.ValidateStruct(req)
+	if err != nil {
+		log.Println("error validating req struct", err)
+		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		return
+	}
+
+	req.SendPasswordResetEmailSanitize()
+
+	if err := h.userUsecase.SendPasswordResetEmail(ctx, req); err != nil {
+		switch {
+		case errors.Is(err, exception.ErrUserNotFound):
+			// return the same status when email is not found, prevent
+			// cyber attacks from brute forcing and retrieving valid emails
+			utils.WriteNoContent(w, http.StatusNoContent)
+			return
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 			return
 		}
 	}

@@ -138,7 +138,7 @@ const handleSubmit = async () => {
       currentPassword.value = "";
       newPassword.value = "";
       confirmPassword.value = "";
-      isModal.value = false; // close modal
+      isModalOpen.value = false; // close modal
       
       alert("Password changed successfully!");
     }

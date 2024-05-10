@@ -24,6 +24,16 @@ const routes = [
     component: () => import("@/pages/SignUp.vue"),
   },
   {
+    path: "/forgot-password",
+    name: "ForgotPassword",
+    component: () => import("@/pages/ForgotPassword.vue"),
+  },
+  {
+    path: "/password-reset/:token",
+    name: "PasswordReset",
+    component: () => import("@/pages/PasswordReset.vue")
+  },
+  {
     path: "/profile",
     name: "UserProfile",
     component: () => import("@/pages/UserProfile.vue"),
@@ -75,7 +85,13 @@ const router = createRouter({
   },
 });
 
-const skippedProtectedEndpoints: RouteRecordName[] = ["Login", "SignUp"];
+const skippedProtectedEndpoints: RouteRecordName[] = [
+  "Login",
+  "SignUp",
+  "ForgotPassword",
+  "PasswordReset"
+];
+
 // Navigation guard: https://router.vuejs.org/guide/advanced/navigation-guards.html
 router.beforeEach(async (to, from, next) => {
   const isLoggedIn = localStorage.getItem(IS_LOGGED_IN);

@@ -85,3 +85,13 @@ type SendPasswordResetEmailRequest struct {
 func (req *SendPasswordResetEmailRequest) SendPasswordResetEmailSanitize() {
 	req.Email = strings.TrimSpace(req.Email)
 }
+
+type PasswordResetRequest struct {
+	Token    string `json:"token" validate:"required"`
+	Password string `json:"password" validate:"required,min=7,max=60"`
+}
+
+func (req *PasswordResetRequest) PasswordResetSanitize() {
+	req.Token = strings.TrimSpace(req.Token)
+	req.Password = strings.TrimSpace(req.Password)
+}

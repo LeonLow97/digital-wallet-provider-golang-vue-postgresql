@@ -205,7 +205,7 @@ func (uc *loginUsecase) SendPasswordResetEmail(ctx context.Context, req dto.Send
 	}
 
 	// construct reset url with authentication token
-	resetUrl := fmt.Sprintf("http://localhost:3000/#/password-reset/%s", authToken)
+	resetUrl := fmt.Sprintf("%s/#/password-reset/%s", uc.cfg.Env.FrontendURL, authToken)
 	emailBody := strings.Replace(utils.PasswordResetEmailBody, "{{.ResetURL}}", resetUrl, 1)
 
 	// using 2 goroutines to send email and store authentication token in redis
@@ -221,20 +221,50 @@ func (uc *loginUsecase) SendPasswordResetEmail(ctx context.Context, req dto.Send
 
 	// start a new go routine to store the token in redis
 	go func() {
-		key := fmt.Sprintf("password-reset-%s", authToken)
+		redisTokenKey := fmt.Sprintf("password-reset:token:%s", authToken)
 
 		values := map[string]interface{}{
 			"email": user.Email,
 			"id":    user.ID,
 		}
 
-		if err := uc.redisClient.HSet(ctx, key, values); err != nil {
+		// check if the user already has an authentication token. if yes, remove the old authentication tokens.
+		// This is to prevent the user from flooding the redis server with authentication tokens
+		redisUserIDKey := fmt.Sprintf("password-reset:userid:%d", user.ID)
+		oldAuthTokens, err := uc.redisClient.SMembers(ctx, redisUserIDKey)
+		if err != nil {
 			redisErrChan <- err
+			return
+		}
+
+		// remove old authentication tokens from redis to prevent flooding
+		for _, oldAuthToken := range oldAuthTokens {
+			if err := uc.redisClient.Del(ctx, fmt.Sprintf("password-reset:token:%s", oldAuthToken)); err != nil {
+				redisErrChan <- err
+				return
+			}
+
+			if err := uc.redisClient.SRem(ctx, fmt.Sprintf("password-reset:userid:%d", user.ID), oldAuthToken); err != nil {
+				redisErrChan <- err
+				return
+			}
+		}
+
+		if err := uc.redisClient.HSet(ctx, redisTokenKey, values); err != nil {
+			redisErrChan <- err
+			return
 		}
 
 		// set expiration time for the hash table
-		if err := uc.redisClient.Expire(ctx, key, utils.PASSWORD_RESET_AUTH_TOKEN_EXPIRY); err != nil {
+		if err := uc.redisClient.Expire(ctx, redisTokenKey, utils.PASSWORD_RESET_AUTH_TOKEN_EXPIRY); err != nil {
 			redisErrChan <- err
+			return
+		}
+
+		// add user id with authentication token into redis set
+		if err := uc.redisClient.SAdd(ctx, fmt.Sprintf("password-reset:userid:%d", user.ID), authToken); err != nil {
+			redisErrChan <- err
+			return
 		}
 	}()
 
@@ -259,13 +289,14 @@ func (uc *loginUsecase) SendPasswordResetEmail(ctx context.Context, req dto.Send
 
 func (uc loginUsecase) PasswordReset(ctx context.Context, req dto.PasswordResetRequest) error {
 	// retrieve user email by auth token
-	key := fmt.Sprintf("password-reset-%s", req.Token)
+	key := fmt.Sprintf("password-reset:token:%s", req.Token)
 	values, err := uc.redisClient.HGetAll(ctx, key)
 	if err != nil {
 		log.Println("failed to get user email in redis client with error:", err)
 		return err
 	}
 	email := values["email"]
+	id := values["id"]
 
 	// retrieve user details from db by email
 	user, err := uc.userRepository.GetUserByEmail(ctx, email)
@@ -292,8 +323,12 @@ func (uc loginUsecase) PasswordReset(ctx context.Context, req dto.PasswordResetR
 	}
 
 	// delete the authentication token key in redis
-	if err := uc.redisClient.Del(ctx, req.Token); err != nil {
+	if err := uc.redisClient.Del(ctx, fmt.Sprintf("password-reset:token:%s", req.Token)); err != nil {
 		log.Println("failed to delete auth token key in redis with error:", err)
+		return err
+	}
+	if err := uc.redisClient.SRem(ctx, fmt.Sprintf("password-reset:userid:%s", id), req.Token); err != nil {
+		log.Println("failed to remove auth token that is linked to user id with error:", err)
 		return err
 	}
 

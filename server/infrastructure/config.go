@@ -16,7 +16,9 @@ var (
 )
 
 type Environment struct {
-	Mode string `mapstructure:"mode"`
+	Mode        string `mapstructure:"mode"`
+	BackendURL  string `mapstructure:"backend_url"`
+	FrontendURL string `mapstructure:"frontend_url"`
 }
 
 type JWTConfig struct {

@@ -78,7 +78,7 @@ func main() {
 	)
 
 	router.Use(
-		middleware.CorsMiddleware,
+		middleware.NewCorsMiddleware(*cfg).Middleware,
 		// TODO: Add SessionMiddleware to inject user object and session details into context
 		middleware.NewAuthenticationMiddleware(*cfg, skipperFunc, redisClient, Usecase).Middleware,
 	)

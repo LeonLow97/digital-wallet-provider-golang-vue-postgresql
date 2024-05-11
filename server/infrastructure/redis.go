@@ -25,6 +25,7 @@ type RedisClient interface {
 
 	SAdd(ctx context.Context, key string, members ...interface{}) error
 	SRem(ctx context.Context, key string, members ...interface{}) error
+	SMembers(ctx context.Context, key string) ([]string, error)
 
 	HSet(ctx context.Context, key string, values map[string]interface{}) error
 	HGetAll(ctx context.Context, key string) (map[string]string, error)
@@ -92,6 +93,10 @@ func (rc *RedisClientImpl) SAdd(ctx context.Context, key string, members ...inte
 
 func (rc *RedisClientImpl) SRem(ctx context.Context, key string, members ...interface{}) error {
 	return rc.client.SRem(ctx, key, members...).Err()
+}
+
+func (rc *RedisClientImpl) SMembers(ctx context.Context, key string) ([]string, error) {
+	return rc.client.SMembers(ctx, key).Result()
 }
 
 func (rc *RedisClientImpl) Del(ctx context.Context, keys ...string) error {

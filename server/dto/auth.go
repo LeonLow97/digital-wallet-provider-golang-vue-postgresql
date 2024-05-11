@@ -8,11 +8,12 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	FirstName    string `json:"firstName"`
-	LastName     string `json:"lastName"`
-	Email        string `json:"email"`
-	Username     string `json:"username"`
-	MobileNumber string `json:"mobileNumber"`
+	FirstName       string `json:"firstName"`
+	LastName        string `json:"lastName"`
+	Email           string `json:"email"`
+	Username        string `json:"username"`
+	MobileNumber    string `json:"mobileNumber"`
+	IsMFAConfigured bool   `json:"is_mfa_configured"`
 }
 
 type Token struct {

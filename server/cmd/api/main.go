@@ -37,9 +37,6 @@ func main() {
 		log.Fatalln("error loading config file", err)
 	}
 
-	// setting up SMTP instance
-	smtpClient := infrastructure.NewSMTPInstance(cfg)
-
 	router := mux.NewRouter()
 	router = router.PathPrefix("/api/v1").Subrouter() // api versioning v1
 
@@ -47,10 +44,17 @@ func main() {
 		w.Write([]byte("Healthy!"))
 	}).Methods(http.MethodGet)
 
+	// setting up SMTP instance
+	smtpClient := infrastructure.NewSMTPInstance(cfg)
+
 	// Initiating handlers, service, and repository
 	userRepo := repository.NewUserRepository(dbConn)
-	Usecase := usecase.NewUserUsecase(*cfg, userRepo, redisClient, *smtpClient)
-	handlers.NewUserHandler(router, Usecase, redisClient)
+
+	// setting up TOTP instance
+	totpInstance := infrastructure.NewTOTPMultiFactor(cfg, userRepo)
+
+	userUsecase := usecase.NewUserUsecase(*cfg, userRepo, redisClient, *smtpClient, totpInstance)
+	handlers.NewUserHandler(router, userUsecase, redisClient)
 
 	balanceRepo := repository.NewBalanceRepository(dbConn)
 	balanceUsecase := usecase.NewBalanceUsecase(balanceRepo)
@@ -80,7 +84,7 @@ func main() {
 	router.Use(
 		middleware.NewCorsMiddleware(*cfg).Middleware,
 		// TODO: Add SessionMiddleware to inject user object and session details into context
-		middleware.NewAuthenticationMiddleware(*cfg, skipperFunc, redisClient, Usecase).Middleware,
+		middleware.NewAuthenticationMiddleware(*cfg, skipperFunc, redisClient, userUsecase).Middleware,
 	)
 
 	port := os.Getenv("SERVICE_PORT")

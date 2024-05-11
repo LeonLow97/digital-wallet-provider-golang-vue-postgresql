@@ -1,7 +1,7 @@
 environment:
-  mode: "development"
-  backend_url: "http://localhost:8080"
-  frontend_url: "http://localhost:3000"
+  mode: 'development'
+  backend_url: 'http://localhost:8080'
+  frontend_url: 'http://localhost:3000'
 
 jwt:
   secret: 0e769cb0ceb3927fc41620a889fdfa6999cd4cf09fd282f5b89be65c0a711774
@@ -12,3 +12,7 @@ smtp:
   password: ''
   host: 'host.docker.internal'
   port: 1025
+
+totp:
+  issuer: 'digital-wallet.com'
+  encryption_key: '3c8d96a2b7e53f14f0d66ca4bb4a33ef'

@@ -19,19 +19,21 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type loginUsecase struct {
+type userUsecase struct {
 	cfg            infrastructure.Config
 	redisClient    infrastructure.RedisClient
 	smtpClient     infrastructure.SMTPClient
 	userRepository domain.UserRepository
+	totpInstance   *infrastructure.TOTPMultiFactor
 }
 
-func NewUserUsecase(cfg infrastructure.Config, userRepository domain.UserRepository, redisClient infrastructure.RedisClient, smtpClient infrastructure.SMTPClient) domain.UserUsecase {
-	return &loginUsecase{
+func NewUserUsecase(cfg infrastructure.Config, userRepository domain.UserRepository, redisClient infrastructure.RedisClient, smtpClient infrastructure.SMTPClient, totpInstance *infrastructure.TOTPMultiFactor) domain.UserUsecase {
+	return &userUsecase{
 		cfg:            cfg,
 		redisClient:    redisClient,
 		smtpClient:     smtpClient,
 		userRepository: userRepository,
+		totpInstance:   totpInstance,
 	}
 }
 
@@ -40,7 +42,7 @@ var (
 	refreshTokenExpiry = time.Hour * 24
 )
 
-func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, *dto.Token, error) {
+func (uc *userUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, *dto.Token, error) {
 	// retrieve user details from db
 	user, err := uc.userRepository.GetUserByEmail(ctx, req.Email)
 	if err != nil {
@@ -89,6 +91,10 @@ func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 		return nil, nil, err
 	}
 
+	key, secret, _ := uc.totpInstance.GenerateTOTP(ctx, user.ID, user.Email)
+	fmt.Println("Hello Jie Wei", secret)
+	fmt.Println("Key", key)
+
 	// storing sessionID => sessionObject mapping
 	// TODO: Store roles, permissions, emails in sessionObject
 	// sessionObjectBytes, _ := json.Marshal(user)
@@ -97,17 +103,18 @@ func (uc *loginUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 	// }
 
 	resp := dto.LoginResponse{
-		FirstName:    user.FirstName,
-		LastName:     user.LastName,
-		Email:        user.Email,
-		Username:     user.Username,
-		MobileNumber: user.MobileNumber,
+		FirstName:       user.FirstName,
+		LastName:        user.LastName,
+		Email:           user.Email,
+		Username:        user.Username,
+		MobileNumber:    user.MobileNumber,
+		IsMFAConfigured: user.IsMFAConfigured,
 	}
 
 	return &resp, token, nil
 }
 
-func (uc *loginUsecase) SignUp(ctx context.Context, req dto.SignUpRequest) error {
+func (uc *userUsecase) SignUp(ctx context.Context, req dto.SignUpRequest) error {
 	user, err := uc.userRepository.GetUserByEmailOrMobileNumber(ctx, req.Email, req.MobileNumber)
 	if err != nil && !errors.Is(err, exception.ErrUserNotFound) {
 		log.Println("failed to get user by email or mobile number")
@@ -151,7 +158,7 @@ func (uc *loginUsecase) SignUp(ctx context.Context, req dto.SignUpRequest) error
 	return nil
 }
 
-func (uc *loginUsecase) ChangePassword(ctx context.Context, userID int, req dto.ChangePasswordRequest) error {
+func (uc *userUsecase) ChangePassword(ctx context.Context, userID int, req dto.ChangePasswordRequest) error {
 	// get user by user id
 	user, err := uc.userRepository.GetUserByID(ctx, userID)
 	if err != nil {
@@ -189,7 +196,7 @@ func (uc *loginUsecase) ChangePassword(ctx context.Context, userID int, req dto.
 	return nil
 }
 
-func (uc *loginUsecase) SendPasswordResetEmail(ctx context.Context, req dto.SendPasswordResetEmailRequest) error {
+func (uc *userUsecase) SendPasswordResetEmail(ctx context.Context, req dto.SendPasswordResetEmailRequest) error {
 	// check if user is valid by email
 	user, err := uc.userRepository.GetUserByEmail(ctx, req.Email)
 	if err != nil {
@@ -287,7 +294,7 @@ func (uc *loginUsecase) SendPasswordResetEmail(ctx context.Context, req dto.Send
 	return nil
 }
 
-func (uc loginUsecase) PasswordReset(ctx context.Context, req dto.PasswordResetRequest) error {
+func (uc userUsecase) PasswordReset(ctx context.Context, req dto.PasswordResetRequest) error {
 	// retrieve user email by auth token
 	key := fmt.Sprintf("password-reset:token:%s", req.Token)
 	values, err := uc.redisClient.HGetAll(ctx, key)
@@ -335,7 +342,7 @@ func (uc loginUsecase) PasswordReset(ctx context.Context, req dto.PasswordResetR
 	return nil
 }
 
-func (uc *loginUsecase) UpdateUser(ctx context.Context, userID int, req dto.UpdateUserRequest) error {
+func (uc *userUsecase) UpdateUser(ctx context.Context, userID int, req dto.UpdateUserRequest) error {
 	updatedUser := domain.User{
 		ID:           userID,
 		Username:     req.Username,
@@ -359,7 +366,7 @@ func (uc *loginUsecase) UpdateUser(ctx context.Context, userID int, req dto.Upda
 	return nil
 }
 
-func (uc *loginUsecase) ExtendUserSessionInRedis(ctx context.Context, sessionID string, sessionExpiryInMinutes time.Duration) error {
+func (uc *userUsecase) ExtendUserSessionInRedis(ctx context.Context, sessionID string, sessionExpiryInMinutes time.Duration) error {
 	if err := uc.redisClient.Expire(ctx, sessionID, sessionExpiryInMinutes); err != nil {
 		log.Println("error extending user session")
 		return err
@@ -368,7 +375,7 @@ func (uc *loginUsecase) ExtendUserSessionInRedis(ctx context.Context, sessionID 
 	return nil
 }
 
-func (uc *loginUsecase) RemoveSessionFromRedis(ctx context.Context, sessionID string) error {
+func (uc *userUsecase) RemoveSessionFromRedis(ctx context.Context, sessionID string) error {
 	// retrieve userID from redis
 	userID, err := uc.redisClient.Get(ctx, sessionID)
 	if err != nil {
@@ -389,7 +396,7 @@ func (uc *loginUsecase) RemoveSessionFromRedis(ctx context.Context, sessionID st
 }
 
 // generateJWTAccessToken returns the JWT Access Token with the stores session ID
-func (uc *loginUsecase) GenerateJWTAccessToken(userID int, ttl time.Duration, sessionID string) (string, error) {
+func (uc *userUsecase) GenerateJWTAccessToken(userID int, ttl time.Duration, sessionID string) (string, error) {
 	// create the token
 	token := jwt.New(jwt.SigningMethodHS256)
 
@@ -419,7 +426,7 @@ func (uc *loginUsecase) GenerateJWTAccessToken(userID int, ttl time.Duration, se
 }
 
 // generateJWTRefreshToken returns the JWT Refresh Token for retrieving subsequent fresh JWT Access Token
-func (uc *loginUsecase) generateJWTRefreshToken(userID int, ttl time.Duration, sessionID string) (string, error) {
+func (uc *userUsecase) generateJWTRefreshToken(userID int, ttl time.Duration, sessionID string) (string, error) {
 	// generate refresh token (users might not use) - less claims as compared to jwt token
 	refreshToken := jwt.New(jwt.SigningMethodHS256)
 	refreshTokenClaims := refreshToken.Claims.(jwt.MapClaims)

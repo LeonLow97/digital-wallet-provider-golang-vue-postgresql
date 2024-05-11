@@ -7,18 +7,27 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/dto"
 )
 
+type TOTPConfiguration struct {
+	ID                  int       `json:"id" db:"id"`
+	UserID              int       `json:"-"`
+	Email               string    `json:"email" db:"email"`
+	TOTPEncryptedSecret string    `json:"-" db:"totp_encrypted_secret"`
+	CreatedAt           time.Time `json:"created_at" db:"created_at"`
+}
+
 // User is representing the User data struct
 type User struct {
-	ID           int     `db:"id"`
-	FirstName    string  `db:"first_name"`
-	LastName     string  `db:"last_name"`
-	Username     string  `db:"username"`
-	Email        string  `db:"email"`
-	Password     string  `db:"password"`
-	MobileNumber string  `db:"mobile_number"`
-	Active       bool    `db:"active"`
-	Admin        bool    `db:"admin"`
-	Balance      float64 `db:"balance"`
+	ID              int     `db:"id"`
+	FirstName       string  `db:"first_name"`
+	LastName        string  `db:"last_name"`
+	Username        string  `db:"username"`
+	Email           string  `db:"email"`
+	Password        string  `db:"password"`
+	MobileNumber    string  `db:"mobile_number"`
+	IsMFAConfigured bool    `db:"is_mfa_configured"`
+	Active          bool    `db:"active"`
+	Admin           bool    `db:"admin"`
+	Balance         float64 `db:"balance"`
 }
 
 // UserUsecase represents the user's use cases
@@ -43,4 +52,5 @@ type UserRepository interface {
 	ChangePassword(ctx context.Context, hashedPassword string, userID int) error
 	GetUserAndBalanceByMobileNumber(ctx context.Context, mobileNumber string) (*User, error)
 	UpdateUser(ctx context.Context, user *User) error
+	InsertUserTOTPSecret(ctx context.Context, totpConfig TOTPConfiguration) error
 }

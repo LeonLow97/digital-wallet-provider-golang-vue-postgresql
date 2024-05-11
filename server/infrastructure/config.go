@@ -33,10 +33,16 @@ type SMTPConfig struct {
 	Port     int    `mapstructure:"port"`
 }
 
+type TOTPConfig struct {
+	Issuer        string `mapstructure:"issuer"`
+	EncryptionKey string `mapstructure:"encryption_key"`
+}
+
 type Config struct {
 	Env  Environment `mapstructure:"environment"`
 	JWT  JWTConfig   `mapstructure:"jwt"`
 	SMTP SMTPConfig  `mapstructure:"smtp"`
+	TOTP TOTPConfig  `mapstructure:"totp"`
 }
 
 func LoadConfig() (*Config, error) {

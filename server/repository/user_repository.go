@@ -57,7 +57,7 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*dom
 	defer cancel()
 
 	query := `
-		SELECT id, first_name, last_name, email, username, password, mobile_number, active, admin
+		SELECT id, first_name, last_name, email, username, password, mobile_number, active, admin, is_mfa_configured
 		FROM users 
 		WHERE email = $1;
 	`
@@ -73,6 +73,7 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*dom
 		&user.MobileNumber,
 		&user.Active,
 		&user.Admin,
+		&user.IsMFAConfigured,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -216,6 +217,19 @@ func (r *userRepository) ChangePassword(ctx context.Context, hashedPassword stri
 	`
 
 	if _, err := r.db.ExecContext(ctx, query, hashedPassword, userID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *userRepository) InsertUserTOTPSecret(ctx context.Context, totpConfig domain.TOTPConfiguration) error {
+	query := `
+		INSERT INTO user_totp_secrets (user_id, totp_encrypted_secret)
+		VALUES ($1, $2);
+	`
+
+	if _, err := r.db.ExecContext(ctx, query, totpConfig.UserID, totpConfig.TOTPEncryptedSecret); err != nil {
 		return err
 	}
 

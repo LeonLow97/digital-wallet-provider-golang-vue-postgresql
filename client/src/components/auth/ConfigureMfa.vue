@@ -48,14 +48,16 @@
         </p>
       </div>
     </div>
-    
+
     <div class="flex w-1/2 flex-col items-center justify-center">
-      <qrcode-vue
-        :value="url"
-        :level="level"
-        :render-as="renderAs"
-        :size="200"
-      />
+      <div class="bg-white p-10">
+        <qrcode-vue
+          :value="url"
+          :level="level"
+          :render-as="renderAs"
+          :size="200"
+        />
+      </div>
       <p class="mt-4 text-center">
         Can't scan the QR code? No problem! You can manually enter the MFA Key
         in your authenticator app:

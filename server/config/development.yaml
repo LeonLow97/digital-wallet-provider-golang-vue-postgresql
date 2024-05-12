@@ -14,5 +14,5 @@ smtp:
   port: 1025
 
 totp:
-  issuer: 'digital.wallet.local.test'
+  issuer: 'digital.wallet.local'
   encryption_key: '3c8d96a2b7e53f14f0d66ca4bb4a33ef'

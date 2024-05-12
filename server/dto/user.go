@@ -14,12 +14,12 @@ type LoginResponse struct {
 	Username        string           `json:"username"`
 	MobileNumber    string           `json:"mobileNumber"`
 	IsMFAConfigured bool             `json:"isMfaConfigured"`
-	MFAConfig       MFAConfiguration `json:"mfaConfig"`
+	MFAConfig       MFAConfiguration `json:"mfaConfig,omitempty"`
 }
 
 type MFAConfiguration struct {
-	Secret string `json:"secret"`
-	URL    string `json:"url"`
+	Secret string `json:"secret,omitempty"`
+	URL    string `json:"url,omitempty"`
 }
 
 type Token struct {

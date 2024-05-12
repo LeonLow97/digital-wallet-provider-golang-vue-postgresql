@@ -128,9 +128,6 @@ const handleSubmit = async () => {
       current_password: currentPassword.value,
       new_password: confirmPassword.value,
     };
-
-    console.log(body);
-
     const { status } = await CHANGE_PASSWORD(body);
 
     if (status === 204) {
@@ -143,7 +140,6 @@ const handleSubmit = async () => {
       alert("Password changed successfully!");
     }
   } catch (error: any) {
-    console.log(error);
     if (error instanceof AxiosError) {
       if (error.response) {
         alert(error.response?.data?.message);

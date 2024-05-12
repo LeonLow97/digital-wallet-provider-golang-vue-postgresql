@@ -48,7 +48,7 @@
         </p>
       </div>
     </div>
-
+    
     <div class="flex w-1/2 flex-col items-center justify-center">
       <qrcode-vue
         :value="url"

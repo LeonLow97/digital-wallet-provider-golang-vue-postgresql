@@ -60,8 +60,6 @@ const handleSubmit = async () => {
       password: password.value,
     };
 
-    console.log(body);
-
     const { status } = await PASSWORD_RESET(body);
 
     if (status === 204) {

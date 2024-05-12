@@ -52,7 +52,6 @@ const handleLogout = async () => {
   } catch (error: unknown) {
     if (error instanceof AxiosError) {
       if (error.response) {
-        console.log(error.response);
         alert(error.response?.data?.message);
       }
     } else console.error("Unexpected error", error);

@@ -164,8 +164,6 @@ export const VERIFY_MFA = async (
   body: VERIFY_MFA_REQUEST,
 ): Promise<GENERIC_STATUS_RESPONSE> => {
   try {
-    console.log(body)
-
     const { status } = await axios.post(
       VERIFY_MFA_URL,
       JSON.stringify(body),

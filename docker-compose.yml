@@ -43,8 +43,8 @@ services:
       - '6379:6379'
 
 networks:
-  mobile-wallet-network:
+  digital-wallet-network:
 
 volumes:
-  postgres_mobile_wallet:
-    name: postgres_mobile_wallet
+  postgres_digital_wallet:
+    name: postgres_digital_wallet

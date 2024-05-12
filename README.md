@@ -1,6 +1,6 @@
 # Introduction
 
-- Creating a Mobile Wallet as a Software Engineer that provides mobile wallet as a service.
+- Creating a Digital Wallet as a Software Engineer that provides digital wallet as a service.
 
 ## 3 - Tier Architecture
 
@@ -14,7 +14,7 @@
 
 - User can have multiple beneficiaries.
 - User must be linked to the beneficiary.
-- Funds transfer was performed by mobile number of the beneficiary.
+- Funds transfer was performed by digital number of the beneficiary.
 - Transaction date and received date is instantaneous with no delay.
 - Hardcoded the currency exchange for funds transfer. (In reality, as quotations are created, the currency conversion fluctuates with the FX market. Need to call an external API in future to monitor real time currency changes).
 - Minimum and maximum amount allowed for transferring funds is 10 and 10000 respectively.
@@ -39,9 +39,9 @@
 
 ## SQL Tables
 
-1. `users`: storing user details, including mobile number
+1. `users`: storing user details, including digital number
 2. `user_balance`: maps the user_id of `users` table with the balance, currency and country iso code.
-3. `beneficiaries`: stores beneficiary details, including mobile number. (similar number of rows as `users` table currently but will be adding external beneficiaries in future).
+3. `beneficiaries`: stores beneficiary details, including digital number. (similar number of rows as `users` table currently but will be adding external beneficiaries in future).
 4. `user_beneficiary`: maps the `user_id` of the user and the `beneficiary_id` of the beneficiary. To determine which user is linked to the beneficiary.
 5. `transactions`: stores the transactions made by the sender to the recipient.
 
@@ -61,10 +61,10 @@
   - Act: Calling the actual implementation and getting the actual result.
   - Assert: Asserting that the actual data returned is equal to the expected data.
 - Code to check coverage
-  - `cd ~/mobile-wallet-provider-golang-vue-postgresql/api/internal/handlers`
+  - `cd ~/digital-wallet-provider-golang-vue-postgresql/api/internal/handlers`
   - `alias coverage='go test -coverprofile=coverage.out && go tool cover -html=coverage.out'`
   - `coverage`
-  - `cd ~/mobile-wallet-provider-golang-vue-postgresql/api/internal/transactions`
+  - `cd ~/digital-wallet-provider-golang-vue-postgresql/api/internal/transactions`
 
 | Layer      | File Name              | % Coverage |
 | ---------- | ---------------------- | ---------- |
@@ -77,7 +77,7 @@
 - Using `vitest` for unit test performance optimization as it uses Vite in the background.
 - `npm i --save-dev vitest --force`: save as a dev dependency. (used `--force` flag as there was a clash with the current dependencies, faced the same issue for Jest).
 - Code to run test
-  - `cd ~/mobile-wallet-provider-golang-vue-postgresql/web`
+  - `cd ~/digital-wallet-provider-golang-vue-postgresql/web`
   - `npm test`
 
 | Layer | File Name               | Test Cases |

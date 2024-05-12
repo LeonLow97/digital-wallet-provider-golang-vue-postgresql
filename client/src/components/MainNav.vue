@@ -4,7 +4,7 @@
       class="flex cursor-pointer items-center pl-14 font-mono text-lg font-bold uppercase"
       :to="{ name: 'Home' }"
     >
-      Mobile Wallet
+      Digital Wallet
     </router-link>
     <div class="pr-8">
       <ul class="flex">

@@ -1,7 +1,7 @@
 ## Command to access DB in Docker Container
 
 ```
-docker exec -it mobile-wallet-provider-golang-vue-postgresql-db-1 psql -U postgres -d mydb
+docker exec -it digital-wallet-provider-golang-vue-postgresql-db-1 psql -U postgres -d mydb
 ```
 
 ## Starting Mailhog locally (MacOS)

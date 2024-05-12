@@ -7,8 +7,8 @@
 ```
 cd server
 docker login -u <username>
-docker build -t lowjiewei/mobile-wallet-be:v1.1 .
-docker push lowjiewei/mobile-wallet-be:v1.1
+docker build -t lowjiewei/digital-wallet-be:v1.1 .
+docker push lowjiewei/digital-wallet-be:v1.1
 ```
 
 ## Commands to setup k8s cluster
@@ -42,7 +42,7 @@ pgpassword   Opaque   1      18s
 - `kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml`
 
 ```
-➜  mobile-wallet-provider-golang-vue-postgresql git:(main) ✗ kubectl get pods -n ingress-nginx
+➜  digital-wallet-provider-golang-vue-postgresql git:(main) ✗ kubectl get pods -n ingress-nginx
 NAME                                        READY   STATUS      RESTARTS   AGE
 ingress-nginx-admission-create-p9n98        0/1     Completed   0          3m38s
 ingress-nginx-admission-patch-kv4v7         0/1     Completed   0          3m38s

@@ -6,15 +6,15 @@ spec:
   replicas: 3
   selector:
     matchLabels:
-      backend: mobile-wallet
+      backend: digital-wallet
   template:
     metadata:
       labels:
-        backend: mobile-wallet
+        backend: digital-wallet
     spec:
       containers:
-        - name: mobile-wallet
-          image: lowjiewei/mobile-wallet-be:v1.1
+        - name: digital-wallet
+          image: lowjiewei/digital-wallet-be:v1.1
           ports:
             - containerPort: 8080
           env:
@@ -59,7 +59,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    backend: mobile-wallet
+    backend: digital-wallet
   ports:
     - port: 8080 # ClusterIP Service port
       targetPort: 8080 # Forward traffic to this Pod on this targetPort
@@ -77,4 +77,4 @@ spec:
 #       nodePort: 31500
 #       protocol: TCP
 #   selector:
-#     backend: mobile-wallet
+#     backend: digital-wallet

@@ -5,7 +5,7 @@ environment:
 
 jwt:
   secret: 0e769cb0ceb3927fc41620a889fdfa6999cd4cf09fd282f5b89be65c0a711774
-  issuer: mobile-wallet
+  issuer: digital-wallet
 
 smtp:
   username: ''

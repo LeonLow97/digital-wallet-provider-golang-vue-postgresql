@@ -20,6 +20,8 @@ var (
 	ErrUserNotFound             = "User does not exist. Please try again."
 	ErrCurrentPasswordIncorrect = "Current password is incorrect. Please try again."
 	ErrSamePassword             = "New password is same as current password. Please choose a different password."
+
+	ErrInvalidMFACode = "Invalid MFA Code. Please try again."
 )
 
 // Wallet

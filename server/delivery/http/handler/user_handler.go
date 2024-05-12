@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"log"
@@ -32,6 +31,8 @@ func NewUserHandler(router *mux.Router, uc domain.UserUsecase, redisClient infra
 	router.HandleFunc("/signup", handler.SignUp).Methods(http.MethodPost)
 	router.HandleFunc("/logout", handler.Logout).Methods(http.MethodPost)
 	router.HandleFunc("/change-password", handler.ChangePassword).Methods(http.MethodPost)
+	router.HandleFunc("/configure-mfa", handler.ConfigureMFA).Methods(http.MethodPost)
+	router.HandleFunc("/verify-mfa", handler.VerifyMFA).Methods(http.MethodPost)
 
 	// password reset
 	router.HandleFunc("/password-reset/send", handler.SendPasswordResetEmail).Methods(http.MethodPost)
@@ -44,7 +45,7 @@ func NewUserHandler(router *mux.Router, uc domain.UserUsecase, redisClient infra
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
+	ctx := r.Context()
 
 	var req dto.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -80,7 +81,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
+	ctx := r.Context()
 
 	var req dto.SignUpRequest
 	if err := utils.ReadJSON(w, r, &req); err != nil {
@@ -187,8 +188,80 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	utils.WriteNoContent(w, http.StatusNoContent)
 }
 
+func (h *UserHandler) ConfigureMFA(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var req dto.ConfigureMFARequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Println("error decoding req body with error:", err)
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		return
+	}
+
+	errMessage, err := infrastructure.ValidateStruct(req)
+	if err != nil {
+		log.Println("error validating req struct", err)
+		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		return
+	}
+
+	req.ConfigureMFASanitize()
+
+	if err := h.userUsecase.ConfigureMFA(ctx, req); err != nil {
+		switch {
+		case errors.Is(err, exception.ErrUserNotFound):
+			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			return
+		case errors.Is(err, exception.ErrTOTPSecretExists):
+			utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+			return
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	utils.WriteNoContent(w, http.StatusNoContent)
+}
+
+func (h *UserHandler) VerifyMFA(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var req dto.VerifyMFARequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Println("error decoding req body with error:", err)
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		return
+	}
+
+	errMessage, err := infrastructure.ValidateStruct(req)
+	if err != nil {
+		log.Println("error validating req struct", err)
+		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		return
+	}
+
+	req.VerifyMFASanitize()
+
+	if err := h.userUsecase.VerifyMFA(ctx, req); err != nil {
+		switch {
+		case errors.Is(err, exception.ErrUserNotFound):
+			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			return
+		case errors.Is(err, exception.ErrInvalidMFACode):
+			utils.ErrorJSON(w, apiErr.ErrInvalidMFACode, http.StatusUnauthorized)
+			return
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	utils.WriteNoContent(w, http.StatusNoContent)
+}
+
 func (h *UserHandler) PasswordReset(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
+	ctx := r.Context()
 
 	var req dto.PasswordResetRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -221,7 +294,7 @@ func (h *UserHandler) PasswordReset(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) SendPasswordResetEmail(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
+	ctx := r.Context()
 
 	var req dto.SendPasswordResetEmailRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

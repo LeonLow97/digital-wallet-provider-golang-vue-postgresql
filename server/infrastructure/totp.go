@@ -8,22 +8,18 @@ import (
 	"encoding/base64"
 	"io"
 	"log"
-	"time"
 
-	"github.com/LeonLow97/go-clean-architecture/domain"
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 )
 
 type TOTPMultiFactor struct {
-	cfg            *Config
-	userRepository domain.UserRepository
+	cfg *Config
 }
 
-func NewTOTPMultiFactor(cfg *Config, userRepo domain.UserRepository) *TOTPMultiFactor {
+func NewTOTPMultiFactor(cfg *Config) *TOTPMultiFactor {
 	return &TOTPMultiFactor{
-		cfg:            cfg,
-		userRepository: userRepo,
+		cfg: cfg,
 	}
 }
 
@@ -42,27 +38,15 @@ func (m TOTPMultiFactor) GenerateTOTP(ctx context.Context, userID int, email str
 	}
 
 	// Encrypt the TOTP secret
-	encryptedSecret, err := m.encryptTOTPSecret(key.Secret(), []byte(m.cfg.TOTP.EncryptionKey))
+	encryptedSecret, err := m.EncryptTOTPSecret(key.Secret(), []byte(m.cfg.TOTP.EncryptionKey))
 	if err != nil {
-		return nil, "", err
-	}
-
-	totpConfiguration := domain.TOTPConfiguration{
-		UserID:              userID,
-		Email:               email,
-		TOTPEncryptedSecret: encryptedSecret,
-		CreatedAt:           time.Now(),
-	}
-
-	if err := m.userRepository.InsertUserTOTPSecret(ctx, totpConfiguration); err != nil {
-		log.Println("failed to insert user totp secret with error:", err)
 		return nil, "", err
 	}
 
 	return key, encryptedSecret, nil
 }
 
-func (m TOTPMultiFactor) encryptTOTPSecret(secret string, encryptionKey []byte) (string, error) {
+func (m TOTPMultiFactor) EncryptTOTPSecret(secret string, encryptionKey []byte) (string, error) {
 	// Create AES cipher block
 	block, err := aes.NewCipher(encryptionKey)
 	if err != nil {
@@ -98,6 +82,39 @@ func (m TOTPMultiFactor) encryptTOTPSecret(secret string, encryptionKey []byte) 
 	return encryptedSecret, nil
 }
 
-func (m TOTPMultiFactor) decryptTOTPSecret(encryptedSecret string, encryptionKey []byte) (string, error) {
-	return "", nil
+func (m TOTPMultiFactor) DecryptTOTPSecret(encryptedSecret string, encryptionKey []byte) (string, error) {
+	// Decode the base64 encoded encrypted secret
+	cipherText, err := base64.StdEncoding.DecodeString(encryptedSecret)
+	if err != nil {
+		log.Println("failed to decode base64 encoded encrypted secret with error:", err)
+		return "", err
+	}
+
+	// Create AES cipher block
+	block, err := aes.NewCipher(encryptionKey)
+	if err != nil {
+		log.Println("failed to create AES cipher block with error:", err)
+		return "", err
+	}
+
+	// Create a new AES GCM cipher
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		log.Println("failed to create new AES GCM cipher with error:", err)
+		return "", err
+	}
+
+	// Extract the nonce from the cipher text
+	nonceSize := gcm.NonceSize()
+	nonce := cipherText[:nonceSize]
+	cipherText = cipherText[nonceSize:]
+
+	// Decrypt the secret
+	plainText, err := gcm.Open(nil, nonce, cipherText, nil)
+	if err != nil {
+		log.Println("failed to decrypt secret with error:", err)
+		return "", err
+	}
+
+	return string(plainText), nil
 }

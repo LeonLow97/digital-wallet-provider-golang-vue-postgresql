@@ -235,3 +235,49 @@ func (r *userRepository) InsertUserTOTPSecret(ctx context.Context, totpConfig do
 
 	return nil
 }
+
+func (r *userRepository) UpdateIsMFAConfigured(ctx context.Context, userID int, mfaConfigured bool) error {
+	query := `
+		UPDATE users
+		SET is_mfa_configured = $1
+		WHERE id = $2;
+	`
+
+	if _, err := r.db.ExecContext(ctx, query, mfaConfigured, userID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *userRepository) GetUserTOTPSecretCount(ctx context.Context, userID int) (int, error) {
+	query := `
+		SELECT COUNT(totp_encrypted_secret)
+		FROM user_totp_secrets
+		WHERE user_id = $1;
+	`
+
+	var count int
+	if err := r.db.GetContext(ctx, &count, query, userID); err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (r *userRepository) GetUserTOTPSecret(ctx context.Context, userID int) (string, error) {
+	query := `
+		SELECT totp_encrypted_secret
+		FROM user_totp_secrets
+		WHERE user_id = $1;
+	`
+
+	var totpEncryptedSecret string
+	if err := r.db.GetContext(ctx, &totpEncryptedSecret, query, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return "", exception.ErrTOTPSecretNotFound
+		}
+	}
+
+	return totpEncryptedSecret, nil
+}

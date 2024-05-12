@@ -47,12 +47,11 @@ func main() {
 	// setting up SMTP instance
 	smtpClient := infrastructure.NewSMTPInstance(cfg)
 
+	// setting up TOTP instance
+	totpInstance := infrastructure.NewTOTPMultiFactor(cfg)
+
 	// Initiating handlers, service, and repository
 	userRepo := repository.NewUserRepository(dbConn)
-
-	// setting up TOTP instance
-	totpInstance := infrastructure.NewTOTPMultiFactor(cfg, userRepo)
-
 	userUsecase := usecase.NewUserUsecase(*cfg, userRepo, redisClient, *smtpClient, totpInstance)
 	handlers.NewUserHandler(router, userUsecase, redisClient)
 
@@ -79,6 +78,8 @@ func main() {
 		"/api/v1/password-reset/reset",
 		"/api/v1/signup",
 		"/api/v1/health",
+		"/api/v1/configure-mfa",
+		"/api/v1/verify-mfa",
 	)
 
 	router.Use(

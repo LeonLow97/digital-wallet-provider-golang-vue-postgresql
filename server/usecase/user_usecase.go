@@ -16,6 +16,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/utils"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
+	"github.com/pquerna/otp/totp"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -91,9 +92,10 @@ func (uc *userUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.Lo
 		return nil, nil, err
 	}
 
-	key, secret, _ := uc.totpInstance.GenerateTOTP(ctx, user.ID, user.Email)
-	fmt.Println("Hello Jie Wei", secret)
-	fmt.Println("Key", key)
+	key, _, err := uc.totpInstance.GenerateTOTP(ctx, user.ID, user.Email)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	// storing sessionID => sessionObject mapping
 	// TODO: Store roles, permissions, emails in sessionObject
@@ -109,6 +111,12 @@ func (uc *userUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.Lo
 		Username:        user.Username,
 		MobileNumber:    user.MobileNumber,
 		IsMFAConfigured: user.IsMFAConfigured,
+	}
+
+	// if mfa is not configured, add the secret and url
+	if !user.IsMFAConfigured {
+		resp.MFAConfig.Secret = key.Secret()
+		resp.MFAConfig.URL = key.URL()
 	}
 
 	return &resp, token, nil
@@ -153,6 +161,84 @@ func (uc *userUsecase) SignUp(ctx context.Context, req dto.SignUpRequest) error 
 	// create one user
 	if err = uc.userRepository.InsertUser(ctx, &insertUser); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (uc *userUsecase) ConfigureMFA(ctx context.Context, req dto.ConfigureMFARequest) error {
+	// get user by email
+	user, err := uc.userRepository.GetUserByEmail(ctx, req.Email)
+	if err != nil {
+		log.Printf("failed to get user by email %s with error: %v\n", req.Email, err)
+		return err
+	}
+
+	// check if user already has totp secret
+	totpSecretCount, err := uc.userRepository.GetUserTOTPSecretCount(ctx, user.ID)
+	if err != nil {
+		log.Println("failed to get user totp secret count with error:", err)
+		return err
+	}
+	if totpSecretCount != 0 {
+		log.Printf("user id %d already has totp configured\n", user.ID)
+		return exception.ErrTOTPSecretExists
+	}
+
+	encryptedSecret, err := uc.totpInstance.EncryptTOTPSecret(req.Secret, []byte(uc.cfg.TOTP.EncryptionKey))
+	if err != nil {
+		log.Println("failed to encrypt TOTP secret with error:", err)
+		return err
+	}
+
+	// insert user totp encrypted secret
+	totpConfiguration := domain.TOTPConfiguration{
+		UserID:              user.ID,
+		Email:               user.Email,
+		TOTPEncryptedSecret: encryptedSecret,
+		CreatedAt:           time.Now(),
+	}
+
+	if err := uc.userRepository.InsertUserTOTPSecret(ctx, totpConfiguration); err != nil {
+		log.Println("failed to insert user totp secret with error:", err)
+		return err
+	}
+
+	// update is_mfa_configured to true
+	if err := uc.userRepository.UpdateIsMFAConfigured(ctx, user.ID, true); err != nil {
+		log.Println("failed to update IsMFAConfigured flag to true with error:", err)
+		return err
+	}
+
+	return nil
+}
+
+func (uc *userUsecase) VerifyMFA(ctx context.Context, req dto.VerifyMFARequest) error {
+	// get user by email to retrieve user id
+	user, err := uc.userRepository.GetUserByEmail(ctx, req.Email)
+	if err != nil {
+		log.Println("failed to get user by email with error:", err)
+		return err
+	}
+
+	// retrieve user encrypted totp secret by user id
+	encryptedTOTPSecret, err := uc.userRepository.GetUserTOTPSecret(ctx, user.ID)
+	if err != nil {
+		log.Println("failed to get user totp secret with error:", err)
+		return err
+	}
+
+	// decrypt the encrypted totp secret to retrieve plain text user totp secret
+	plainTextTOTPSecret, err := uc.totpInstance.DecryptTOTPSecret(encryptedTOTPSecret, []byte(uc.cfg.TOTP.EncryptionKey))
+	if err != nil {
+		log.Println("failed to decrypt totp secret with error:", err)
+		return err
+	}
+
+	// validate totp
+	isValidMFACode := totp.Validate(req.MFACode, plainTextTOTPSecret)
+	if !isValidMFACode {
+		return exception.ErrInvalidMFACode
 	}
 
 	return nil

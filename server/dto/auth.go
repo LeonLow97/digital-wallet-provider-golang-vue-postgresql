@@ -8,12 +8,18 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	FirstName       string `json:"firstName"`
-	LastName        string `json:"lastName"`
-	Email           string `json:"email"`
-	Username        string `json:"username"`
-	MobileNumber    string `json:"mobileNumber"`
-	IsMFAConfigured bool   `json:"is_mfa_configured"`
+	FirstName       string           `json:"firstName"`
+	LastName        string           `json:"lastName"`
+	Email           string           `json:"email"`
+	Username        string           `json:"username"`
+	MobileNumber    string           `json:"mobileNumber"`
+	IsMFAConfigured bool             `json:"isMfaConfigured"`
+	MFAConfig       MFAConfiguration `json:"mfaConfig"`
+}
+
+type MFAConfiguration struct {
+	Secret string `json:"secret"`
+	URL    string `json:"url"`
 }
 
 type Token struct {
@@ -95,4 +101,24 @@ type PasswordResetRequest struct {
 func (req *PasswordResetRequest) PasswordResetSanitize() {
 	req.Token = strings.TrimSpace(req.Token)
 	req.Password = strings.TrimSpace(req.Password)
+}
+
+type ConfigureMFARequest struct {
+	Email  string `json:"email" validate:"required,email,max=255"`
+	Secret string `json:"secret" validate:"required"`
+}
+
+func (req *ConfigureMFARequest) ConfigureMFASanitize() {
+	req.Email = strings.TrimSpace(req.Email)
+	req.Secret = strings.TrimSpace(req.Secret)
+}
+
+type VerifyMFARequest struct {
+	Email   string `json:"email" validate:"required,email,max=255"`
+	MFACode string `json:"mfa_code" validate:"required,len=6"`
+}
+
+func (req *VerifyMFARequest) VerifyMFASanitize() {
+	req.Email = strings.TrimSpace(req.Email)
+	req.MFACode = strings.TrimSpace(req.MFACode)
 }

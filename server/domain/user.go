@@ -12,6 +12,7 @@ type TOTPConfiguration struct {
 	UserID              int       `json:"-"`
 	Email               string    `json:"email" db:"email"`
 	TOTPEncryptedSecret string    `json:"-" db:"totp_encrypted_secret"`
+	TOTPURL             string    `json:"totp_url"`
 	CreatedAt           time.Time `json:"created_at" db:"created_at"`
 }
 
@@ -41,6 +42,8 @@ type UserUsecase interface {
 	ExtendUserSessionInRedis(ctx context.Context, sessionID string, sessionExpiryInMinutes time.Duration) error
 	SendPasswordResetEmail(ctx context.Context, req dto.SendPasswordResetEmailRequest) error
 	PasswordReset(ctx context.Context, req dto.PasswordResetRequest) error
+	ConfigureMFA(ctx context.Context, req dto.ConfigureMFARequest) error
+	VerifyMFA(ctx context.Context, req dto.VerifyMFARequest) error
 }
 
 // UserRepository represents the user's repository contract
@@ -53,4 +56,7 @@ type UserRepository interface {
 	GetUserAndBalanceByMobileNumber(ctx context.Context, mobileNumber string) (*User, error)
 	UpdateUser(ctx context.Context, user *User) error
 	InsertUserTOTPSecret(ctx context.Context, totpConfig TOTPConfiguration) error
+	UpdateIsMFAConfigured(ctx context.Context, userID int, mfaConfigured bool) error
+	GetUserTOTPSecretCount(ctx context.Context, userID int) (int, error)
+	GetUserTOTPSecret(ctx context.Context, userID int) (string, error)
 }

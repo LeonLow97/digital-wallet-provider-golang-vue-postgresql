@@ -1,8 +1,11 @@
 <template>
   <div class="grid h-screen place-items-center">
-    <div class="container w-1/3 rounded-lg border px-10 py-8 shadow-lg">
+    <div
+      class="container w-1/3 rounded-lg border px-10 py-8 shadow-lg"
+      v-if="!isLoggedIn"
+    >
       <h1 class="mb-6 text-2xl font-bold">Login</h1>
-      <form @submit.prevent="handleSubmit">
+      <form @submit.prevent="handleLogin">
         <div class="mb-4 flex flex-col gap-2">
           <label for="email">Email</label>
           <text-input
@@ -36,7 +39,7 @@
 
         <router-link
           :to="{ name: 'ForgotPassword' }"
-          class="text-slate-300 underline underline-offset-4"
+          class="text-cyan-900 underline underline-offset-4 dark:text-cyan-50"
           >Forgot your password?</router-link
         >
 
@@ -44,13 +47,33 @@
           class="mb-4 mt-4 w-full rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
           text="Login"
         />
-      </form>
 
-      <router-link
-        :to="{ name: 'SignUp' }"
-        class="flex justify-center text-cyan-900 underline underline-offset-4 transition hover:underline-offset-8 dark:text-cyan-50"
-        >New here? Click to create an account!</router-link
-      >
+        <router-link
+          :to="{ name: 'SignUp' }"
+          class="flex justify-center text-cyan-900 underline underline-offset-4 transition hover:underline-offset-8 dark:text-cyan-50"
+          >New here? Click to create an account!</router-link
+        >
+      </form>
+    </div>
+
+    <div
+      class="container w-3/5 rounded-lg border px-10 py-8 shadow-lg"
+      v-if="showMFAConfigurationForm"
+    >
+      <configure-mfa
+        :secret="mfaSecret"
+        :url="mfaUrl"
+        :email="email"
+        @mfaConfigured="onMfaConfigured"
+        v-if="showMFAConfigurationForm"
+      />
+    </div>
+
+    <div
+      class="container w-1/3 rounded-lg border px-10 py-8 shadow-lg"
+      v-if="showMFAForm"
+    >
+      <verify-mfa :email="email" @mfaVerified="onMfaVerified" />
     </div>
   </div>
 </template>
@@ -66,6 +89,8 @@ import { useUserStore } from "@/stores/user";
 import type { User, LOGIN_REQUEST } from "@/types/user";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
+import VerifyMfa from "@/components/auth/VerifyMfa.vue";
+import ConfigureMfa from "@/components/auth/ConfigureMfa.vue";
 import { LOGIN } from "@/api/user";
 
 // Data Fields
@@ -73,8 +98,16 @@ const showPassword = ref(false);
 
 const email = ref("");
 const password = ref("");
+const isLoggedIn = ref(false);
+
+const mfaUrl = ref("");
+const mfaSecret = ref("");
+
+const showMFAForm = ref(false);
+const showMFAConfigurationForm = ref(false);
 
 const responseMessage = ref("");
+let user: User;
 
 // Stores
 const router = useRouter();
@@ -85,7 +118,7 @@ const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
 };
 
-const handleSubmit = async () => {
+const handleLogin = async () => {
   try {
     const body: LOGIN_REQUEST = {
       email: email.value,
@@ -94,7 +127,7 @@ const handleSubmit = async () => {
 
     const { data, status } = await LOGIN(body);
 
-    const user: User = {
+    user = {
       firstName: data?.firstName,
       lastName: data?.lastName,
       email: data?.email,
@@ -103,16 +136,15 @@ const handleSubmit = async () => {
     };
 
     if (status === 200) {
-      email.value = "";
-      password.value = "";
+      isLoggedIn.value = true;
 
-      userStore.LOGIN_USER(user);
-
-      // TODO: add user balance
-
-      alert("Logged In!");
-
-      router.push({ name: "Home" });
+      if (data.isMfaConfigured) {
+        showMFAForm.value = true;
+      } else {
+        showMFAConfigurationForm.value = true;
+        mfaUrl.value = data.mfaConfig?.url!;
+        mfaSecret.value = data.mfaConfig?.secret!;
+      }
     }
   } catch (error: unknown) {
     if (error instanceof AxiosError) {
@@ -122,6 +154,28 @@ const handleSubmit = async () => {
     } else {
       responseMessage.value = "Unexpected error occurred";
     }
+  } finally {
+    // TODO: add cookie with user details when user clicks login
+    // email.value = "";
+    password.value = "";
+  }
+};
+
+const onMfaConfigured = (isConfigured: boolean) => {
+  if (isConfigured) {
+    showMFAConfigurationForm.value = false;
+    showMFAForm.value = true;
+  }
+};
+
+const onMfaVerified = (isVerified: boolean) => {
+  if (isVerified) {
+    // user is authenticated fully by password and mfa code
+    userStore.LOGIN_USER(user);
+
+    router.push({ name: "Home" });
+  } else {
+    router.push({ name: "Login" });
   }
 };
 </script>

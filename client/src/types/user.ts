@@ -11,6 +11,26 @@ export interface LOGIN_REQUEST {
   password: string;
 }
 
+export interface LOGIN_RESPONSE {
+  data: LOGIN_RESPONSE_DATA;
+  status: number;
+}
+
+interface LOGIN_RESPONSE_DATA {
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  mobileNumber: string;
+  isMfaConfigured?: boolean;
+  mfaConfig?: MFA_CONFIG;
+}
+
+interface MFA_CONFIG {
+  secret: string;
+  url: string;
+}
+
 export interface SIGNUP_REQUEST {
   first_name: string | null;
   last_name: string | null;
@@ -44,4 +64,14 @@ export interface UPDATE_USER_REQUEST {
   username: string;
   email: string;
   mobile_number: string;
+}
+
+export interface CONFIGURE_MFA_REQUEST {
+  email: string;
+  secret: string;
+}
+
+export interface VERIFY_MFA_REQUEST {
+  email: string;
+  mfa_code: string;
 }

@@ -209,6 +209,9 @@ func (h *UserHandler) ConfigureMFA(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.userUsecase.ConfigureMFA(ctx, req); err != nil {
 		switch {
+		case errors.Is(err, exception.ErrInvalidMFACode):
+			utils.ErrorJSON(w, apiErr.ErrInvalidMFACode, http.StatusUnauthorized)
+			return
 		case errors.Is(err, exception.ErrUserNotFound):
 			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 			return

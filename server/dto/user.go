@@ -104,13 +104,15 @@ func (req *PasswordResetRequest) PasswordResetSanitize() {
 }
 
 type ConfigureMFARequest struct {
-	Email  string `json:"email" validate:"required,email,max=255"`
-	Secret string `json:"secret" validate:"required"`
+	Email   string `json:"email" validate:"required,email,max=255"`
+	Secret  string `json:"secret" validate:"required"`
+	MFACode string `json:"mfa_code" validate:"required,len=6"`
 }
 
 func (req *ConfigureMFARequest) ConfigureMFASanitize() {
 	req.Email = strings.TrimSpace(req.Email)
 	req.Secret = strings.TrimSpace(req.Secret)
+	req.MFACode = strings.TrimSpace(req.MFACode)
 }
 
 type VerifyMFARequest struct {

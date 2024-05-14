@@ -69,6 +69,7 @@ export interface UPDATE_USER_REQUEST {
 export interface CONFIGURE_MFA_REQUEST {
   email: string;
   secret: string;
+  mfa_code: string;
 }
 
 export interface VERIFY_MFA_REQUEST {

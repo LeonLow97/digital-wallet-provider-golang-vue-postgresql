@@ -174,6 +174,12 @@ func (uc *userUsecase) ConfigureMFA(ctx context.Context, req dto.ConfigureMFAReq
 		return err
 	}
 
+	// validate totp
+	isValidMFACode := totp.Validate(req.MFACode, req.Secret)
+	if !isValidMFACode {
+		return exception.ErrInvalidMFACode
+	}
+
 	// check if user already has totp secret
 	totpSecretCount, err := uc.userRepository.GetUserTOTPSecretCount(ctx, user.ID)
 	if err != nil {

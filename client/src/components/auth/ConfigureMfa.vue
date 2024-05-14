@@ -64,15 +64,17 @@
       </p>
       <p class="mt-2 text-lg font-bold">{{ secret }}</p>
 
+      <text-input
+        v-model.trim="mfaCode"
+        maxlength="6"
+        placeholder="6-digit code"
+        class="mt-8 w-2/3"
+      />
       <action-button
         class="mb-4 mt-4 rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
-        text="Configure"
+        text="Verify MFA"
         @click="handleConfigureMFA(email, secret)"
       />
-
-      <p class="mt-4 text-center text-sm italic">
-        Click Configure only after setting up MFA with Google Authenticator!
-      </p>
     </div>
   </div>
 </template>
@@ -82,12 +84,14 @@ import { ref } from "vue";
 import QrcodeVue from "qrcode.vue";
 import type { Level, RenderAs } from "qrcode.vue";
 import ActionButton from "@/components/ActionButton.vue";
+import TextInput from "../TextInput.vue";
 import type { CONFIGURE_MFA_REQUEST } from "@/types/user";
 import { CONFIGURE_MFA } from "@/api/user";
 import { AxiosError } from "axios";
 
 const level = ref<Level>("M");
 const renderAs = ref<RenderAs>("svg");
+const mfaCode = ref("");
 
 const responseMessage = ref("");
 
@@ -113,6 +117,7 @@ const handleConfigureMFA = async (email: string, secret: string) => {
     const body: CONFIGURE_MFA_REQUEST = {
       email,
       secret,
+      mfa_code: mfaCode.value,
     };
 
     const { status } = await CONFIGURE_MFA(body);

@@ -164,7 +164,12 @@ const handleLogin = async () => {
 const onMfaConfigured = (isConfigured: boolean) => {
   if (isConfigured) {
     showMFAConfigurationForm.value = false;
-    showMFAForm.value = true;
+    // user is authenticated fully by password and mfa code
+    userStore.LOGIN_USER(user);
+
+    router.push({ name: "Home" });
+  } else {
+    router.push({ name: "Login" });
   }
 };
 

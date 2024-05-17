@@ -86,6 +86,17 @@ server
 |  POST  | `/api/v1/kyc`                   | Implement KYC processes for user verification                                           |    [ ]    |
 | DELETE | `/api/v1/users/close`           | Close a user's account and deactivate the associated wallet                             |    [ ]    |
 
+# Security Features
+
+- Login password bcrypt hash (irreversible)
+- Reset password and forgot password feature
+- CSRF Token generation required for requests (stored in request header as 'X-CSRF-Token')
+- CORS Policy
+- User session management to remove session upon logout to mitigate session fixation vulnerability.
+- TOTP-based multi-factor authentication
+- Content Security Policy (CSP) to mitigate stored XSS attacks.
+- Strict Transport Security policy to prevent packets sniffing by using HTTPS
+
 # Authentication
 
 ## User Authentication Flow

@@ -87,6 +87,7 @@ func main() {
 		// TODO: Add SessionMiddleware to inject user object and session details into context
 		middleware.NewAuthenticationMiddleware(*cfg, skipperFunc, redisClient, userUsecase).Middleware,
 		middleware.NewCSRFMiddleware(*cfg, skipperFunc, redisClient).Middleware,
+		middleware.NewCSPMiddleware(),
 	)
 
 	// Create CORS options
@@ -104,9 +105,11 @@ func main() {
 			http.MethodDelete,
 			http.MethodOptions,
 		},
+		// AllowedHeaders specifies which headers are allowed to be sent in requests from client (browser) to server
 		AllowedHeaders:     []string{"Accept", "Origin", "Content-Type", "Authorization", "X-CSRF-Token"},
-		ExposedHeaders:     []string{"X-CSRF-Token"},
-		MaxAge:             86400,
+		// ExposedHeaders specifies which response headers are exposed to client (browser) and can be accessed by JavaScript
+		ExposedHeaders:     []string{"X-CSRF-Token", "Content-Security-Policy"},
+		MaxAge:             86400, // cache for 1 day (86400 seconds)
 		OptionsPassthrough: false,
 		Debug:              false,
 	})

@@ -38,11 +38,16 @@ type TOTPConfig struct {
 	EncryptionKey string `mapstructure:"encryption_key"`
 }
 
+type CSRFConfig struct {
+	Key string `mapstructure:"key"`
+}
+
 type Config struct {
 	Env  Environment `mapstructure:"environment"`
 	JWT  JWTConfig   `mapstructure:"jwt"`
 	SMTP SMTPConfig  `mapstructure:"smtp"`
 	TOTP TOTPConfig  `mapstructure:"totp"`
+	CSRF CSRFConfig  `mapstructure:"csrf"`
 }
 
 func LoadConfig() (*Config, error) {

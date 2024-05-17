@@ -74,6 +74,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 	default:
 		// TODO: utilise refresh token or remove it from user use case
+		w.Header().Set("X-CSRF-Token", token.CSRFToken)
 		utils.IssueCookie(w, token.AccessToken)
 
 		utils.WriteJSON(w, http.StatusOK, resp)

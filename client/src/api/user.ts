@@ -151,7 +151,7 @@ export const CONFIGURE_MFA = async (
     const { status } = await axios.post(
       CONFIGURE_MFA_URL,
       JSON.stringify(body),
-      undefined,
+      { withCredentials: true },
     );
 
     return { status };

@@ -13,6 +13,7 @@ export const useUserStore = defineStore("user", () => {
     mobileNumber: "",
   });
   const isLoggedIn = ref(false);
+  const csrfToken = ref(""); // stored in memory for security purposes of CSRF Token
 
   // initialize the store after the reactivity system is set up
   const storedUser = localStorage.getItem(USER_DETAILS);
@@ -73,11 +74,17 @@ export const useUserStore = defineStore("user", () => {
     isLoggedIn.value = false;
   };
 
+  const STORE_CSRF_TOKEN = (token: string) => {
+    csrfToken.value = token;
+  };
+
   return {
     user,
     isLoggedIn,
+    csrfToken,
     LOGIN_USER,
     LOGOUT_USER,
     SAVE_USER,
+    STORE_CSRF_TOKEN,
   };
 });

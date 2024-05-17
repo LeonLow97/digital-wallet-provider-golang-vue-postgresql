@@ -11,6 +11,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/pquerna/otp v1.4.0
 	github.com/redis/go-redis/v9 v9.4.0
+	github.com/rs/cors v1.11.0
 	github.com/spf13/viper v1.18.2
 	golang.org/x/crypto v0.18.0
 )

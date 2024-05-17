@@ -12,6 +12,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/repository"
 	"github.com/LeonLow97/go-clean-architecture/usecase"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -83,14 +84,37 @@ func main() {
 	)
 
 	router.Use(
-		middleware.NewCorsMiddleware(*cfg).Middleware,
 		// TODO: Add SessionMiddleware to inject user object and session details into context
 		middleware.NewAuthenticationMiddleware(*cfg, skipperFunc, redisClient, userUsecase).Middleware,
+		middleware.NewCSRFMiddleware(*cfg, skipperFunc, redisClient).Middleware,
 	)
+
+	// Create CORS options
+	corsHandler := cors.New(cors.Options{
+		AllowedOrigins: []string{
+			cfg.Env.BackendURL,
+			cfg.Env.FrontendURL,
+		},
+		AllowCredentials: true,
+		AllowedMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodPatch,
+			http.MethodDelete,
+			http.MethodOptions,
+		},
+		AllowedHeaders:     []string{"Accept", "Origin", "Content-Type", "Authorization", "X-CSRF-Token"},
+		ExposedHeaders:     []string{"X-CSRF-Token"},
+		MaxAge:             86400,
+		OptionsPassthrough: false,
+		Debug:              false,
+	})
+	wrappedRouter := corsHandler.Handler(router)
 
 	port := os.Getenv("SERVICE_PORT")
 	log.Println("Server is running on port", port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), router); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), wrappedRouter); err != nil {
 		log.Fatalf("Failed to listen to server with error: %v\n", err)
 	}
 }

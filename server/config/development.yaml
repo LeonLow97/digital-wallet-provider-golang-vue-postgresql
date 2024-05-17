@@ -16,3 +16,6 @@ smtp:
 totp:
   issuer: 'digital.wallet.local'
   encryption_key: '3c8d96a2b7e53f14f0d66ca4bb4a33ef'
+
+csrf:
+  key: "63ce61d159756c9e8efab948988b3e7d"

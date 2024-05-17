@@ -2,6 +2,9 @@ package usecase
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -81,10 +84,23 @@ func (uc *userUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.Lo
 		RefreshToken: refreshToken,
 	}
 
-	// storing sessionID => userID mapping
-	if err := uc.redisClient.SetEx(ctx, sessionID, user.ID, utils.SESSION_EXPIRY); err != nil {
+	// storing sessionID => { userID, csrfToken }
+	csrfToken := uc.generateCSRFToken(uc.cfg.CSRF.Key, sessionID)
+	sessionIDValues := map[string]interface{}{
+		"userID":    user.ID,
+		"csrfToken": csrfToken,
+	}
+	if err := uc.redisClient.HSet(ctx, sessionID, sessionIDValues); err != nil {
+		log.Println("failed to store userID and csrfToken in redis client", err)
 		return nil, nil, err
 	}
+
+	// set expiration time for the hash table (user details and csrf token)
+	if err := uc.redisClient.Expire(ctx, sessionID, utils.SESSION_EXPIRY); err != nil {
+		log.Println("failed to extend sessionID hash table in redis client", err)
+		return nil, nil, err
+	}
+	token.CSRFToken = csrfToken
 
 	// storing userID => sessionID mapping in Redis Set to keep track of users with multiple devices logged on
 	userIDString := strconv.Itoa(user.ID)
@@ -533,4 +549,17 @@ func (uc *userUsecase) generateJWTRefreshToken(userID int, ttl time.Duration, se
 	}
 
 	return signedRefreshToken, nil
+}
+
+// generateCSRFToken generates a CSRF token using the provided secret key and session ID,
+// using the HMAC-SHA256 algorithm. It combines the session ID and current timestamp
+// to create a unique message, which is then hashed with the secret key.
+// The resulting token is returned as a hexadecimal string.
+func (uc *userUsecase) generateCSRFToken(secret, sessionID string) string {
+	timestamp := time.Now().Unix()
+	message := fmt.Sprintf("%s:%d", sessionID, timestamp)
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write([]byte(message))
+	token := hex.EncodeToString(mac.Sum(nil))
+	return token
 }

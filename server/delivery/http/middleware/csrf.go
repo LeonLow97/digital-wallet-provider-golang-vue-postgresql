@@ -1,0 +1,57 @@
+package middleware
+
+import (
+	"log"
+	"net/http"
+
+	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
+	"github.com/LeonLow97/go-clean-architecture/infrastructure"
+	"github.com/LeonLow97/go-clean-architecture/utils"
+)
+
+type CSRFMiddleware struct {
+	cfg         infrastructure.Config
+	skipperFunc SkipperFunc
+	redisClient infrastructure.RedisClient
+}
+
+func NewCSRFMiddleware(cfg infrastructure.Config, skipperFunc SkipperFunc, redisClient infrastructure.RedisClient) *CSRFMiddleware {
+	return &CSRFMiddleware{
+		cfg:         cfg,
+		skipperFunc: skipperFunc,
+		redisClient: redisClient,
+	}
+}
+
+func (m CSRFMiddleware) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if m.skipperFunc != nil && m.skipperFunc(r) {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		ctx := r.Context()
+
+		reqCsrfToken := r.Header.Get("X-CSRF-Token")
+
+		// retrieve sessionID from context
+		sessionID, _ := utils.SessionIDFromContext(ctx)
+
+		// retrieve csrfToken from redis client
+		serverCsrfToken, err := m.redisClient.HGet(ctx, sessionID, "csrfToken")
+		if err != nil {
+			log.Println("failed to retrieve server csrf token with HGet redis client", err)
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			return
+		}
+
+		// compare server csrf token with client csrf token
+		if reqCsrfToken != serverCsrfToken {
+			log.Println("client csrf token is different from server csrf token")
+			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}

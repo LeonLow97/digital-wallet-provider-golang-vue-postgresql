@@ -1,13 +1,13 @@
 import axios, { AxiosError } from "axios";
-import type { Axios, AxiosResponse } from "axios";
+import type { AxiosRequestConfig, AxiosResponse } from "axios";
 import type { App } from "vue";
 import { useUserStore } from "@/stores/user";
-import { GET_USER } from "@/api/user";
 
 const baseURL = import.meta.env.VITE_APP_BASE_URL;
 
 axios.create({
   baseURL,
+  withCredentials: true,
   headers: {
     "Content-type": "application/json",
   },
@@ -21,7 +21,12 @@ export default {
     const $http = app.config.globalProperties.$http;
 
     const handleResponse = (response: AxiosResponse) => {
-      // Here your code
+      // Check if the CSRF Token is in the response headers
+      const csrfToken = response.headers["x-csrf-token"];
+      if (csrfToken) {
+        useUserStore().STORE_CSRF_TOKEN(csrfToken);
+      }
+
       return response;
     };
 
@@ -31,9 +36,27 @@ export default {
         const loginUrl = `${baseURL}/login`;
         window.location.replace(loginUrl);
       }
-      return err;
+      return Promise.reject(err);
+    };
+
+    const handleRequest = (request: AxiosRequestConfig) => {
+      const storeCsrfToken = useUserStore().csrfToken;
+      if (storeCsrfToken) {
+        if (!request.headers) {
+          request.headers = {};
+        }
+        request.headers["X-CSRF-Token"] = storeCsrfToken;
+        request.headers["Authorization"] = storeCsrfToken;
+      }
+
+      return request;
+    };
+
+    const handleRequestError = (err: AxiosError) => {
+      return Promise.reject(err);
     };
 
     $http.interceptors.response.use(handleResponse, handleResponseError);
+    $http.interceptors.request.use(handleRequest, handleRequestError);
   },
 };

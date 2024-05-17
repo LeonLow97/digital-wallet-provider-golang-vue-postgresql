@@ -9,6 +9,8 @@ const PASSWORD_RESET_AUTH_TOKEN_EXPIRY = 7 * 24 * time.Hour
 const JWT_COOKIE = "mw-token"
 
 // Transaction Status
-const SUBMITTED = "SUBMITTED"
-const PENDING = "PENDING"
-const COMPLETED = "COMPLETED"
+const (
+	SUBMITTED = "SUBMITTED"
+	PENDING   = "PENDING"
+	COMPLETED = "COMPLETED"
+)

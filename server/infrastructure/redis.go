@@ -28,6 +28,7 @@ type RedisClient interface {
 	SMembers(ctx context.Context, key string) ([]string, error)
 
 	HSet(ctx context.Context, key string, values map[string]interface{}) error
+	HGet(ctx context.Context, key, field string) (string, error)
 	HGetAll(ctx context.Context, key string) (map[string]string, error)
 
 	Del(ctx context.Context, keys ...string) error
@@ -109,6 +110,10 @@ func (rc *RedisClientImpl) Expire(ctx context.Context, key string, sessionExpiry
 
 func (rc *RedisClientImpl) HSet(ctx context.Context, key string, values map[string]interface{}) error {
 	return rc.client.HSet(ctx, key, values).Err()
+}
+
+func (rc *RedisClientImpl) HGet(ctx context.Context, key, field string) (string, error) {
+	return rc.client.HGet(ctx, key, field).Result()
 }
 
 func (rc *RedisClientImpl) HGetAll(ctx context.Context, key string) (map[string]string, error) {

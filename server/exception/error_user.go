@@ -16,7 +16,7 @@ var (
 )
 
 var (
-	ErrTOTPSecretExists = errors.New("user totp secret already exists")
+	ErrTOTPSecretExists   = errors.New("user totp secret already exists")
 	ErrTOTPSecretNotFound = errors.New("user totp secret not found")
-	ErrInvalidMFACode = errors.New("invalid mfa code")
+	ErrInvalidMFACode     = errors.New("invalid mfa code")
 )

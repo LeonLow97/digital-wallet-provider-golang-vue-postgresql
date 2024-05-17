@@ -92,7 +92,7 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 
 		// check if session exists in redis string and redis set.
 		// If session exist, extend the session in redis. If session does not exist, unauthorized
-		if _, err := m.redisClient.GetEx(ctx, sessionID, utils.SESSION_EXPIRY); err != nil {
+		if _, err := m.redisClient.HGetAll(ctx, sessionID); err != nil {
 			if errors.Is(err, redis.Nil) {
 				// clean up stale sessionID from Redis Set for the specified userID
 				// if sessionID has expired in string, it might still be present in Redis Set
@@ -108,6 +108,13 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 				utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 				return
 			}
+		}
+
+		// Extend the user session in redis
+		if err := m.redisClient.Expire(ctx, sessionID, utils.SESSION_EXPIRY); err != nil {
+			log.Println("failed to extend user session in redis in authentication middleware with error:", err)
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			return
 		}
 
 		// issue new JWT Token with the same session id

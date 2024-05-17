@@ -25,6 +25,7 @@ type MFAConfiguration struct {
 type Token struct {
 	AccessToken  string
 	RefreshToken string
+	CSRFToken    string
 }
 
 type SignUpRequest struct {

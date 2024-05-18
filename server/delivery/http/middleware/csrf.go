@@ -25,7 +25,9 @@ func NewCSRFMiddleware(cfg infrastructure.Config, skipperFunc SkipperFunc, redis
 
 func (m CSRFMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if m.skipperFunc != nil && m.skipperFunc(r) {
+		if (m.skipperFunc != nil && m.skipperFunc(r)) ||
+			(r.Method != http.MethodPost && r.Method != http.MethodPut &&
+				r.Method != http.MethodPatch && r.Method != http.MethodDelete) {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -34,6 +36,12 @@ func (m CSRFMiddleware) Middleware(next http.Handler) http.Handler {
 
 		reqCsrfToken := r.Header.Get("X-CSRF-Token")
 
+		if len(reqCsrfToken) == 0 {
+			log.Println("client csrf token is empty")
+			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			return
+		}
+
 		// retrieve sessionID from context
 		sessionID, _ := utils.SessionIDFromContext(ctx)
 
@@ -41,6 +49,12 @@ func (m CSRFMiddleware) Middleware(next http.Handler) http.Handler {
 		serverCsrfToken, err := m.redisClient.HGet(ctx, sessionID, "csrfToken")
 		if err != nil {
 			log.Println("failed to retrieve server csrf token with HGet redis client", err)
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			return
+		}
+
+		if len(serverCsrfToken) == 0 {
+			log.Println("server csrf token is empty")
 			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 			return
 		}

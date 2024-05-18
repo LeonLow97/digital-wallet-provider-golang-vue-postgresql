@@ -8,13 +8,29 @@ VALUES
 
 INSERT INTO user_beneficiary (user_id, beneficiary_id)
 VALUES
+(2, 4),
+(3, 1),
+(4, 2),
+(5, 3),
 (1, 5);
 
 INSERT INTO balances (balance, currency, user_id)
-VALUES (70000, 'SGD', 1), (20000, 'SGD', 5);
+VALUES
+(30000, 'USD', 2),
+(10000, 'EUR', 3),
+(50000, 'SGD', 4),
+(20000, 'AUD', 1),
+(40000, 'GBP', 5),
+(15000, 'SGD', 1),
+(5000, 'USD', 1);
 
 INSERT INTO wallet_types (type)
 VALUES ('personal'), ('savings'), ('investment'), ('business');
 
 INSERT INTO wallets (balance, currency, wallet_type_id, user_id)
-VALUES (500, 'SGD', 1, 1), (1500, 'SGD', 2, 1), (70000, 'CHN', 3, 1), (95600, 'IDR', 4, 1);
+VALUES
+(1000, 'SGD', 2, 2),
+(5000, 'USD', 1, 3),
+(20000, 'EUR', 3, 4),
+(8000, 'AUD', 4, 1),
+(15000, 'GBP', 2, 5);

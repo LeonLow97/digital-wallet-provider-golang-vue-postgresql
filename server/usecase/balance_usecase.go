@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"context"
-	"database/sql"
+	"log"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
 	"github.com/LeonLow97/go-clean-architecture/dto"
@@ -19,13 +19,36 @@ func NewBalanceUsecase(balanceRepository domain.BalanceRepository) domain.Balanc
 	}
 }
 
-func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) (*dto.BalanceResponse, error) {
+func (uc *balanceUsecase) GetBalances(ctx context.Context, userID int) (*dto.GetBalancesResponse, error) {
+	balances, err := uc.balanceRepository.GetBalances(ctx, userID)
+	if err != nil {
+		log.Printf("failed to get balances for user id %d with error: %v\n", userID, err)
+		return nil, err
+	}
+
+	var resp dto.GetBalancesResponse
+	for _, b := range *balances {
+		balance := dto.GetBalanceResponse{
+			ID:        b.ID,
+			Balance:   b.Balance,
+			Currency:  b.Currency,
+			CreatedAt: b.CreatedAt,
+			UpdatedAt: b.UpdatedAt,
+		}
+		resp.Balances = append(resp.Balances, balance)
+	}
+
+	return &resp, nil
+}
+
+func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) (*dto.GetBalanceResponse, error) {
 	// In a real-world scenario, connect via Go HTTP client to the user's credit card API
 	// to retrieve the deposited amount. For the purpose of this project, we assume
 	// a successful retrieval, and req.Balance represents the received amount.
 
 	balance, err := uc.balanceRepository.GetBalanceByUserID(ctx, req.UserID, req.Currency)
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil {
+		log.Printf("failed to get one balance for user id %d with error: %v\n", req.UserID, err)
 		return nil, err
 	}
 
@@ -37,7 +60,7 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) (
 			return nil, err
 		}
 
-		return &dto.BalanceResponse{
+		return &dto.GetBalanceResponse{
 			Balance:  balance.Balance,
 			Currency: balance.Currency,
 		}, nil
@@ -54,7 +77,7 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) (
 		if err := uc.balanceRepository.CreateBalance(ctx, &b); err != nil {
 			return nil, err
 		}
-		return &dto.BalanceResponse{
+		return &dto.GetBalanceResponse{
 			Balance:  b.Balance,
 			Currency: b.Currency,
 		}, nil
@@ -63,7 +86,7 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) (
 	return nil, exception.ErrInternalServerError
 }
 
-func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest) (*dto.BalanceResponse, error) {
+func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest) (*dto.GetBalanceResponse, error) {
 	// In a real-world scenario:
 	// Connect to the customer's credit card API to initiate a withdrawal.
 	// Once the withdrawal is successful and the credit card is updated,
@@ -71,10 +94,8 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 	// update the user's balance via Apache Kafka to mitigate potential failures.
 
 	balance, err := uc.balanceRepository.GetBalanceByUserID(ctx, req.UserID, req.Currency)
-	if err == sql.ErrNoRows {
-		return nil, exception.ErrBalanceNotFound
-	}
 	if err != nil {
+		log.Printf("failed to get one balance for user id %d with error: %v\n", req.UserID, err)
 		return nil, err
 	}
 
@@ -89,7 +110,7 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 		return nil, err
 	}
 
-	resp := dto.BalanceResponse{
+	resp := dto.GetBalanceResponse{
 		Balance:  updatedBalance,
 		Currency: balance.Currency,
 	}

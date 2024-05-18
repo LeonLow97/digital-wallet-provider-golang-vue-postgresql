@@ -32,7 +32,7 @@ func NewWalletHandler(router *mux.Router, uc domain.WalletUsecase) {
 	walletRouter.HandleFunc("/{id:[0-9]+}", handler.GetWallet).Methods(http.MethodGet)
 	walletRouter.HandleFunc("/all", handler.GetWallets).Methods(http.MethodGet)
 	walletRouter.HandleFunc("", handler.CreateWallet).Methods(http.MethodPost)
-	walletRouter.HandleFunc("", handler.UpdateWallet).Methods(http.MethodPatch)
+	walletRouter.HandleFunc("", handler.UpdateWallet).Methods(http.MethodPut)
 }
 
 func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {

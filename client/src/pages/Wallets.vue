@@ -14,7 +14,7 @@
 import WalletCard from "@/components/WalletCard.vue";
 import { GET_WALLETS } from "@/api/wallet";
 import { onMounted, ref } from "vue";
-import type { Wallets, Wallet } from "@/types/wallet";
+import type { Wallet } from "@/types/wallet";
 
 // Change the type of wallets to match the expected structure
 let wallets = ref([] as Wallet[]);

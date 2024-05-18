@@ -46,7 +46,6 @@ export default {
           request.headers = {};
         }
         request.headers["X-CSRF-Token"] = storeCsrfToken;
-        request.headers["Authorization"] = storeCsrfToken;
       }
 
       return request;

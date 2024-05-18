@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"errors"
 	"log"
 	"net/http"
@@ -23,18 +22,47 @@ func NewBalanceHandler(router *mux.Router, uc domain.BalanceUsecase) {
 		balanceUsecase: uc,
 	}
 
+	router.HandleFunc("/balances", handler.GetBalances).Methods(http.MethodGet)
+
 	balanceRouter := router.PathPrefix("/balance").Subrouter()
 
-	balanceRouter.HandleFunc("/deposit", handler.Deposit).Methods(http.MethodPost)
+	balanceRouter.HandleFunc("/deposit", handler.Deposit).Methods(http.MethodPatch)
 	balanceRouter.HandleFunc("/withdraw", handler.Withdraw).Methods(http.MethodPatch)
 }
 
-func (h *BalanceHandler) Deposit(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
+func (h *BalanceHandler) GetBalances(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, ok := r.Context().Value(utils.UserIDKey).(int)
-	if !ok {
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		log.Println("failed to retrieve user id from context", err)
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	balances, err := h.balanceUsecase.GetBalances(ctx, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, exception.ErrBalanceNotFound):
+			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
+			return
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	utils.WriteJSON(w, http.StatusOK, balances)
+}
+
+func (h *BalanceHandler) Deposit(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// retrieve user id from context
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		log.Println("failed to retrieve user id from context", err)
 		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
@@ -59,11 +87,12 @@ func (h *BalanceHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BalanceHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
+	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, ok := r.Context().Value(utils.UserIDKey).(int)
-	if !ok {
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		log.Println("failed to retrieve user id from context", err)
 		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}

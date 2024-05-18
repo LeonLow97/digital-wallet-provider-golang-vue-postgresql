@@ -8,9 +8,16 @@ type DepositRequest struct {
 	UserID   int     `json:"-"`
 }
 
-type BalanceResponse struct {
-	Balance  float64 `json:"balance"`
-	Currency string  `json:"currency"`
+type GetBalanceResponse struct {
+	ID        int     `json:"id"`
+	Balance   float64 `json:"balance"`
+	Currency  string  `json:"currency"`
+	CreatedAt string  `json:"createdAt"`
+	UpdatedAt string  `json:"updatedAt"`
+}
+
+type GetBalancesResponse struct {
+	Balances []GetBalanceResponse `json:"balances"`
 }
 
 type WithdrawRequest struct {

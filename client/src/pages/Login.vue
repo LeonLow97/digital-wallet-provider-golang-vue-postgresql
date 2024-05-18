@@ -154,10 +154,6 @@ const handleLogin = async () => {
     } else {
       responseMessage.value = "Unexpected error occurred";
     }
-  } finally {
-    // TODO: add cookie with user details when user clicks login
-    // email.value = "";
-    password.value = "";
   }
 };
 

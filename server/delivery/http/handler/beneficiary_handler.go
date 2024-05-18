@@ -28,7 +28,7 @@ func NewBeneficiaryHandler(router *mux.Router, uc domain.BeneficiaryUsecase) {
 	beneficiaryRouter := router.PathPrefix("/beneficiary").Subrouter()
 
 	beneficiaryRouter.HandleFunc("", handler.CreateBeneficiary).Methods(http.MethodPost)
-	beneficiaryRouter.HandleFunc("", handler.UpdateBeneficiary).Methods(http.MethodPatch)
+	beneficiaryRouter.HandleFunc("", handler.UpdateBeneficiary).Methods(http.MethodPut)
 	beneficiaryRouter.HandleFunc("/{id:[0-9]+}", handler.GetBeneficiary).Methods(http.MethodGet)
 	beneficiaryRouter.HandleFunc("", handler.GetBeneficiaries).Methods(http.MethodGet)
 }

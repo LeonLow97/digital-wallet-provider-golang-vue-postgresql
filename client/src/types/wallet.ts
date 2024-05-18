@@ -7,6 +7,6 @@ export interface Wallet {
   walletID: number;
 }
 
-export interface Wallets {
+export interface GetWalletsResponse {
   wallets: Wallet[];
 }

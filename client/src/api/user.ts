@@ -74,7 +74,7 @@ export const CHANGE_PASSWORD = async (
   body: CHANGE_PASSWORD_REQUEST,
 ): Promise<GENERIC_STATUS_RESPONSE> => {
   try {
-    const { status } = await axios.post(
+    const { status } = await axios.patch(
       CHANGE_PASSWORD_URL,
       JSON.stringify(body),
       {
@@ -92,7 +92,7 @@ export const PASSWORD_RESET = async (
   body: PASSWORD_RESET_REQUEST,
 ): Promise<GENERIC_STATUS_RESPONSE> => {
   try {
-    const { status } = await axios.post(
+    const { status } = await axios.patch(
       PASSWORD_RESET_URL,
       JSON.stringify(body),
       undefined,
@@ -134,7 +134,7 @@ export const UPDATE_USER = async (
   body: UPDATE_USER_REQUEST,
 ): Promise<GENERIC_STATUS_RESPONSE> => {
   try {
-    const { status } = await axios.post(UPDATE_USER_URL, JSON.stringify(body), {
+    const { status } = await axios.put(UPDATE_USER_URL, JSON.stringify(body), {
       withCredentials: true,
     });
 

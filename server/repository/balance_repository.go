@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
+	"github.com/LeonLow97/go-clean-architecture/exception"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -16,6 +18,27 @@ func NewBalanceRepository(db *sqlx.DB) domain.BalanceRepository {
 	return &balanceRepository{
 		db: db,
 	}
+}
+
+func (r *balanceRepository) GetBalances(ctx context.Context, userID int) (*[]domain.Balance, error) {
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+
+	query := `
+		SELECT id, balance, currency, created_at, updated_at
+		FROM balances
+		WHERE user_id = $1;
+	`
+
+	var balances []domain.Balance
+	if err := r.db.SelectContext(ctx, &balances, query, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, exception.ErrBalanceNotFound
+		}
+		return nil, err
+	}
+
+	return &balances, nil
 }
 
 func (r *balanceRepository) GetBalanceByUserID(ctx context.Context, userID int, currency string) (*domain.Balance, error) {
@@ -38,6 +61,9 @@ func (r *balanceRepository) GetBalanceByUserID(ctx context.Context, userID int, 
 		&balance.UpdatedAt,
 	)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, exception.ErrBalanceNotFound
+		}
 		return nil, err
 	}
 	return &balance, nil

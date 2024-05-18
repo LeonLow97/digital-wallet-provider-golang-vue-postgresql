@@ -30,17 +30,17 @@ func NewUserHandler(router *mux.Router, uc domain.UserUsecase, redisClient infra
 	router.HandleFunc("/login", handler.Login).Methods(http.MethodPost)
 	router.HandleFunc("/signup", handler.SignUp).Methods(http.MethodPost)
 	router.HandleFunc("/logout", handler.Logout).Methods(http.MethodPost)
-	router.HandleFunc("/change-password", handler.ChangePassword).Methods(http.MethodPost)
+	router.HandleFunc("/change-password", handler.ChangePassword).Methods(http.MethodPatch)
 	router.HandleFunc("/configure-mfa", handler.ConfigureMFA).Methods(http.MethodPost)
 	router.HandleFunc("/verify-mfa", handler.VerifyMFA).Methods(http.MethodPost)
 
 	// password reset
 	router.HandleFunc("/password-reset/send", handler.SendPasswordResetEmail).Methods(http.MethodPost)
-	router.HandleFunc("/password-reset/reset", handler.PasswordReset).Methods(http.MethodPost)
+	router.HandleFunc("/password-reset/reset", handler.PasswordReset).Methods(http.MethodPatch)
 
 	// user routes
 	userRouter := router.PathPrefix("/users").Subrouter()
-	userRouter.HandleFunc("/profile", handler.UpdateUser).Methods(http.MethodPost)
+	userRouter.HandleFunc("/profile", handler.UpdateUser).Methods(http.MethodPut)
 	userRouter.HandleFunc("/me", handler.GetUserDetail).Methods(http.MethodGet)
 }
 

@@ -79,7 +79,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { mdiEyeOutline, mdiEyeOffOutline } from "@mdi/js";
 import SvgIcon from "@jamescoyle/vue-icon";
 import { AxiosError } from "axios";
@@ -117,6 +117,10 @@ const userStore = useUserStore();
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
 };
+
+onMounted(async () => {
+  userStore.LOGOUT_USER();
+});
 
 const handleLogin = async () => {
   try {

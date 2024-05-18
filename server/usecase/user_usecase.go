@@ -474,29 +474,39 @@ func (uc *userUsecase) UpdateUser(ctx context.Context, userID int, req dto.Updat
 	return nil
 }
 
-func (uc *userUsecase) ExtendUserSessionInRedis(ctx context.Context, sessionID string, sessionExpiryInMinutes time.Duration) error {
+func (uc *userUsecase) ExtendUserSessionInRedis(ctx context.Context, sessionID string, sessionExpiryInMinutes time.Duration) (string, error) {
 	if err := uc.redisClient.Expire(ctx, sessionID, sessionExpiryInMinutes); err != nil {
-		log.Println("error extending user session")
-		return err
+		log.Println("failed to extend user session in redis with error:", err)
+		return "", err
 	}
 
-	return nil
+	// retrieve csrf token
+	csrfToken, err := uc.redisClient.HGet(ctx, sessionID, "csrfToken")
+	if err != nil {
+		log.Println("failed to retrieve csrf token in redis with error:", err)
+		return "", err
+	}
+
+	return csrfToken, nil
 }
 
 func (uc *userUsecase) RemoveSessionFromRedis(ctx context.Context, sessionID string) error {
 	// retrieve userID from redis
-	userID, err := uc.redisClient.Get(ctx, sessionID)
+	userID, err := uc.redisClient.HGet(ctx, sessionID, "userID")
 	if err != nil {
+		log.Println("failed to get user id from redis with error:", err)
 		return err
 	}
 
 	// remove sessionID from redis
 	if err := uc.redisClient.Del(ctx, sessionID); err != nil {
+		log.Println("failed to remove session ID from redis with error: ", err)
 		return err
 	}
 
 	// remove sessionID from redis set, key is userID
 	if err := uc.redisClient.SRem(ctx, userID, sessionID); err != nil {
+		log.Println("failed to remove user id with sessions in redis set with error:", err)
 		return err
 	}
 

@@ -6,9 +6,9 @@ import (
 )
 
 /*
-	Useful Documentation: 
+	Useful Documentation:
 		https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
-		
+
 	Common CSP Headers:
 		script-src 'self'; style-src 'self'; img-src *; connect-src 'self'; font-src 'self'; object-src 'none';
 		media-src *; frame-src 'self'; worker-src 'self'; manifest-src 'self'; prefetch-src 'none'; default-src 'self';

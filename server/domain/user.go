@@ -39,7 +39,7 @@ type UserUsecase interface {
 	RemoveSessionFromRedis(ctx context.Context, sessionID string) error
 	GenerateJWTAccessToken(userID int, ttl time.Duration, sessionID string) (string, error)
 	UpdateUser(ctx context.Context, userID int, req dto.UpdateUserRequest) error
-	ExtendUserSessionInRedis(ctx context.Context, sessionID string, sessionExpiryInMinutes time.Duration) error
+	ExtendUserSessionInRedis(ctx context.Context, sessionID string, sessionExpiryInMinutes time.Duration) (string, error)
 	SendPasswordResetEmail(ctx context.Context, req dto.SendPasswordResetEmailRequest) error
 	PasswordReset(ctx context.Context, req dto.PasswordResetRequest) error
 	ConfigureMFA(ctx context.Context, req dto.ConfigureMFARequest) error

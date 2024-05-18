@@ -123,10 +123,7 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// remove sessionID from Redis
-	if err := h.userUsecase.RemoveSessionFromRedis(r.Context(), sessionID); err != nil {
-		// failed to remove sessionID but don't block the logout
-		log.Println("failed to remove sessionID from Redis", err)
-	}
+	h.userUsecase.RemoveSessionFromRedis(r.Context(), sessionID)
 
 	// override cookie in browser
 	cookie := &http.Cookie{
@@ -375,11 +372,15 @@ func (h *UserHandler) GetUserDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.userUsecase.ExtendUserSessionInRedis(ctx, sessionID, utils.SESSION_EXPIRY)
+	csrfToken, err := h.userUsecase.ExtendUserSessionInRedis(ctx, sessionID, utils.SESSION_EXPIRY)
 	if err != nil {
 		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		return
 	}
+
+	// set csrf token in response headers because when user refreshes the page,
+	// in memory csrf token in Pinia store (frontend) loses its state
+	w.Header().Set("X-CSRF-Token", csrfToken)
 
 	// TODO: UPDATE TO get user details
 	utils.WriteNoContent(w, http.StatusOK)

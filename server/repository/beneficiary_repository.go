@@ -138,9 +138,7 @@ func (r *beneficiaryRepository) GetBeneficiaries(ctx context.Context, userID int
 	`
 
 	var beneficiaries []domain.Beneficiary
-	err := r.db.SelectContext(ctx, &beneficiaries, query, userID)
-
-	if err != nil {
+	if err := r.db.SelectContext(ctx, &beneficiaries, query, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, exception.ErrUserHasNoBeneficiary
 		}

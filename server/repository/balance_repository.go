@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
+	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	"github.com/jmoiron/sqlx"
 )
@@ -18,6 +19,26 @@ func NewBalanceRepository(db *sqlx.DB) domain.BalanceRepository {
 	return &balanceRepository{
 		db: db,
 	}
+}
+
+func (r *balanceRepository) GetBalanceHistory(ctx context.Context, userID, balanceID int) (*[]dto.BalanceHistory, error) {
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+
+	query := `
+		SELECT id, amount, currency, type, user_id, balance_id, created_at
+		FROM balances_history
+		WHERE user_id = $1 AND balance_id = $2;
+	`
+
+	var balanceHistory []dto.BalanceHistory
+	if err := r.db.SelectContext(ctx, &balanceHistory, query, userID, balanceID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, exception.ErrBalanceHistoryNotFound
+		}
+		return nil, err
+	}
+	return &balanceHistory, nil
 }
 
 func (r *balanceRepository) GetBalances(ctx context.Context, userID int) (*[]domain.Balance, error) {
@@ -41,18 +62,18 @@ func (r *balanceRepository) GetBalances(ctx context.Context, userID int) (*[]dom
 	return &balances, nil
 }
 
-func (r *balanceRepository) GetBalanceByUserID(ctx context.Context, userID int, currency string) (*domain.Balance, error) {
+func (r *balanceRepository) GetBalance(ctx context.Context, userID int, balanceID int) (*domain.Balance, error) {
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
 	query := `
 		SELECT id, balance, currency, user_id, created_at, updated_at
 		FROM balances
-		WHERE user_id = $1 AND currency = $2;
+		WHERE user_id = $1 AND id = $2;
 	`
 
 	var balance domain.Balance
-	err := r.db.QueryRowContext(ctx, query, userID, currency).Scan(
+	err := r.db.QueryRowContext(ctx, query, userID, balanceID).Scan(
 		&balance.ID,
 		&balance.Balance,
 		&balance.Currency,

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
 	"github.com/LeonLow97/go-clean-architecture/dto"
@@ -119,20 +118,10 @@ func (h *BeneficiaryHandler) GetBeneficiary(w http.ResponseWriter, r *http.Reque
 	ctx := r.Context()
 
 	// retrieve beneficiary id from url params
-	var beneficiaryID int
-	vars := mux.Vars(r)
-	if beneficiaryIDString, ok := vars["id"]; !ok {
-		log.Println("unable to get beneficiary id from url params")
+	beneficiaryID, err := utils.ReadParamsInt(r, "id")
+	if err != nil {
 		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
-	} else {
-		id, err := strconv.Atoi(beneficiaryIDString)
-		if err != nil {
-			log.Println("Unable to convert beneficiary ID to string")
-			utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
-			return
-		}
-		beneficiaryID = id
 	}
 
 	// retrieve user id from context

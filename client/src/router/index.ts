@@ -31,7 +31,7 @@ const routes = [
   {
     path: "/password-reset/:token",
     name: "PasswordReset",
-    component: () => import("@/pages/PasswordReset.vue")
+    component: () => import("@/pages/PasswordReset.vue"),
   },
   {
     path: "/profile",
@@ -47,6 +47,11 @@ const routes = [
     path: "/balances",
     name: "Balances",
     component: () => import("@/pages/Balances.vue"),
+  },
+  {
+    path: "/balances/:id",
+    name: "BalancesView",
+    component: () => import("@/pages/BalancesView.vue"),
   },
   {
     path: "/transactions",
@@ -89,7 +94,7 @@ const skippedProtectedEndpoints: RouteRecordName[] = [
   "Login",
   "SignUp",
   "ForgotPassword",
-  "PasswordReset"
+  "PasswordReset",
 ];
 
 // Navigation guard: https://router.vuejs.org/guide/advanced/navigation-guards.html

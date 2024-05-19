@@ -6,7 +6,6 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
@@ -39,20 +38,10 @@ func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	// retrieve wallet id from url params
-	var walletID int
-	vars := mux.Vars(r)
-	if walletIDString, ok := vars["id"]; !ok {
-		log.Println("unable to get wallet id from url params")
+	walletID, err := utils.ReadParamsInt(r, "id")
+	if err != nil {
 		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
-	} else {
-		id, err := strconv.Atoi(walletIDString)
-		if err != nil {
-			log.Println("Unable to convert wallet ID to string")
-			utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
-			return
-		}
-		walletID = id
 	}
 
 	// retrieve user id from context

@@ -19,6 +19,38 @@ func NewBalanceUsecase(balanceRepository domain.BalanceRepository) domain.Balanc
 	}
 }
 
+func (uc *balanceUsecase) GetBalanceHistory(ctx context.Context, userID int, balanceID int) (*dto.GetBalanceHistory, error) {
+	balanceHistory, err := uc.balanceRepository.GetBalanceHistory(ctx, userID, balanceID)
+	if err != nil {
+		log.Printf("failed to get balance history for user id: %d, balance id: %d with error: %v\n", userID, balanceID, err)
+		return nil, err
+	}
+
+	resp := &dto.GetBalanceHistory{
+		BalanceHistory: *balanceHistory,
+	}
+
+	return resp, nil
+}
+
+func (uc *balanceUsecase) GetBalance(ctx context.Context, userID int, balanceID int) (*dto.GetBalanceResponse, error) {
+	balance, err := uc.balanceRepository.GetBalance(ctx, userID, balanceID)
+	if err != nil {
+		log.Printf("failed to get balance for user id %d with error: %v\n", userID, err)
+		return nil, err
+	}
+
+	resp := dto.GetBalanceResponse{
+		ID:        balance.ID,
+		Balance:   balance.Balance,
+		Currency:  balance.Currency,
+		CreatedAt: balance.CreatedAt,
+		UpdatedAt: balance.UpdatedAt,
+	}
+
+	return &resp, nil
+}
+
 func (uc *balanceUsecase) GetBalances(ctx context.Context, userID int) (*dto.GetBalancesResponse, error) {
 	balances, err := uc.balanceRepository.GetBalances(ctx, userID)
 	if err != nil {
@@ -46,7 +78,7 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) (
 	// to retrieve the deposited amount. For the purpose of this project, we assume
 	// a successful retrieval, and req.Balance represents the received amount.
 
-	balance, err := uc.balanceRepository.GetBalanceByUserID(ctx, req.UserID, req.Currency)
+	balance, err := uc.balanceRepository.GetBalance(ctx, req.UserID, 1)
 	if err != nil {
 		log.Printf("failed to get one balance for user id %d with error: %v\n", req.UserID, err)
 		return nil, err
@@ -93,7 +125,7 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 	// receive a success message from the credit card API. Subsequently,
 	// update the user's balance via Apache Kafka to mitigate potential failures.
 
-	balance, err := uc.balanceRepository.GetBalanceByUserID(ctx, req.UserID, req.Currency)
+	balance, err := uc.balanceRepository.GetBalance(ctx, req.UserID, 1)
 	if err != nil {
 		log.Printf("failed to get one balance for user id %d with error: %v\n", req.UserID, err)
 		return nil, err

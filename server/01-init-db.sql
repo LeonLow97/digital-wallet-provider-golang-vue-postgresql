@@ -60,6 +60,16 @@ CREATE TABLE IF NOT EXISTS balances (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS balances_history (
+    id SERIAL PRIMARY KEY,
+    amount DECIMAL(20,2) NOT NULL,
+    currency CHAR(3) NOT NULL,
+    type VARCHAR(8) NOT NULL,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    balance_id INT REFERENCES balances(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS transactions (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) NOT NULL,

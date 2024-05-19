@@ -1,5 +1,5 @@
 <template>
-  <button class="border-none">{{ text }}</button>
+  <button>{{ text }}</button>
 </template>
 
 <script lang="ts" setup>

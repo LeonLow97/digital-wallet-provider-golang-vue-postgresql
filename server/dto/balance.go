@@ -16,6 +16,20 @@ type GetBalanceResponse struct {
 	UpdatedAt string  `json:"updatedAt"`
 }
 
+type GetBalanceHistory struct {
+	BalanceHistory []BalanceHistory `json:"balanceHistory"`
+}
+
+type BalanceHistory struct {
+	ID        int     `db:"id" json:"-"`
+	UserID    int     `db:"user_id" json:"-"`
+	BalanceID int     `db:"balance_id" json:"-"`
+	Amount    float64 `db:"amount" json:"amount"`
+	Currency  string  `db:"currency" json:"currency"`
+	Type      string  `db:"type" json:"type"`
+	CreatedAt string  `db:"created_at" json:"createdAt"`
+}
+
 type GetBalancesResponse struct {
 	Balances []GetBalanceResponse `json:"balances"`
 }

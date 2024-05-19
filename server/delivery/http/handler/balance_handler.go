@@ -22,12 +22,77 @@ func NewBalanceHandler(router *mux.Router, uc domain.BalanceUsecase) {
 		balanceUsecase: uc,
 	}
 
-	router.HandleFunc("/balances", handler.GetBalances).Methods(http.MethodGet)
+	balanceRouter := router.PathPrefix("/balances").Subrouter()
 
-	balanceRouter := router.PathPrefix("/balance").Subrouter()
-
+	balanceRouter.HandleFunc("", handler.GetBalances).Methods(http.MethodGet)
+	balanceRouter.HandleFunc("/{id:[0-9]+}", handler.GetBalance).Methods(http.MethodGet)
+	balanceRouter.HandleFunc("/history/{id:[0-9]+}", handler.GetBalanceHistory).Methods(http.MethodGet)
 	balanceRouter.HandleFunc("/deposit", handler.Deposit).Methods(http.MethodPatch)
 	balanceRouter.HandleFunc("/withdraw", handler.Withdraw).Methods(http.MethodPatch)
+}
+
+func (h *BalanceHandler) GetBalanceHistory(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// retrieve user id from context
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	// retrieve balance id from url params
+	balanceID, err := utils.ReadParamsInt(r, "id")
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		return
+	}
+
+	resp, err := h.balanceUsecase.GetBalanceHistory(ctx, userID, balanceID)
+	if err != nil {
+		switch {
+		case errors.Is(err, exception.ErrBalanceHistoryNotFound):
+			utils.ErrorJSON(w, apiErr.ErrBalanceHistoryNotFound, http.StatusNotFound)
+			return
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	utils.WriteJSON(w, http.StatusOK, resp)
+}
+
+func (h *BalanceHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// retrieve user id from context
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	// retrieve balance id from url params
+	balanceID, err := utils.ReadParamsInt(r, "id")
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		return
+	}
+
+	resp, err := h.balanceUsecase.GetBalance(ctx, userID, balanceID)
+	if err != nil {
+		switch {
+		case errors.Is(err, exception.ErrBalanceNotFound):
+			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
+			return
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	utils.WriteJSON(w, http.StatusOK, resp)
 }
 
 func (h *BalanceHandler) GetBalances(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +101,6 @@ func (h *BalanceHandler) GetBalances(w http.ResponseWriter, r *http.Request) {
 	// retrieve user id from context
 	userID, err := utils.UserIDFromContext(ctx)
 	if err != nil {
-		log.Println("failed to retrieve user id from context", err)
 		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}

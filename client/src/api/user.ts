@@ -4,7 +4,6 @@ import type {
   LOGIN_REQUEST,
   SIGNUP_REQUEST,
   UPDATE_USER_REQUEST,
-  GENERIC_STATUS_RESPONSE,
   CHANGE_PASSWORD_REQUEST,
   SEND_PASSWORD_RESET_EMAIL_REQUEST,
   PASSWORD_RESET_REQUEST,
@@ -12,6 +11,7 @@ import type {
   CONFIGURE_MFA_REQUEST,
   VERIFY_MFA_REQUEST,
 } from "@/types/user";
+import type { GENERIC_STATUS_RESPONSE } from "@/types/generic";
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
 

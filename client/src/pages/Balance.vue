@@ -24,12 +24,23 @@
         </div>
       </div>
 
-      <div>
+      <div class="flex flex-col gap-4">
         <router-link
           :to="{ name: 'Balances' }"
           class="text-lg text-blue-600 underline underline-offset-8 hover:text-blue-300"
           >&larr; Back to Balances</router-link
         >
+
+        <action-button
+          class="w-full rounded-lg border bg-green-500 px-4 py-2 text-center text-white transition hover:bg-green-400"
+          text="Deposit"
+          @click="handleDeposit"
+        />
+        <action-button
+          class="w-full rounded-lg border bg-orange-500 px-4 py-2 text-center text-white transition hover:bg-orange-400"
+          text="Withdraw"
+          @click="handleWithdraw"
+        />
       </div>
     </div>
 
@@ -50,14 +61,23 @@
             v-for="history in balanceHistory?.balanceHistory"
             class="text-center"
           >
-            <td class="px-4 py-2">{{ history.amount }}</td>
+            <td
+              class="px-4 py-2"
+              :class="
+                history.type.trim().toLowerCase() === 'deposit'
+                  ? 'text-green-600'
+                  : 'text-red-600'
+              "
+            >
+              {{ history.amount }}
+            </td>
             <td class="px-4 py-2">{{ history.currency }}</td>
             <td
               class="px-4 py-2 font-bold uppercase"
               :class="
                 history.type.trim().toLowerCase() === 'deposit'
-                  ? 'text-green-500'
-                  : 'text-red-500'
+                  ? 'text-green-600'
+                  : 'text-red-600'
               "
             >
               {{ history.type }}
@@ -68,24 +88,44 @@
       </table>
     </div>
   </div>
+
+  <balance-modal
+    @close-modal="closeModal"
+    @form-submitted="formSubmitted"
+    :open-modal="openModal"
+    :action-type="actionType"
+    :balance="balance"
+  />
 </template>
 
 <script lang="ts" setup>
 import { onMounted, ref } from "vue";
-import { GET_BALANCE, GET_BALANCE_HISTORY } from "@/api/balances";
+import { GET_BALANCE, GET_BALANCE_HISTORY, DEPOSIT } from "@/api/balances";
 import { useRoute, useRouter } from "vue-router";
 import type {
   GetBalanceResponse,
   GetBalanceHistoryResponse,
 } from "@/types/balances";
 import { format } from "date-fns";
+import ActionButton from "@/components/ActionButton.vue";
+import BalanceModal from "@/components/balances/BalanceModal.vue";
 
 const route = useRoute();
 const router = useRouter();
-let balance = ref<GetBalanceResponse | null>(null);
-let balanceHistory = ref<GetBalanceHistoryResponse | null>(null);
+const balance = ref<GetBalanceResponse | null>(null);
+const balanceHistory = ref<GetBalanceHistoryResponse | null>(null);
+let actionType = ref("");
+const openModal = ref(false);
 
-onMounted(async () => {
+onMounted(() => {
+  getBalanceAndBalanceHistory();
+});
+
+const formSubmitted = () => {
+  getBalanceAndBalanceHistory();
+};
+
+const getBalanceAndBalanceHistory = async () => {
   // ensure that params is a number
   const id = Number(route.params.id);
   if (isNaN(id)) {
@@ -94,6 +134,7 @@ onMounted(async () => {
   }
 
   try {
+    // calling these 2 endpoint asynchronously since they are independent
     const [balanceResponse, balanceHistoryResponse] = await Promise.all([
       GET_BALANCE(id),
       GET_BALANCE_HISTORY(id),
@@ -109,7 +150,7 @@ onMounted(async () => {
   } catch (error: unknown) {
     alert(error);
   }
-});
+};
 
 const formatDate = (dateString: string | undefined): string => {
   if (dateString) {
@@ -117,5 +158,19 @@ const formatDate = (dateString: string | undefined): string => {
   } else {
     return "Invalid Date Format";
   }
+};
+
+const handleDeposit = () => {
+  actionType.value = "deposit";
+  openModal.value = true;
+};
+
+const handleWithdraw = () => {
+  actionType.value = "withdraw";
+  openModal.value = true;
+};
+
+const closeModal = () => {
+  openModal.value = false;
 };
 </script>

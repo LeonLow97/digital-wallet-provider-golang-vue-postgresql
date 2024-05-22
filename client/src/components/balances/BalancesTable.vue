@@ -16,12 +16,18 @@
         <td class="flex items-center justify-center gap-3 px-4 py-2">
           <action-button
             text="View"
-            class="rounded-lg border-2 border-blue-500 px-2 py-2 text-center text-blue-500 transition hover:border-blue-200 hover:text-blue-300"
+            class="rounded-lg border-2 border-blue-500 px-2 text-center text-blue-500 transition hover:border-blue-200 hover:text-blue-300"
             @click="handleClickViewBalances(balance.id)"
           />
           <action-button
-            text="Deposit / Withdraw"
-            class="rounded-lg border-2 border-blue-500 px-2 text-center text-blue-500 transition hover:border-blue-200 hover:text-blue-300"
+            text="Deposit"
+            class="rounded-lg border-2 border-green-500 px-2 text-center text-green-500 transition hover:border-green-200 hover:text-green-300"
+            @click="handleDeposit"
+          />
+          <action-button
+            text="Withdraw"
+            class="rounded-lg border-2 border-orange-500 px-2 text-center text-orange-500 transition hover:border-orange-200 hover:text-orange-300"
+            @click="handleWithdraw"
           />
         </td>
         <td class="px-4 py-2">{{ formatDate(balance.createdAt) }}</td>
@@ -46,6 +52,14 @@ const formatDate = (dateString: string): string => {
 };
 
 const handleClickViewBalances = (balanceId: number) => {
-  router.push({ name: "BalancesView", params: { id: balanceId } });
+  router.push({ name: "Balance", params: { id: balanceId } });
+};
+
+const handleDeposit = () => {
+  alert("deposit");
+};
+
+const handleWithdraw = () => {
+  alert("withdraw");
 };
 </script>

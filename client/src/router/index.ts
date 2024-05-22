@@ -50,8 +50,8 @@ const routes = [
   },
   {
     path: "/balances/:id",
-    name: "BalancesView",
-    component: () => import("@/pages/BalancesView.vue"),
+    name: "Balance",
+    component: () => import("@/pages/Balance.vue"),
   },
   {
     path: "/transactions",

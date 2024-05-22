@@ -27,3 +27,13 @@ export interface GetBalanceResponse {
 export interface GetBalanceHistoryResponse {
   balanceHistory: BalanceHistory[];
 }
+
+export interface DEPOSIT_REQUEST {
+  amount: number;
+  currency: string;
+}
+
+export interface WITHDRAW_REQUEST {
+  amount: number;
+  currency: string;
+}

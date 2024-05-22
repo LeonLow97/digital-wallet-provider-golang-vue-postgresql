@@ -19,12 +19,12 @@ type BalanceUsecase interface {
 	GetBalanceHistory(ctx context.Context, userID int, balanceID int) (*dto.GetBalanceHistory, error)
 	GetBalance(ctx context.Context, userID int, balanceID int) (*dto.GetBalanceResponse, error)
 	GetBalances(ctx context.Context, userID int) (*dto.GetBalancesResponse, error)
-	Deposit(ctx context.Context, req dto.DepositRequest) (*dto.GetBalanceResponse, error)
-	Withdraw(ctx context.Context, req dto.WithdrawRequest) (*dto.GetBalanceResponse, error)
+	Deposit(ctx context.Context, req dto.DepositRequest) error
+	Withdraw(ctx context.Context, req dto.WithdrawRequest) error
 }
 
 type BalanceRepository interface {
-	CreateBalanceHistory(ctx context.Context, balance *Balance, balanceType string) error
+	CreateBalanceHistory(ctx context.Context, balance *Balance, depositedBalance float64, balanceType string) error
 	GetBalanceHistory(ctx context.Context, userID, balanceID int) (*[]dto.BalanceHistory, error)
 	GetBalances(ctx context.Context, userID int) (*[]Balance, error)
 	GetBalance(ctx context.Context, userID int, balanceID int) (*Balance, error)

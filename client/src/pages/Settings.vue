@@ -21,15 +21,18 @@
 
   <div class="mt-5">
     <div class="mb-2 text-sm text-slate-600">Security</div>
-    <button
+    <action-button
       @click="openChangePasswordModal"
       class="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-    >
-      Change Password
-    </button>
+      text="Change Password"
+    />
   </div>
 
-  <Modal @close-overlay="closeChangePasswordModal" modal-width="2/5" v-if="isModalOpen">
+  <modal
+    @close-overlay="closeChangePasswordModal"
+    modal-width="2/5"
+    v-if="isModalOpen"
+  >
     <form @submit.prevent="handleSubmit">
       <div class="flex flex-col gap-6">
         <!-- Modal content -->
@@ -55,7 +58,7 @@
         <div class="flex justify-end gap-4">
           <action-button
             @click="closeChangePasswordModal"
-            class="mb-4 inline-block rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
+            class="mb-4 inline-block rounded-lg border border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300"
             text="Close"
           />
           <action-button
@@ -65,7 +68,7 @@
         </div>
       </div>
     </form>
-  </Modal>
+  </modal>
 </template>
 
 <script lang="ts" setup>

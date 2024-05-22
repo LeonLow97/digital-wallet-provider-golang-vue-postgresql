@@ -54,10 +54,6 @@ export interface PASSWORD_RESET_REQUEST {
   password: string;
 }
 
-export interface GENERIC_STATUS_RESPONSE {
-  status: number;
-}
-
 export interface UPDATE_USER_REQUEST {
   first_name: string | null;
   last_name: string | null;

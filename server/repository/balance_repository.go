@@ -131,7 +131,7 @@ func (r *balanceRepository) UpdateBalance(ctx context.Context, balance *domain.B
 	return nil
 }
 
-func (r *balanceRepository) CreateBalanceHistory(ctx context.Context, balance *domain.Balance, balanceType string) error {
+func (r *balanceRepository) CreateBalanceHistory(ctx context.Context, balance *domain.Balance, depositedBalance float64, balanceType string) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
@@ -141,11 +141,11 @@ func (r *balanceRepository) CreateBalanceHistory(ctx context.Context, balance *d
 	`
 
 	_, err := r.db.ExecContext(ctx, query,
-		balance.Balance,
+		depositedBalance,
 		balance.Currency,
 		balanceType,
 		balance.UserID,
-		balance.CreatedAt,
+		balance.ID,
 	)
 	if err != nil {
 		return err

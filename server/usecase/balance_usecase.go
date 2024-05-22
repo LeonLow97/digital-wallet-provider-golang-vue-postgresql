@@ -73,7 +73,7 @@ func (uc *balanceUsecase) GetBalances(ctx context.Context, userID int) (*dto.Get
 	return &resp, nil
 }
 
-func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) (*dto.GetBalanceResponse, error) {
+func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) error {
 	// In a real-world scenario, connect via Go HTTP client to the user's credit card API
 	// to retrieve the deposited amount. For the purpose of this project, we assume
 	// a successful retrieval, and req.Balance represents the received amount.
@@ -81,48 +81,45 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) (
 	currentBalance, err := uc.balanceRepository.GetBalance(ctx, req.UserID, 1)
 	if err != nil {
 		log.Printf("failed to get one balance for user id %d with error: %v\n", req.UserID, err)
-		return nil, err
+		return err
 	}
 
-	var depositedBalance *domain.Balance
+	var updatedBalance *domain.Balance
 
 	// Update the balance if it exists
 	if currentBalance != nil {
 		currentBalance.Balance += req.Balance
 
 		if err := uc.balanceRepository.UpdateBalance(ctx, currentBalance); err != nil {
-			return nil, err
+			return err
 		}
-		depositedBalance = currentBalance
+		updatedBalance = currentBalance
 	} else {
 		// Create a new balance if it does not exist
-		depositedBalance = &domain.Balance{
+		updatedBalance = &domain.Balance{
 			Balance:  req.Balance,
 			Currency: req.Currency,
 			UserID:   req.UserID,
 		}
 		// user does not have this balance, insert the balance
-		if err := uc.balanceRepository.CreateBalance(ctx, depositedBalance); err != nil {
-			return nil, err
+		if err := uc.balanceRepository.CreateBalance(ctx, updatedBalance); err != nil {
+			return err
 		}
 	}
 
 	defer func() {
-		err = uc.balanceRepository.CreateBalanceHistory(ctx, depositedBalance, "deposit")
+		err = uc.balanceRepository.CreateBalanceHistory(ctx, updatedBalance, req.Balance, "deposit")
 	}()
 
 	if err != nil {
 		log.Printf("failed to create balance history with error: %v\n", err)
-		return nil, err
+		return err
 	}
 
-	return &dto.GetBalanceResponse{
-		Balance:  depositedBalance.Balance,
-		Currency: depositedBalance.Currency,
-	}, nil
+	return nil
 }
 
-func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest) (*dto.GetBalanceResponse, error) {
+func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest) error {
 	// In a real-world scenario:
 	// Connect to the customer's credit card API to initiate a withdrawal.
 	// Once the withdrawal is successful and the credit card is updated,
@@ -132,24 +129,30 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 	currentBalance, err := uc.balanceRepository.GetBalance(ctx, req.UserID, 1)
 	if err != nil {
 		log.Printf("failed to get one balance for user id %d with error: %v\n", req.UserID, err)
-		return nil, err
+		return err
 	}
 
 	if req.Balance > currentBalance.Balance {
-		return nil, exception.ErrInsufficientFunds
+		return exception.ErrInsufficientFunds
 	}
 
 	if currentBalance != nil {
 		currentBalance.Balance -= req.Balance
 		if err := uc.balanceRepository.UpdateBalance(ctx, currentBalance); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
-		return nil, exception.ErrBalanceNotFound
+		return exception.ErrBalanceNotFound
 	}
 
-	return &dto.GetBalanceResponse{
-		Balance:  currentBalance.Balance,
-		Currency: currentBalance.Currency,
-	}, nil
+	defer func() {
+		err = uc.balanceRepository.CreateBalanceHistory(ctx, currentBalance, req.Balance, "withdraw")
+	}()
+
+	if err != nil {
+		log.Printf("failed to create balance history with error: %v\n", err)
+		return err
+	}
+
+	return nil
 }

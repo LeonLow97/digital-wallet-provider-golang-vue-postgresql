@@ -27,8 +27,8 @@ func NewBalanceHandler(router *mux.Router, uc domain.BalanceUsecase) {
 	balanceRouter.HandleFunc("", handler.GetBalances).Methods(http.MethodGet)
 	balanceRouter.HandleFunc("/{id:[0-9]+}", handler.GetBalance).Methods(http.MethodGet)
 	balanceRouter.HandleFunc("/history/{id:[0-9]+}", handler.GetBalanceHistory).Methods(http.MethodGet)
-	balanceRouter.HandleFunc("/deposit", handler.Deposit).Methods(http.MethodPatch)
-	balanceRouter.HandleFunc("/withdraw", handler.Withdraw).Methods(http.MethodPatch)
+	balanceRouter.HandleFunc("/deposit", handler.Deposit).Methods(http.MethodPost)
+	balanceRouter.HandleFunc("/withdraw", handler.Withdraw).Methods(http.MethodPost)
 }
 
 func (h *BalanceHandler) GetBalanceHistory(w http.ResponseWriter, r *http.Request) {
@@ -141,12 +141,11 @@ func (h *BalanceHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 	req.UserID = userID
 	req.DepositSanitize()
 
-	resp, err := h.balanceUsecase.Deposit(ctx, req)
-	if err != nil {
+	if err := h.balanceUsecase.Deposit(ctx, req); err != nil {
 		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 	}
 
-	utils.WriteJSON(w, http.StatusOK, resp)
+	utils.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *BalanceHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
@@ -170,8 +169,7 @@ func (h *BalanceHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	req.UserID = userID
 	req.WithdrawSanitize()
 
-	resp, err := h.balanceUsecase.Withdraw(ctx, req)
-	if err != nil {
+	if err := h.balanceUsecase.Withdraw(ctx, req); err != nil {
 		switch {
 		case errors.Is(err, exception.ErrInsufficientFunds):
 			utils.ErrorJSON(w, apiErr.ErrInsufficientFundsForWithdrawal, http.StatusBadRequest)
@@ -182,5 +180,5 @@ func (h *BalanceHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	utils.WriteJSON(w, http.StatusOK, resp)
+	utils.WriteNoContent(w, http.StatusNoContent)
 }

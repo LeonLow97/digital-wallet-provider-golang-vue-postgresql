@@ -3,7 +3,7 @@ package dto
 import "strings"
 
 type DepositRequest struct {
-	Balance  float64 `json:"balance" validate:"required,gt=0"`
+	Balance  float64 `json:"amount" validate:"required,gt=0"`
 	Currency string  `json:"currency"`
 	UserID   int     `json:"-"`
 }
@@ -35,7 +35,7 @@ type GetBalancesResponse struct {
 }
 
 type WithdrawRequest struct {
-	Balance  float64 `json:"balance" validate:"required,gt=0"`
+	Balance  float64 `json:"amount" validate:"required,gt=0"`
 	Currency string  `json:"currency"`
 	UserID   int     `json:"-"`
 }

@@ -68,7 +68,7 @@
         v-model.trim="mfaCode"
         maxlength="6"
         placeholder="6-digit code"
-        class="mt-8 w-2/3"
+        class="mt-8 text-center"
       />
       <action-button
         class="mb-4 mt-4 rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"

@@ -34,7 +34,7 @@ func (uc *balanceUsecase) GetBalanceHistory(ctx context.Context, userID int, bal
 }
 
 func (uc *balanceUsecase) GetBalance(ctx context.Context, userID int, balanceID int) (*dto.GetBalanceResponse, error) {
-	balance, err := uc.balanceRepository.GetBalance(ctx, userID, balanceID)
+	balance, err := uc.balanceRepository.GetBalanceById(ctx, userID, balanceID)
 	if err != nil {
 		log.Printf("failed to get balance for user id %d with error: %v\n", userID, err)
 		return nil, err
@@ -78,7 +78,7 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) e
 	// to retrieve the deposited amount. For the purpose of this project, we assume
 	// a successful retrieval, and req.Balance represents the received amount.
 
-	currentBalance, err := uc.balanceRepository.GetBalance(ctx, req.UserID, 1)
+	currentBalance, err := uc.balanceRepository.GetBalance(ctx, req.UserID, req.Currency)
 	if err != nil {
 		log.Printf("failed to get one balance for user id %d with error: %v\n", req.UserID, err)
 		return err
@@ -126,7 +126,7 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 	// receive a success message from the credit card API. Subsequently,
 	// update the user's balance via Apache Kafka to mitigate potential failures.
 
-	currentBalance, err := uc.balanceRepository.GetBalance(ctx, req.UserID, 1)
+	currentBalance, err := uc.balanceRepository.GetBalance(ctx, req.UserID, req.Currency)
 	if err != nil {
 		log.Printf("failed to get one balance for user id %d with error: %v\n", req.UserID, err)
 		return err

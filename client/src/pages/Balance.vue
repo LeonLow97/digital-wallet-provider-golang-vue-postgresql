@@ -46,7 +46,7 @@
 
     <!-- Balance History Table -->
     <h2 class="mb-2 mt-8 text-center text-xl font-bold">Balance History</h2>
-    <div class="shadow-md">
+    <div class="shadow-md mb-14">
       <table class="w-full table-fixed text-sm">
         <thead>
           <tr class="bg-gray-100">

@@ -1,6 +1,6 @@
 <template>
   <h1 class="text-xl font-bold">Balances</h1>
-  <balances-table :balances="balances" />
+  <balances-table @form-submitted="formSubmitted" :balances="balances" />
 </template>
 
 <script lang="ts" setup>
@@ -13,6 +13,14 @@ import BalancesTable from "@/components/balances/BalancesTable.vue";
 let balances = ref([] as Balance[]);
 
 onMounted(async () => {
+  getBalances();
+});
+
+const formSubmitted = () => {
+  getBalances();
+};
+
+const getBalances = async () => {
   try {
     const { data, status } = await GET_BALANCES();
 
@@ -20,5 +28,5 @@ onMounted(async () => {
   } catch (error: unknown) {
     alert(error);
   }
-});
+};
 </script>

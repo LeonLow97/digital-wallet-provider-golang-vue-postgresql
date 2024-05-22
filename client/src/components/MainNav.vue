@@ -1,11 +1,19 @@
 <template>
   <div class="flex justify-between bg-blue-950 text-white">
-    <router-link
-      class="flex cursor-pointer items-center pl-14 font-mono text-lg font-bold uppercase"
-      :to="{ name: 'Home' }"
-    >
-      Digital Wallet
-    </router-link>
+    <div class="flex items-center gap-8 pl-12">
+      <svg-icon
+        type="mdi"
+        :path="openSideNav ? mdiMenuOpen : mdiMenuClose"
+        class="cursor-pointer"
+        @click="toggleSideNav"
+      />
+      <router-link
+        class="cursor-pointer font-mono text-lg font-bold uppercase"
+        :to="{ name: 'Home' }"
+      >
+        Digital Wallet
+      </router-link>
+    </div>
     <div class="pr-8">
       <ul class="flex">
         <router-link :to="{ name: 'UserProfile' }" class="w-full">
@@ -30,15 +38,26 @@
 </template>
 
 <script lang="ts" setup>
-import { mdiAccount, mdiCogOutline, mdiLogout } from "@mdi/js";
+import {
+  mdiAccount,
+  mdiCogOutline,
+  mdiLogout,
+  mdiMenuOpen,
+  mdiMenuClose,
+} from "@mdi/js";
 import SvgIcon from "@jamescoyle/vue-icon";
 import { AxiosError } from "axios";
 import { LOGOUT } from "@/api/user";
 import { useUserStore } from "@/stores/user";
 import { useRouter } from "vue-router";
+import { ref } from "vue";
+
+const openSideNav = ref(true);
 
 const router = useRouter();
 const userStore = useUserStore();
+
+const emits = defineEmits(["toggleSideNav"]);
 
 const handleLogout = async () => {
   try {
@@ -60,5 +79,10 @@ const handleLogout = async () => {
     userStore.LOGOUT_USER();
     router.push({ name: "Login" });
   }
+};
+
+const toggleSideNav = () => {
+  openSideNav.value = !openSideNav.value;
+  emits("toggleSideNav", openSideNav.value);
 };
 </script>

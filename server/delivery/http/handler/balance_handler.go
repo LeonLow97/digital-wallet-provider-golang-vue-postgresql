@@ -9,6 +9,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
+	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/utils"
 	"github.com/gorilla/mux"
 )
@@ -138,6 +139,13 @@ func (h *BalanceHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	errMessage, err := infrastructure.ValidateStruct(req)
+	if err != nil {
+		log.Println("error validating req struct in deposit handler", err)
+		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		return
+	}
+
 	req.UserID = userID
 	req.DepositSanitize()
 
@@ -163,6 +171,13 @@ func (h *BalanceHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	if err := utils.ReadJSON(w, r, &req); err != nil {
 		log.Println("error decoding req body in withdraw handler", err)
 		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		return
+	}
+
+	errMessage, err := infrastructure.ValidateStruct(req)
+	if err != nil {
+		log.Println("error validating req struct in withdraw handler", err)
+		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 

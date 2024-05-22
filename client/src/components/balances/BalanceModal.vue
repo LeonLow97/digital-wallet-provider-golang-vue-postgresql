@@ -19,7 +19,7 @@
             class="col-span-2"
           />
           <text-input
-            v-model="currency"
+            v-model="currency!"
             placeholder="Currency"
             disabled
             class="col-span-1 bg-slate-300 text-center font-bold uppercase"
@@ -76,7 +76,7 @@ const props = defineProps<{
 
 const isModalOpen = ref<boolean>(false);
 const amount = ref<number>(0);
-const currency = ref("");
+const currency = ref(props.balance?.currency);
 
 const emits = defineEmits(["closeModal", "formSubmitted"]);
 
@@ -116,10 +116,8 @@ const handleSubmit = async () => {
   try {
     const body: DEPOSIT_REQUEST = {
       amount: amount.value,
-      currency: currency.value,
+      currency: currency.value!,
     };
-
-    console.log(props.actionType)
 
     let response: GENERIC_STATUS_RESPONSE;
     if (props.actionType?.trim().toLowerCase() === "deposit") {

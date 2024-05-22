@@ -32,20 +32,35 @@
         </td>
         <td class="px-4 py-2">{{ formatDate(balance.createdAt) }}</td>
         <td class="px-4 py-2">{{ formatDate(balance.updatedAt) }}</td>
+
+        <balance-modal
+          @close-modal="closeModal"
+          @form-submitted="formSubmitted"
+          class="text-left"
+          :open-modal="openModal"
+          :action-type="actionType"
+          :balance="balance"
+        />
       </tr>
     </tbody>
   </table>
 </template>
 
 <script lang="ts" setup>
-import type { Balance } from "@/types/balances";
+import { ref } from "vue";
 import { format } from "date-fns";
-import ActionButton from "../ActionButton.vue";
 import { useRouter } from "vue-router";
+
+import type { Balance } from "@/types/balances";
+import ActionButton from "../ActionButton.vue";
+import BalanceModal from "@/components/balances/BalanceModal.vue";
 
 defineProps<{ balances: Balance[] }>();
 
+const emits = defineEmits(["formSubmitted"]);
 const router = useRouter();
+let actionType = ref("");
+const openModal = ref(false);
 
 const formatDate = (dateString: string): string => {
   return format(new Date(dateString), "PPpp");
@@ -56,10 +71,20 @@ const handleClickViewBalances = (balanceId: number) => {
 };
 
 const handleDeposit = () => {
-  alert("deposit");
+  actionType.value = "deposit";
+  openModal.value = true;
 };
 
 const handleWithdraw = () => {
-  alert("withdraw");
+  actionType.value = "withdraw";
+  openModal.value = true;
+};
+
+const closeModal = () => {
+  openModal.value = false;
+};
+
+const formSubmitted = () => {
+  emits("formSubmitted");
 };
 </script>

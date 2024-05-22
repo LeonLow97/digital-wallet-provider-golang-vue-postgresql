@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/LeonLow97/go-clean-architecture/dto"
 )
@@ -24,11 +25,12 @@ type BalanceUsecase interface {
 }
 
 type BalanceRepository interface {
-	CreateBalanceHistory(ctx context.Context, balance *Balance, depositedBalance float64, balanceType string) error
+	CreateBalanceHistory(ctx context.Context, tx *sql.Tx, balance *Balance, depositedBalance float64, balanceType string) error
 	GetBalanceHistory(ctx context.Context, userID, balanceID int) (*[]dto.BalanceHistory, error)
 	GetBalances(ctx context.Context, userID int) (*[]Balance, error)
 	GetBalance(ctx context.Context, userID int, currency string) (*Balance, error)
+	GetBalanceTx(ctx context.Context, tx *sql.Tx, userID int, currency string) (*Balance, error)
 	GetBalanceById(ctx context.Context, userID int, balanceId int) (*Balance, error)
-	CreateBalance(ctx context.Context, balance *Balance) error
-	UpdateBalance(ctx context.Context, balance *Balance) error
+	CreateBalance(ctx context.Context, tx *sql.Tx, balance *Balance) error
+	UpdateBalance(ctx context.Context, tx *sql.Tx, balance *Balance) error
 }

@@ -7,14 +7,17 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/domain"
 	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
+	"github.com/jmoiron/sqlx"
 )
 
 type balanceUsecase struct {
+	dbConn            *sqlx.DB
 	balanceRepository domain.BalanceRepository
 }
 
-func NewBalanceUsecase(balanceRepository domain.BalanceRepository) domain.BalanceUsecase {
+func NewBalanceUsecase(dbConn *sqlx.DB, balanceRepository domain.BalanceRepository) domain.BalanceUsecase {
 	return &balanceUsecase{
+		dbConn:            dbConn,
 		balanceRepository: balanceRepository,
 	}
 }
@@ -78,7 +81,30 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) e
 	// to retrieve the deposited amount. For the purpose of this project, we assume
 	// a successful retrieval, and req.Balance represents the received amount.
 
-	currentBalance, err := uc.balanceRepository.GetBalance(ctx, req.UserID, req.Currency)
+	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
+	tx, err := uc.dbConn.BeginTx(ctx, nil)
+	if err != nil {
+		log.Printf("failed to begin sql transaction in deposit usecase with error: %v\n", err)
+		return err
+	}
+
+	// Defer rollback or commit the transaction based on the outcome
+	defer func() {
+		if p := recover(); p != nil {
+			tx.Rollback()
+			panic(p)
+		} else if err != nil {
+			tx.Rollback()
+			log.Printf("failed to complete sql transaction with error: %v\n", err)
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				log.Printf("failed to commit sql transaction with error: %v\n", err)
+			}
+		}
+	}()
+
+	currentBalance, err := uc.balanceRepository.GetBalanceTx(ctx, tx, req.UserID, req.Currency)
 	if err != nil {
 		log.Printf("failed to get one balance for user id %d with error: %v\n", req.UserID, err)
 		return err
@@ -90,7 +116,7 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) e
 	if currentBalance != nil {
 		currentBalance.Balance += req.Balance
 
-		if err := uc.balanceRepository.UpdateBalance(ctx, currentBalance); err != nil {
+		if err := uc.balanceRepository.UpdateBalance(ctx, tx, currentBalance); err != nil {
 			return err
 		}
 		updatedBalance = currentBalance
@@ -102,13 +128,13 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) e
 			UserID:   req.UserID,
 		}
 		// user does not have this balance, insert the balance
-		if err := uc.balanceRepository.CreateBalance(ctx, updatedBalance); err != nil {
+		if err := uc.balanceRepository.CreateBalance(ctx, tx, updatedBalance); err != nil {
 			return err
 		}
 	}
 
 	defer func() {
-		err = uc.balanceRepository.CreateBalanceHistory(ctx, updatedBalance, req.Balance, "deposit")
+		err = uc.balanceRepository.CreateBalanceHistory(ctx, tx, updatedBalance, req.Balance, "deposit")
 	}()
 
 	if err != nil {
@@ -126,7 +152,30 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 	// receive a success message from the credit card API. Subsequently,
 	// update the user's balance via Apache Kafka to mitigate potential failures.
 
-	currentBalance, err := uc.balanceRepository.GetBalance(ctx, req.UserID, req.Currency)
+	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
+	tx, err := uc.dbConn.BeginTx(ctx, nil)
+	if err != nil {
+		log.Printf("failed to begin sql transaction in deposit usecase with error: %v\n", err)
+		return err
+	}
+
+	// Defer rollback or commit the transaction based on the outcome
+	defer func() {
+		if p := recover(); p != nil {
+			tx.Rollback()
+			panic(p)
+		} else if err != nil {
+			tx.Rollback()
+			log.Printf("failed to complete sql transaction with error: %v\n", err)
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				log.Printf("failed to commit sql transaction with error: %v\n", err)
+			}
+		}
+	}()
+
+	currentBalance, err := uc.balanceRepository.GetBalanceTx(ctx, tx, req.UserID, req.Currency)
 	if err != nil {
 		log.Printf("failed to get one balance for user id %d with error: %v\n", req.UserID, err)
 		return err
@@ -138,7 +187,7 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 
 	if currentBalance != nil {
 		currentBalance.Balance -= req.Balance
-		if err := uc.balanceRepository.UpdateBalance(ctx, currentBalance); err != nil {
+		if err := uc.balanceRepository.UpdateBalance(ctx, tx, currentBalance); err != nil {
 			return err
 		}
 	} else {
@@ -146,7 +195,7 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 	}
 
 	defer func() {
-		err = uc.balanceRepository.CreateBalanceHistory(ctx, currentBalance, req.Balance, "withdraw")
+		err = uc.balanceRepository.CreateBalanceHistory(ctx, tx, currentBalance, req.Balance, "withdraw")
 	}()
 
 	if err != nil {

@@ -8,17 +8,20 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	"github.com/LeonLow97/go-clean-architecture/utils"
+	"github.com/jmoiron/sqlx"
 )
 
 type transactionUsecase struct {
+	dbConn                *sqlx.DB
 	transactionRepository domain.TransactionRepository
 	walletRepository      domain.WalletRepository
 	userRepository        domain.UserRepository
 	balanceRepository     domain.BalanceRepository
 }
 
-func NewTransactionUsecase(transactionRepo domain.TransactionRepository, walletRepo domain.WalletRepository, userRepo domain.UserRepository, balanceRepo domain.BalanceRepository) domain.TransactionUsecase {
+func NewTransactionUsecase(dbConn *sqlx.DB, transactionRepo domain.TransactionRepository, walletRepo domain.WalletRepository, userRepo domain.UserRepository, balanceRepo domain.BalanceRepository) domain.TransactionUsecase {
 	return &transactionUsecase{
+		dbConn:                dbConn,
 		transactionRepository: transactionRepo,
 		walletRepository:      walletRepo,
 		userRepository:        userRepo,
@@ -32,10 +35,31 @@ func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.Cre
 		return exception.ErrAmountMustBePositive
 	}
 
-	////////// TODO: SQL TRANSACTION //////////
-	// check if sender id is linked to beneficiary id
-	err := uc.transactionRepository.CheckLinkageOfSenderAndBeneficiaryByMobileNumber(ctx, userID, req.MobileNumber)
+	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
+	tx, err := uc.dbConn.BeginTx(ctx, nil)
 	if err != nil {
+		log.Printf("failed to begin sql transaction in deposit usecase with error: %v\n", err)
+		return err
+	}
+
+	// Defer rollback or commit the transaction based on the outcome
+	defer func() {
+		if p := recover(); p != nil {
+			tx.Rollback()
+			panic(p)
+		} else if err != nil {
+			tx.Rollback()
+			log.Printf("failed to complete sql transaction with error: %v\n", err)
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				log.Printf("failed to commit sql transaction with error: %v\n", err)
+			}
+		}
+	}()
+
+	// check if sender id is linked to beneficiary id
+	if err := uc.transactionRepository.CheckLinkageOfSenderAndBeneficiaryByMobileNumber(ctx, userID, req.MobileNumber); err != nil {
 		// if not linked, error will be thrown here
 		log.Println("failed to check linkage of sender and beneficiary", err)
 		return err
@@ -96,7 +120,7 @@ func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.Cre
 		return err
 	}
 
-	err = uc.balanceRepository.UpdateBalance(ctx, updatedBeneficiaryBalance)
+	err = uc.balanceRepository.UpdateBalance(ctx, tx, updatedBeneficiaryBalance)
 	if err != nil {
 		log.Println("failed to update beneficiary balance", err)
 		return err

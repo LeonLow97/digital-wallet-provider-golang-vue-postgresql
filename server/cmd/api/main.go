@@ -57,15 +57,15 @@ func main() {
 	handlers.NewUserHandler(router, userUsecase, redisClient)
 
 	balanceRepo := repository.NewBalanceRepository(dbConn)
-	balanceUsecase := usecase.NewBalanceUsecase(balanceRepo)
+	balanceUsecase := usecase.NewBalanceUsecase(dbConn, balanceRepo)
 	handlers.NewBalanceHandler(router, balanceUsecase)
 
 	walletRepo := repository.NewWalletRepository(dbConn)
-	walletUsecase := usecase.NewWalletUsecase(walletRepo, balanceRepo)
+	walletUsecase := usecase.NewWalletUsecase(dbConn, walletRepo, balanceRepo)
 	handlers.NewWalletHandler(router, walletUsecase)
 
 	transactionRepo := repository.NewTransactionRepository(dbConn)
-	transactionUsecase := usecase.NewTransactionUsecase(transactionRepo, walletRepo, userRepo, balanceRepo)
+	transactionUsecase := usecase.NewTransactionUsecase(dbConn, transactionRepo, walletRepo, userRepo, balanceRepo)
 	handlers.NewTransactionHandler(router, transactionUsecase)
 
 	beneficiaryRepo := repository.NewBeneficiaryRepository(dbConn)

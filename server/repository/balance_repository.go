@@ -130,3 +130,25 @@ func (r *balanceRepository) UpdateBalance(ctx context.Context, balance *domain.B
 	}
 	return nil
 }
+
+func (r *balanceRepository) CreateBalanceHistory(ctx context.Context, balance *domain.Balance, balanceType string) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
+	query := `
+		INSERT INTO balances_history (amount, currency, type, user_id, balance_id)
+		VALUES ($1, $2, $3, $4, $5);
+	`
+
+	_, err := r.db.ExecContext(ctx, query,
+		balance.Balance,
+		balance.Currency,
+		balanceType,
+		balance.UserID,
+		balance.CreatedAt,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}

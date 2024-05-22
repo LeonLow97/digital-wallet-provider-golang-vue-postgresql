@@ -142,12 +142,11 @@ func (h *BalanceHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 	req.DepositSanitize()
 
 	resp, err := h.balanceUsecase.Deposit(ctx, req)
-	switch {
-	case err != nil:
+	if err != nil {
 		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-	default:
-		utils.WriteJSON(w, http.StatusOK, resp)
 	}
+
+	utils.WriteJSON(w, http.StatusOK, resp)
 }
 
 func (h *BalanceHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
@@ -172,14 +171,16 @@ func (h *BalanceHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	req.WithdrawSanitize()
 
 	resp, err := h.balanceUsecase.Withdraw(ctx, req)
-	switch {
-	case errors.Is(err, exception.ErrBalanceNotFound):
-		utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
-	case errors.Is(err, exception.ErrInsufficientFunds):
-		utils.ErrorJSON(w, apiErr.ErrInsufficientFundsForWithdrawal, http.StatusBadRequest)
-	case err != nil:
-		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-	default:
-		utils.WriteJSON(w, http.StatusOK, resp)
+	if err != nil {
+		switch {
+		case errors.Is(err, exception.ErrInsufficientFunds):
+			utils.ErrorJSON(w, apiErr.ErrInsufficientFundsForWithdrawal, http.StatusBadRequest)
+		case errors.Is(err, exception.ErrBalanceNotFound):
+			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		}
 	}
+
+	utils.WriteJSON(w, http.StatusOK, resp)
 }

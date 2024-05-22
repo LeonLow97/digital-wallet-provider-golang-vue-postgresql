@@ -78,44 +78,48 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) (
 	// to retrieve the deposited amount. For the purpose of this project, we assume
 	// a successful retrieval, and req.Balance represents the received amount.
 
-	balance, err := uc.balanceRepository.GetBalance(ctx, req.UserID, 1)
+	currentBalance, err := uc.balanceRepository.GetBalance(ctx, req.UserID, 1)
 	if err != nil {
 		log.Printf("failed to get one balance for user id %d with error: %v\n", req.UserID, err)
 		return nil, err
 	}
 
-	if balance != nil {
-		// user already has this balance, update the balance
-		balance.Balance = balance.Balance + req.Balance
+	var depositedBalance *domain.Balance
 
-		if err := uc.balanceRepository.UpdateBalance(ctx, balance); err != nil {
+	// Update the balance if it exists
+	if currentBalance != nil {
+		currentBalance.Balance += req.Balance
+
+		if err := uc.balanceRepository.UpdateBalance(ctx, currentBalance); err != nil {
 			return nil, err
 		}
-
-		return &dto.GetBalanceResponse{
-			Balance:  balance.Balance,
-			Currency: balance.Currency,
-		}, nil
-	}
-
-	if balance == nil {
-		// user does not have this balance, insert the balance
-		b := domain.Balance{
+		depositedBalance = currentBalance
+	} else {
+		// Create a new balance if it does not exist
+		depositedBalance = &domain.Balance{
 			Balance:  req.Balance,
 			Currency: req.Currency,
 			UserID:   req.UserID,
 		}
-
-		if err := uc.balanceRepository.CreateBalance(ctx, &b); err != nil {
+		// user does not have this balance, insert the balance
+		if err := uc.balanceRepository.CreateBalance(ctx, depositedBalance); err != nil {
 			return nil, err
 		}
-		return &dto.GetBalanceResponse{
-			Balance:  b.Balance,
-			Currency: b.Currency,
-		}, nil
 	}
 
-	return nil, exception.ErrInternalServerError
+	defer func() {
+		err = uc.balanceRepository.CreateBalanceHistory(ctx, depositedBalance, "deposit")
+	}()
+
+	if err != nil {
+		log.Printf("failed to create balance history with error: %v\n", err)
+		return nil, err
+	}
+
+	return &dto.GetBalanceResponse{
+		Balance:  depositedBalance.Balance,
+		Currency: depositedBalance.Currency,
+	}, nil
 }
 
 func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest) (*dto.GetBalanceResponse, error) {
@@ -125,26 +129,27 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 	// receive a success message from the credit card API. Subsequently,
 	// update the user's balance via Apache Kafka to mitigate potential failures.
 
-	balance, err := uc.balanceRepository.GetBalance(ctx, req.UserID, 1)
+	currentBalance, err := uc.balanceRepository.GetBalance(ctx, req.UserID, 1)
 	if err != nil {
 		log.Printf("failed to get one balance for user id %d with error: %v\n", req.UserID, err)
 		return nil, err
 	}
 
-	updatedBalance := balance.Balance - req.Balance
-	if updatedBalance < 0 {
+	if req.Balance > currentBalance.Balance {
 		return nil, exception.ErrInsufficientFunds
 	}
 
-	balance.Balance = updatedBalance
-	err = uc.balanceRepository.UpdateBalance(ctx, balance)
-	if err != nil {
-		return nil, err
+	if currentBalance != nil {
+		currentBalance.Balance -= req.Balance
+		if err := uc.balanceRepository.UpdateBalance(ctx, currentBalance); err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, exception.ErrBalanceNotFound
 	}
 
-	resp := dto.GetBalanceResponse{
-		Balance:  updatedBalance,
-		Currency: balance.Currency,
-	}
-	return &resp, nil
+	return &dto.GetBalanceResponse{
+		Balance:  currentBalance.Balance,
+		Currency: currentBalance.Currency,
+	}, nil
 }

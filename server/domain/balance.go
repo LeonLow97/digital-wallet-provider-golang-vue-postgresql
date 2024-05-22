@@ -24,6 +24,7 @@ type BalanceUsecase interface {
 }
 
 type BalanceRepository interface {
+	CreateBalanceHistory(ctx context.Context, balance *Balance, balanceType string) error
 	GetBalanceHistory(ctx context.Context, userID, balanceID int) (*[]dto.BalanceHistory, error)
 	GetBalances(ctx context.Context, userID int) (*[]Balance, error)
 	GetBalance(ctx context.Context, userID int, balanceID int) (*Balance, error)

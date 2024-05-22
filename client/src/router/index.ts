@@ -103,6 +103,19 @@ router.beforeEach(async (to, from, next) => {
 
   // Skip calling GET_USER() if navigating to the login page
   if (skippedProtectedEndpoints.includes(to.name!)) {
+    // If on the login page, check if the user is already authenticated
+    if (to.name === "Login") {
+      try {
+        const status = await GET_USER();
+        if (status === 200) {
+          next({ name: "Home" }); // Redirect to Home if authenticated
+          return;
+        }
+      } catch (error) {
+        // If there's an error (e.g., user not authenticated), proceed to login page
+        console.error("Error checking authentication on login page:", error);
+      }
+    }
     next();
     return;
   }

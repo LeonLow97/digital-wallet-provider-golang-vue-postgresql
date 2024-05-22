@@ -2,7 +2,7 @@
   <main-nav v-if="isLoggedIn" />
   <div :class="dynamicClass">
     <side-nav class="col-span-2" v-if="isLoggedIn" />
-    <div class="col-span-8 flex flex-col gap-4 pt-6 pr-8">
+    <div class="h-screen col-span-8 flex flex-col gap-4 pr-8 pt-6">
       <router-view />
     </div>
   </div>

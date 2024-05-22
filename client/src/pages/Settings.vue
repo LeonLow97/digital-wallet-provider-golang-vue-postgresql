@@ -29,7 +29,7 @@
     </button>
   </div>
 
-  <Modal v-if="isModalOpen">
+  <Modal @close-overlay="closeChangePasswordModal" modal-width="2/5" v-if="isModalOpen">
     <form @submit.prevent="handleSubmit">
       <div class="flex flex-col gap-6">
         <!-- Modal content -->
@@ -136,7 +136,7 @@ const handleSubmit = async () => {
       newPassword.value = "";
       confirmPassword.value = "";
       isModalOpen.value = false; // close modal
-      
+
       alert("Password changed successfully!");
     }
   } catch (error: any) {

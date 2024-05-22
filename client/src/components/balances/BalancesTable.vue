@@ -1,24 +1,22 @@
 <template>
-  <table class="table-auto">
-    <thead>
-      <tr>
-        <th>Amount</th>
-        <th>Currency</th>
-        <th>Created At</th>
-        <th>Updated At</th>
-        <th>Actions</th>
+  <table class="w-full table-fixed text-sm shadow-md">
+    <thead class="bg-gray-100">
+      <tr class="text-lg font-bold">
+        <th class="px-4 py-2">Amount</th>
+        <th class="px-4 py-2">Currency</th>
+        <th class="px-4 py-2">Actions</th>
+        <th class="px-4 py-2">Created At</th>
+        <th class="px-4 py-2">Updated At</th>
       </tr>
     </thead>
     <tbody>
-      <tr v-for="balance in balances" class="text-center">
-        <td>{{ balance.balance }}</td>
-        <td>{{ balance.currency }}</td>
-        <td>{{ formatDate(balance.createdAt) }}</td>
-        <td>{{ formatDate(balance.updatedAt) }}</td>
-        <td class="flex items-center justify-center gap-3">
+      <tr v-for="balance in balances" class="text-center hover:bg-gray-50">
+        <td class="px-4 py-2">{{ balance.balance }}</td>
+        <td class="px-4 py-2">{{ balance.currency }}</td>
+        <td class="flex items-center justify-center gap-3 px-4 py-2">
           <action-button
             text="View"
-            class="rounded-lg border-2 border-blue-500 px-2 text-center text-blue-500 transition hover:border-blue-200 hover:text-blue-300"
+            class="rounded-lg border-2 border-blue-500 px-2 py-2 text-center text-blue-500 transition hover:border-blue-200 hover:text-blue-300"
             @click="handleClickViewBalances(balance.id)"
           />
           <action-button
@@ -26,6 +24,8 @@
             class="rounded-lg border-2 border-blue-500 px-2 text-center text-blue-500 transition hover:border-blue-200 hover:text-blue-300"
           />
         </td>
+        <td class="px-4 py-2">{{ formatDate(balance.createdAt) }}</td>
+        <td class="px-4 py-2">{{ formatDate(balance.updatedAt) }}</td>
       </tr>
     </tbody>
   </table>

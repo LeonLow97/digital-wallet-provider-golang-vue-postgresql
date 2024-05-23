@@ -6,12 +6,22 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func NewValidator() *validator.Validate {
-	return validator.New()
+type Validator struct {
+	validator *validator.Validate
 }
 
-func ValidationErrors(validate *validator.Validate, req interface{}) (string, error) {
-	if err := validate.Struct(req); err != nil {
+func NewValidator() *Validator {
+	v := validator.New()
+
+	if err := v.RegisterValidation("allowed_currencies", currencyValidator); err != nil {
+		panic(err)
+	}
+
+	return &Validator{validator: v}
+}
+
+func ValidationErrors(v *Validator, req interface{}) (string, error) {
+	if err := v.validator.Struct(req); err != nil {
 		var validationErrors []string
 		for _, err := range err.(validator.ValidationErrors) {
 			validationErrors = append(validationErrors, err.Error())
@@ -25,4 +35,14 @@ func ValidateStruct(req interface{}) (string, error) {
 	validate := NewValidator()
 	errMessage, err := ValidationErrors(validate, req)
 	return errMessage, err
+}
+
+var currencyISOCodes = map[string]struct{}{
+	"SGD": {}, "USD": {}, "AUD": {},
+}
+
+var currencyValidator validator.Func = func(fl validator.FieldLevel) bool {
+	currency := fl.Field().String()
+	_, ok := currencyISOCodes[currency]
+	return ok
 }

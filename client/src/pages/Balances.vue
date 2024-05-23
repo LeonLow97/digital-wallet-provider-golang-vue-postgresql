@@ -24,7 +24,8 @@ const getBalances = async () => {
   try {
     const { data, status } = await GET_BALANCES();
 
-    balances.value = data.balances;
+    // sort the balances by amount in descending order
+    balances.value = data.balances.sort((a, b) => b.balance - a.balance);
   } catch (error: unknown) {
     alert(error);
   }

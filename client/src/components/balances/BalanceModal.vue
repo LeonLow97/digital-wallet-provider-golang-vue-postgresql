@@ -60,23 +60,23 @@ import { computed, ref, watch } from "vue";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { DEPOSIT, WITHDRAW } from "@/api/balances";
-import type { DEPOSIT_REQUEST, WITHDRAW_REQUEST } from "@/types/balances";
+import type {
+  Balance,
+  DEPOSIT_REQUEST,
+  WITHDRAW_REQUEST,
+} from "@/types/balances";
 import type { GENERIC_STATUS_RESPONSE } from "@/types/generic";
 
 const props = defineProps<{
   actionType: string;
   openModal: boolean;
-  balance: {
-    id: number;
-    balance: number;
-    currency: string;
-    createdAt: string;
-  } | null;
+  balance: Balance | null;
 }>();
 
 const isModalOpen = ref<boolean>(false);
 const amount = ref<number>(0);
 const currency = ref(props.balance?.currency);
+const balance = ref<Balance | null>();
 
 const emits = defineEmits(["closeModal", "formSubmitted"]);
 
@@ -94,6 +94,15 @@ watch(
   (newValue) => {
     if (newValue !== undefined) {
       currency.value = newValue;
+    }
+  },
+);
+
+watch(
+  () => props.balance,
+  (newValue) => {
+    if (props) {
+      balance.value = newValue;
     }
   },
 );

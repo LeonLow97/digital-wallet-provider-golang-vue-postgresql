@@ -111,10 +111,7 @@ router.beforeEach(async (to, from, next) => {
           next({ name: "Home" }); // Redirect to Home if authenticated
           return;
         }
-      } catch (error) {
-        // If there's an error (e.g., user not authenticated), proceed to login page
-        console.error("Error checking authentication on login page:", error);
-      }
+      } catch (error) {}
     }
     next();
     return;
@@ -139,12 +136,10 @@ router.beforeEach(async (to, from, next) => {
         break;
       default:
         localStorage.setItem(IS_LOGGED_IN, "false");
-        next({ name: "Error" }); // Redirect to an error page
+        next({ name: "Error" });
         break;
     }
   } catch (error) {
-    // Handle error refreshing session
-    console.error("Error refreshing session:", error);
     next({ name: "Login" });
   }
 });

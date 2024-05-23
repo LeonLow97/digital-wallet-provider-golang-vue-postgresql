@@ -46,7 +46,7 @@
 
     <!-- Balance History Table -->
     <h2 class="mb-2 mt-8 text-center text-xl font-bold">Balance History</h2>
-    <div class="shadow-md mb-14">
+    <div class="mb-14 shadow-md">
       <table class="w-full table-fixed text-sm">
         <thead>
           <tr class="bg-gray-100">
@@ -102,17 +102,20 @@
 import { onMounted, ref } from "vue";
 import { GET_BALANCE, GET_BALANCE_HISTORY, DEPOSIT } from "@/api/balances";
 import { useRoute, useRouter } from "vue-router";
-import type {
-  GetBalanceResponse,
-  GetBalanceHistoryResponse,
-} from "@/types/balances";
+import type { Balance, GetBalanceHistoryResponse } from "@/types/balances";
 import { format } from "date-fns";
 import ActionButton from "@/components/ActionButton.vue";
 import BalanceModal from "@/components/balances/BalanceModal.vue";
 
 const route = useRoute();
 const router = useRouter();
-const balance = ref<GetBalanceResponse | null>(null);
+const balance = ref<Balance>({
+  id: 0,
+  balance: 0,
+  currency: "",
+  createdAt: "",
+  updatedAt: "",
+});
 const balanceHistory = ref<GetBalanceHistoryResponse | null>(null);
 let actionType = ref("");
 const openModal = ref(false);

@@ -22,28 +22,28 @@
           <action-button
             text="Deposit"
             class="rounded-lg border-2 border-green-500 px-2 text-center text-green-500 transition hover:border-green-200 hover:text-green-300"
-            @click="handleDeposit"
+            @click="handleDeposit(balance)"
           />
           <action-button
             text="Withdraw"
             class="rounded-lg border-2 border-orange-500 px-2 text-center text-orange-500 transition hover:border-orange-200 hover:text-orange-300"
-            @click="handleWithdraw"
+            @click="handleWithdraw(balance)"
           />
         </td>
         <td class="px-4 py-2">{{ formatDate(balance.createdAt) }}</td>
         <td class="px-4 py-2">{{ formatDate(balance.updatedAt) }}</td>
-
-        <balance-modal
-          @close-modal="closeModal"
-          @form-submitted="formSubmitted"
-          class="text-left"
-          :open-modal="openModal"
-          :action-type="actionType"
-          :balance="balance"
-        />
       </tr>
     </tbody>
   </table>
+
+  <balance-modal
+    @close-modal="closeModal"
+    @form-submitted="formSubmitted"
+    class="text-left"
+    :open-modal="openModal"
+    :action-type="actionType"
+    :balance="selectedBalance!"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -61,6 +61,13 @@ const emits = defineEmits(["formSubmitted"]);
 const router = useRouter();
 let actionType = ref("");
 const openModal = ref(false);
+const selectedBalance = ref<Balance>({
+  id: 0,
+  balance: 0,
+  currency: '',
+  createdAt: '',
+  updatedAt: '',
+});
 
 const formatDate = (dateString: string): string => {
   return format(new Date(dateString), "PPpp");
@@ -70,14 +77,16 @@ const handleClickViewBalances = (balanceId: number) => {
   router.push({ name: "Balance", params: { id: balanceId } });
 };
 
-const handleDeposit = () => {
+const handleDeposit = (balance: Balance) => {
   actionType.value = "deposit";
   openModal.value = true;
+  selectedBalance.value = balance;
 };
 
-const handleWithdraw = () => {
+const handleWithdraw = (balance: Balance) => {
   actionType.value = "withdraw";
   openModal.value = true;
+  selectedBalance.value = balance;
 };
 
 const closeModal = () => {

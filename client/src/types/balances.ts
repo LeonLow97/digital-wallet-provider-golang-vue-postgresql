@@ -3,7 +3,7 @@ export interface Balance {
   balance: number;
   currency: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 interface BalanceHistory {

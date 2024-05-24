@@ -104,12 +104,12 @@ const skippedProtectedEndpoints: RouteRecordName[] = [
 
 // Navigation guard: https://router.vuejs.org/guide/advanced/navigation-guards.html
 router.beforeEach(async (to, from, next) => {
-  const isLoggedIn = localStorage.getItem(IS_LOGGED_IN);
+  const isLoggedIn = localStorage.getItem(IS_LOGGED_IN) === "true";
 
   // Skip calling GET_USER() if navigating to the login page
   if (skippedProtectedEndpoints.includes(to.name!)) {
     // If on the login page, check if the user is already authenticated
-    if (to.name === "Login") {
+    if (to.name === "Login" && isLoggedIn) {
       try {
         const status = await GET_USER();
         if (status === 200) {
@@ -117,7 +117,7 @@ router.beforeEach(async (to, from, next) => {
           return;
         }
       } catch (error) {
-        
+        alert(error); // FOR DEVELOPMENT ONLY, REMOVE THIS!
       }
     }
     next();
@@ -125,7 +125,7 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // Redirect to login page if not logged in and not on a skipped protected endpoint
-  if (isLoggedIn !== "true" && !skippedProtectedEndpoints.includes(to.name!)) {
+  if (!isLoggedIn && !skippedProtectedEndpoints.includes(to.name!)) {
     next({ name: "Login" });
     return;
   }

@@ -129,11 +129,11 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie := &http.Cookie{
 		Name:     utils.JWT_COOKIE,
 		Value:    "",
-		MaxAge:   -1,
-		Path:     "",
+		MaxAge:   0,
+		Path:     "/",
 		Domain:   "",
-		Secure:   false,
-		HttpOnly: true,
+		Secure:   false, // For HTTPS, `Secure: true`. Using HTTP, so `Secure: false`
+		HttpOnly: true, // prevent client-side scripts from accessing cookie, like `document.cookie`
 	}
 	http.SetCookie(w, cookie)
 

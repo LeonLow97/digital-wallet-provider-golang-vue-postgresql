@@ -374,7 +374,7 @@ func (h *UserHandler) GetUserDetail(w http.ResponseWriter, r *http.Request) {
 
 	csrfToken, err := h.userUsecase.ExtendUserSessionInRedis(ctx, sessionID, utils.SESSION_EXPIRY)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 

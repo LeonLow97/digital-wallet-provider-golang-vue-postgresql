@@ -11,7 +11,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import WalletCard from "@/components/WalletCard.vue";
+import WalletCard from "@/components/wallets/WalletCard.vue";
 import { GET_WALLETS } from "@/api/wallet";
 import { onMounted, ref } from "vue";
 import type { Wallet } from "@/types/wallet";

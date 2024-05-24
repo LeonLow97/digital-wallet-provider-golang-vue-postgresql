@@ -12,7 +12,7 @@
         >History</router-link
       >
       <action-button
-        class="hover rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-300 transition"
+        class="hover rounded-lg bg-blue-500 px-4 py-2 text-white transition hover:bg-blue-300"
         text="Transfer"
       />
     </div>

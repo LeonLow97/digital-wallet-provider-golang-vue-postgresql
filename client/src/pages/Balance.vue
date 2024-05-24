@@ -1,51 +1,48 @@
 <template>
-  <div class="mx-auto mt-4 w-full">
-    <!-- Balance Card -->
-    <div class="flex items-start justify-between gap-4">
-      <div
-        class="w-1/3 rounded-lg border border-gray-200 bg-white p-6 shadow-md"
+  <div class="mx-auto w-full">
+    <div class="mt-2 flex items-center justify-between">
+      <router-link
+        :to="{ name: 'Balances' }"
+        class="text-blue-600 underline underline-offset-8 hover:text-blue-300 tracking-wider"
+        >&larr; Back to Balances</router-link
       >
-        <h2 class="mb-4 text-2xl font-bold text-gray-800">Balance</h2>
-        <div class="flex flex-col gap-4">
-          <div class="flex justify-between">
-            <p class="text-lg text-gray-600">Balance:</p>
-            <p class="text-lg text-blue-600">{{ balance?.balance }}</p>
-          </div>
-          <div class="flex justify-between">
-            <p class="text-lg text-gray-600">Currency:</p>
-            <p class="text-lg text-blue-600">{{ balance?.currency }}</p>
-          </div>
-          <div class="flex justify-between">
-            <p class="text-lg text-gray-600">Created At:</p>
-            <p class="text-lg italic text-gray-600">
-              {{ formatDate(balance?.createdAt) }}
-            </p>
-          </div>
-        </div>
+      <div>
+        <action-button
+          class="mr-8 rounded-lg border border-none bg-green-500 px-8 py-2 text-center text-white transition hover:bg-green-400"
+          text="Deposit"
+          @click="handleDeposit"
+        />
+        <action-button
+          class="rounded-lg border border-none bg-orange-600 px-8 py-2 text-center text-white transition hover:bg-orange-400"
+          text="Withdraw"
+          @click="handleWithdraw"
+        />
       </div>
+    </div>
 
-      <action-button
-        class="rounded-lg border border-none bg-green-500 px-8 py-2 text-center text-white transition hover:bg-green-400"
-        text="Deposit"
-        @click="handleDeposit"
-      />
-      <action-button
-        class="rounded-lg border border-none bg-orange-500 px-8 py-2 text-center text-white transition hover:bg-orange-400"
-        text="Withdraw"
-        @click="handleWithdraw"
-      />
+    <!-- Balance Card -->
+    <div class="mt-8 flex items-start justify-start gap-4">
+      <div
+        class="w-full rounded-lg border border-gray-200 bg-white p-6 shadow-md"
+      >
+        <h2 class="mb-4 text-lg font-bold text-gray-800">Balance</h2>
+        <div class="grid w-2/5 grid-cols-2 gap-4">
+          <p class="text-gray-600">Balance:</p>
+          <p class="text-blue-600">{{ balance?.balance }}</p>
 
-      <div class="flex flex-col gap-4">
-        <router-link
-          :to="{ name: 'Balances' }"
-          class="text-lg text-blue-600 underline underline-offset-8 hover:text-blue-300"
-          >&larr; Back to Balances</router-link
-        >
+          <p class="text-gray-600">Currency:</p>
+          <p class="text-blue-600">{{ balance?.currency }}</p>
+
+          <p class="text-gray-600">Created At:</p>
+          <p class="italic text-gray-600">
+            {{ formatDate(balance?.createdAt) }}
+          </p>
+        </div>
       </div>
     </div>
 
     <!-- Balance History Table -->
-    <h2 class="mb-2 mt-8 text-center text-xl font-bold">Balance History</h2>
+    <h2 class="mb-4 mt-8 text-lg font-bold">Balance History</h2>
     <div class="mb-14 shadow-md">
       <table class="w-full table-fixed text-sm">
         <thead>

@@ -36,11 +36,7 @@ func (h *BeneficiaryHandler) CreateBeneficiary(w http.ResponseWriter, r *http.Re
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, ok := ctx.Value(utils.UserIDKey).(int)
-	if !ok {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
-		return
-	}
+	userID, _ := utils.UserIDFromContext(ctx)
 
 	var req dto.CreateBeneficiaryRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -58,9 +54,8 @@ func (h *BeneficiaryHandler) CreateBeneficiary(w http.ResponseWriter, r *http.Re
 
 	// sanitize request body
 	req.CreateBeneficiarySanitize()
-	req.UserID = userID
 
-	err = h.beneficiaryUsecase.CreateBeneficiary(ctx, req)
+	err = h.beneficiaryUsecase.CreateBeneficiary(ctx, userID, req)
 	switch {
 	case errors.Is(err, exception.ErrUserNotFound):
 		utils.ErrorJSON(w, apiErr.ErrUserNotFound, http.StatusNotFound)
@@ -79,11 +74,7 @@ func (h *BeneficiaryHandler) UpdateBeneficiary(w http.ResponseWriter, r *http.Re
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, ok := ctx.Value(utils.UserIDKey).(int)
-	if !ok {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
-		return
-	}
+	userID, _ := utils.UserIDFromContext(ctx)
 
 	var req dto.UpdateBeneficiaryRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -99,9 +90,7 @@ func (h *BeneficiaryHandler) UpdateBeneficiary(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	req.UserID = userID
-
-	err = h.beneficiaryUsecase.UpdateBeneficiary(ctx, req)
+	err = h.beneficiaryUsecase.UpdateBeneficiary(ctx, userID,req)
 	switch {
 	case errors.Is(err, exception.ErrUserIDEqualBeneficiaryID):
 		utils.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
@@ -149,11 +138,7 @@ func (h *BeneficiaryHandler) GetBeneficiaries(w http.ResponseWriter, r *http.Req
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, ok := ctx.Value(utils.UserIDKey).(int)
-	if !ok {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
-		return
-	}
+	userID, _ := utils.UserIDFromContext(ctx)
 
 	// get beneficiaries
 	resp, err := h.beneficiaryUsecase.GetBeneficiaries(ctx, userID)

@@ -18,8 +18,8 @@ type Beneficiary struct {
 }
 
 type BeneficiaryUsecase interface {
-	CreateBeneficiary(ctx context.Context, req dto.CreateBeneficiaryRequest) error
-	UpdateBeneficiary(ctx context.Context, req dto.UpdateBeneficiaryRequest) error
+	CreateBeneficiary(ctx context.Context, userID int, req dto.CreateBeneficiaryRequest) error
+	UpdateBeneficiary(ctx context.Context, useriD int, req dto.UpdateBeneficiaryRequest) error
 	GetBeneficiary(ctx context.Context, beneficiaryID int, userID int) (*dto.GetBeneficiaryResponse, error)
 	GetBeneficiaries(ctx context.Context, userID int) (*dto.GetBeneficiariesResponse, error)
 }

@@ -59,6 +59,11 @@ const routes = [
     component: () => import("@/pages/Transactions.vue"),
   },
   {
+    path: "/beneficiary",
+    name: "Beneficiary",
+    component: () => import("@/pages/Beneficiary.vue"),
+  },
+  {
     path: "/transfer",
     name: "Transfer",
     component: () => import("@/pages/Transfer.vue"),
@@ -111,7 +116,9 @@ router.beforeEach(async (to, from, next) => {
           next({ name: "Home" }); // Redirect to Home if authenticated
           return;
         }
-      } catch (error) {}
+      } catch (error) {
+        
+      }
     }
     next();
     return;

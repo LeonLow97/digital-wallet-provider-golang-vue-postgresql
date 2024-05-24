@@ -23,6 +23,16 @@
           >
         </li>
       </router-link>
+      <router-link :to="{ name: 'Beneficiary' }">
+        <li
+          class="grid grid-cols-3 px-12 py-4 transition hover:bg-blue-500 hover:text-white"
+        >
+          <svg-icon type="mdi" :path="mdiAccountGroup" /><span
+            :class="props.openSideNav ? '' : 'hidden'"
+            >Beneficiary</span
+          >
+        </li>
+      </router-link>
       <router-link :to="{ name: 'Wallets' }">
         <li
           class="grid grid-cols-3 px-12 py-4 transition hover:bg-blue-500 hover:text-white"
@@ -52,8 +62,8 @@ import {
   mdiHomeAccount,
   mdiWallet,
   mdiListBoxOutline,
-  mdiBankTransfer,
   mdiCash,
+  mdiAccountGroup,
 } from "@mdi/js";
 import SvgIcon from "@jamescoyle/vue-icon";
 

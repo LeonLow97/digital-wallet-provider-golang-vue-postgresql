@@ -19,42 +19,42 @@ func NewBeneficiaryUsecase(beneficiaryRepository domain.BeneficiaryRepository) d
 	}
 }
 
-func (uc *beneficiaryUsecase) CreateBeneficiary(ctx context.Context, req dto.CreateBeneficiaryRequest) error {
+func (uc *beneficiaryUsecase) CreateBeneficiary(ctx context.Context, userID int, req dto.CreateBeneficiaryRequest) error {
 	// retrieve beneficiary id by mobile number
 	beneficiaryID, err := uc.beneficiaryRepository.GetUserIDByMobileNumber(ctx, req.MobileNumber)
 	if err != nil {
-		log.Println("failed to get user id by mobile number", err)
+		log.Println("failed to get user id by mobile number with error:", err)
 		return err
 	}
 
-	if beneficiaryID == req.UserID {
+	if beneficiaryID == userID {
 		return exception.ErrUserIDEqualBeneficiaryID
 	}
 
 	// link user to beneficiary
-	err = uc.beneficiaryRepository.CreateBeneficiary(ctx, req.UserID, beneficiaryID)
+	err = uc.beneficiaryRepository.CreateBeneficiary(ctx, userID, beneficiaryID)
 	if err != nil {
-		log.Println("failed to create beneficiary", err)
+		log.Println("failed to create beneficiary with error:", err)
 		return err
 	}
 
 	return nil
 }
 
-func (uc *beneficiaryUsecase) UpdateBeneficiary(ctx context.Context, req dto.UpdateBeneficiaryRequest) error {
+func (uc *beneficiaryUsecase) UpdateBeneficiary(ctx context.Context, userID int, req dto.UpdateBeneficiaryRequest) error {
 	// check if beneficiary id equal to user id
-	if req.BeneficiaryID == req.UserID {
+	if req.BeneficiaryID == userID {
 		return exception.ErrUserIDEqualBeneficiaryID
 	}
 
 	// check if beneficiary id is related to user id
-	err := uc.beneficiaryRepository.IsLinkedByUserIDAndBeneficiaryID(ctx, req.UserID, req.BeneficiaryID)
+	err := uc.beneficiaryRepository.IsLinkedByUserIDAndBeneficiaryID(ctx, userID, req.BeneficiaryID)
 	if err != nil {
 		return err
 	}
 
 	// update beneficiary soft delete feature flag (is_deleted)
-	err = uc.beneficiaryRepository.UpdateBeneficiaryIsDeleted(ctx, req.UserID, req.BeneficiaryID, req.IsDeleted)
+	err = uc.beneficiaryRepository.UpdateBeneficiaryIsDeleted(ctx, userID, req.BeneficiaryID, req.IsDeleted)
 	if err != nil {
 		return err
 	}

@@ -33,7 +33,7 @@ type User struct {
 
 // UserUsecase represents the user's use cases
 type UserUsecase interface {
-	Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, *dto.Token, error)
+	Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, error)
 	SignUp(ctx context.Context, req dto.SignUpRequest) error
 	ChangePassword(ctx context.Context, userID int, req dto.ChangePasswordRequest) error
 	RemoveSessionFromRedis(ctx context.Context, sessionID string) error
@@ -42,8 +42,8 @@ type UserUsecase interface {
 	ExtendUserSessionInRedis(ctx context.Context, sessionID string, sessionExpiryInMinutes time.Duration) (string, error)
 	SendPasswordResetEmail(ctx context.Context, req dto.SendPasswordResetEmailRequest) error
 	PasswordReset(ctx context.Context, req dto.PasswordResetRequest) error
-	ConfigureMFA(ctx context.Context, req dto.ConfigureMFARequest) error
-	VerifyMFA(ctx context.Context, req dto.VerifyMFARequest) error
+	ConfigureMFA(ctx context.Context, req dto.ConfigureMFARequest) (*dto.Token, error)
+	VerifyMFA(ctx context.Context, req dto.VerifyMFARequest) (*dto.Token, error)
 }
 
 // UserRepository represents the user's repository contract

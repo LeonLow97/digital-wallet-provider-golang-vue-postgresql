@@ -63,7 +63,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	req.LoginSanitize()
 
-	resp, token, err := h.userUsecase.Login(ctx, req)
+	resp, err := h.userUsecase.Login(ctx, req)
 	switch {
 	case errors.Is(err, exception.ErrUserNotFound) || errors.Is(err, exception.ErrInvalidCredentials):
 		utils.ErrorJSON(w, apiErr.ErrInvalidCredentials, http.StatusUnauthorized)
@@ -73,10 +73,6 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		log.Println("error in login handler", err)
 		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 	default:
-		// TODO: utilise refresh token or remove it from user use case
-		w.Header().Set("X-CSRF-Token", token.CSRFToken)
-		utils.IssueCookie(w, token.AccessToken)
-
 		utils.WriteJSON(w, http.StatusOK, resp)
 	}
 }
@@ -133,7 +129,7 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		Domain:   "",
 		Secure:   false, // For HTTPS, `Secure: true`. Using HTTP, so `Secure: false`
-		HttpOnly: true, // prevent client-side scripts from accessing cookie, like `document.cookie`
+		HttpOnly: true,  // prevent client-side scripts from accessing cookie, like `document.cookie`
 	}
 	http.SetCookie(w, cookie)
 
@@ -205,7 +201,8 @@ func (h *UserHandler) ConfigureMFA(w http.ResponseWriter, r *http.Request) {
 
 	req.ConfigureMFASanitize()
 
-	if err := h.userUsecase.ConfigureMFA(ctx, req); err != nil {
+	token, err := h.userUsecase.ConfigureMFA(ctx, req)
+	if err != nil {
 		switch {
 		case errors.Is(err, exception.ErrInvalidMFACode):
 			utils.ErrorJSON(w, apiErr.ErrInvalidMFACode, http.StatusUnauthorized)
@@ -221,6 +218,10 @@ func (h *UserHandler) ConfigureMFA(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	// TODO: utilise refresh token or remove it from user use case
+	w.Header().Set("X-CSRF-Token", token.CSRFToken)
+	utils.IssueCookie(w, token.AccessToken)
 
 	utils.WriteNoContent(w, http.StatusNoContent)
 }
@@ -244,7 +245,8 @@ func (h *UserHandler) VerifyMFA(w http.ResponseWriter, r *http.Request) {
 
 	req.VerifyMFASanitize()
 
-	if err := h.userUsecase.VerifyMFA(ctx, req); err != nil {
+	token, err := h.userUsecase.VerifyMFA(ctx, req)
+	if err != nil {
 		switch {
 		case errors.Is(err, exception.ErrUserNotFound):
 			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
@@ -257,6 +259,10 @@ func (h *UserHandler) VerifyMFA(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	// TODO: utilise refresh token or remove it from user use case
+	w.Header().Set("X-CSRF-Token", token.CSRFToken)
+	utils.IssueCookie(w, token.AccessToken)
 
 	utils.WriteNoContent(w, http.StatusNoContent)
 }

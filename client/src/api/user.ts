@@ -164,11 +164,9 @@ export const VERIFY_MFA = async (
   body: VERIFY_MFA_REQUEST,
 ): Promise<GENERIC_STATUS_RESPONSE> => {
   try {
-    const { status } = await axios.post(
-      VERIFY_MFA_URL,
-      JSON.stringify(body),
-      undefined,
-    );
+    const { status } = await axios.post(VERIFY_MFA_URL, JSON.stringify(body), {
+      withCredentials: true,
+    });
 
     return { status };
   } catch (error: unknown) {

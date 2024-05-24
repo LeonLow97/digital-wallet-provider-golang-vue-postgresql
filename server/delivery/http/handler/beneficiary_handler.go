@@ -90,7 +90,7 @@ func (h *BeneficiaryHandler) UpdateBeneficiary(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err = h.beneficiaryUsecase.UpdateBeneficiary(ctx, userID,req)
+	err = h.beneficiaryUsecase.UpdateBeneficiary(ctx, userID, req)
 	switch {
 	case errors.Is(err, exception.ErrUserIDEqualBeneficiaryID):
 		utils.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)

@@ -175,6 +175,7 @@ const onMfaConfigured = (isConfigured: boolean) => {
 
 const onMfaVerified = (isVerified: boolean) => {
   if (isVerified) {
+    showMFAForm.value = false;
     // user is authenticated fully by password and mfa code
     userStore.LOGIN_USER(user);
 

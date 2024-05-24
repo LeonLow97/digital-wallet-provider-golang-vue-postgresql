@@ -46,79 +46,26 @@ var (
 	refreshTokenExpiry = time.Hour * 24
 )
 
-func (uc *userUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, *dto.Token, error) {
+func (uc *userUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, error) {
 	// retrieve user details from db
 	user, err := uc.userRepository.GetUserByEmail(ctx, req.Email)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	// authenticating user via password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	switch {
 	case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) || errors.Is(err, bcrypt.ErrHashTooShort):
-		return nil, nil, exception.ErrInvalidCredentials
+		return nil, exception.ErrInvalidCredentials
 	case err != nil:
-		return nil, nil, err
+		return nil, err
 	}
 
 	// checking if user is active
 	if !user.Active {
-		return nil, nil, exception.ErrInactiveUser
+		return nil, exception.ErrInactiveUser
 	}
-
-	// generate session token with uuid
-	sessionID := uuid.New().String()
-
-	// generate access token and refresh token
-	accessToken, err := uc.GenerateJWTAccessToken(user.ID, accessTokenExpiry, sessionID)
-	if err != nil {
-		return nil, nil, err
-	}
-	refreshToken, err := uc.generateJWTRefreshToken(user.ID, refreshTokenExpiry, sessionID)
-	if err != nil {
-		return nil, nil, err
-	}
-	token := &dto.Token{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	}
-
-	// storing sessionID => { userID, csrfToken }
-	csrfToken := uc.generateCSRFToken(uc.cfg.CSRF.Key, sessionID)
-	sessionIDValues := map[string]interface{}{
-		"userID":    user.ID,
-		"csrfToken": csrfToken,
-	}
-	if err := uc.redisClient.HSet(ctx, sessionID, sessionIDValues); err != nil {
-		log.Println("failed to store userID and csrfToken in redis client", err)
-		return nil, nil, err
-	}
-
-	// set expiration time for the hash table (user details and csrf token)
-	if err := uc.redisClient.Expire(ctx, sessionID, utils.SESSION_EXPIRY); err != nil {
-		log.Println("failed to extend sessionID hash table in redis client", err)
-		return nil, nil, err
-	}
-	token.CSRFToken = csrfToken
-
-	// storing userID => sessionID mapping in Redis Set to keep track of users with multiple devices logged on
-	userIDString := strconv.Itoa(user.ID)
-	if err := uc.redisClient.SAdd(ctx, userIDString, sessionID); err != nil {
-		return nil, nil, err
-	}
-
-	key, _, err := uc.totpInstance.GenerateTOTP(ctx, user.ID, user.Email)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// storing sessionID => sessionObject mapping
-	// TODO: Store roles, permissions, emails in sessionObject
-	// sessionObjectBytes, _ := json.Marshal(user)
-	// if err := uc.redisClient.Set(ctx, sessionID, sessionObjectBytes); err != nil {
-	// 	return nil, nil, err
-	// }
 
 	resp := dto.LoginResponse{
 		FirstName:       user.FirstName,
@@ -131,11 +78,16 @@ func (uc *userUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.Lo
 
 	// if mfa is not configured, add the secret and url
 	if !user.IsMFAConfigured {
+		key, _, err := uc.totpInstance.GenerateTOTP(ctx, user.ID, user.Email)
+		if err != nil {
+			return nil, err
+		}
+
 		resp.MFAConfig.Secret = key.Secret()
 		resp.MFAConfig.URL = key.URL()
 	}
 
-	return &resp, token, nil
+	return &resp, nil
 }
 
 func (uc *userUsecase) SignUp(ctx context.Context, req dto.SignUpRequest) error {
@@ -182,35 +134,35 @@ func (uc *userUsecase) SignUp(ctx context.Context, req dto.SignUpRequest) error 
 	return nil
 }
 
-func (uc *userUsecase) ConfigureMFA(ctx context.Context, req dto.ConfigureMFARequest) error {
+func (uc *userUsecase) ConfigureMFA(ctx context.Context, req dto.ConfigureMFARequest) (*dto.Token, error) {
 	// get user by email
 	user, err := uc.userRepository.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		log.Printf("failed to get user by email %s with error: %v\n", req.Email, err)
-		return err
+		return nil, err
 	}
 
 	// validate totp
 	isValidMFACode := totp.Validate(req.MFACode, req.Secret)
 	if !isValidMFACode {
-		return exception.ErrInvalidMFACode
+		return nil, exception.ErrInvalidMFACode
 	}
 
 	// check if user already has totp secret
 	totpSecretCount, err := uc.userRepository.GetUserTOTPSecretCount(ctx, user.ID)
 	if err != nil {
 		log.Println("failed to get user totp secret count with error:", err)
-		return err
+		return nil, err
 	}
 	if totpSecretCount != 0 {
 		log.Printf("user id %d already has totp configured\n", user.ID)
-		return exception.ErrTOTPSecretExists
+		return nil, exception.ErrTOTPSecretExists
 	}
 
 	encryptedSecret, err := uc.totpInstance.EncryptTOTPSecret(req.Secret, []byte(uc.cfg.TOTP.EncryptionKey))
 	if err != nil {
 		log.Println("failed to encrypt TOTP secret with error:", err)
-		return err
+		return nil, err
 	}
 
 	// insert user totp encrypted secret
@@ -223,47 +175,59 @@ func (uc *userUsecase) ConfigureMFA(ctx context.Context, req dto.ConfigureMFAReq
 
 	if err := uc.userRepository.InsertUserTOTPSecret(ctx, totpConfiguration); err != nil {
 		log.Println("failed to insert user totp secret with error:", err)
-		return err
+		return nil, err
 	}
 
 	// update is_mfa_configured to true
 	if err := uc.userRepository.UpdateIsMFAConfigured(ctx, user.ID, true); err != nil {
 		log.Println("failed to update IsMFAConfigured flag to true with error:", err)
-		return err
+		return nil, err
 	}
 
-	return nil
+	token, err := uc.GenerateUserSession(ctx, user.ID)
+	if err != nil {
+		log.Println("failed to generate user session with error:", err)
+		return nil, err
+	}
+
+	return token, nil
 }
 
-func (uc *userUsecase) VerifyMFA(ctx context.Context, req dto.VerifyMFARequest) error {
+func (uc *userUsecase) VerifyMFA(ctx context.Context, req dto.VerifyMFARequest) (*dto.Token, error) {
 	// get user by email to retrieve user id
 	user, err := uc.userRepository.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		log.Println("failed to get user by email with error:", err)
-		return err
+		return nil, err
 	}
 
 	// retrieve user encrypted totp secret by user id
 	encryptedTOTPSecret, err := uc.userRepository.GetUserTOTPSecret(ctx, user.ID)
 	if err != nil {
 		log.Println("failed to get user totp secret with error:", err)
-		return err
+		return nil, err
 	}
 
 	// decrypt the encrypted totp secret to retrieve plain text user totp secret
 	plainTextTOTPSecret, err := uc.totpInstance.DecryptTOTPSecret(encryptedTOTPSecret, []byte(uc.cfg.TOTP.EncryptionKey))
 	if err != nil {
 		log.Println("failed to decrypt totp secret with error:", err)
-		return err
+		return nil, err
 	}
 
 	// validate totp
 	isValidMFACode := totp.Validate(req.MFACode, plainTextTOTPSecret)
 	if !isValidMFACode {
-		return exception.ErrInvalidMFACode
+		return nil, exception.ErrInvalidMFACode
 	}
 
-	return nil
+	token, err := uc.GenerateUserSession(ctx, user.ID)
+	if err != nil {
+		log.Println("failed to generate user session with error:", err)
+		return nil, err
+	}
+
+	return token, nil
 }
 
 func (uc *userUsecase) ChangePassword(ctx context.Context, userID int, req dto.ChangePasswordRequest) error {
@@ -511,6 +475,59 @@ func (uc *userUsecase) RemoveSessionFromRedis(ctx context.Context, sessionID str
 	}
 
 	return nil
+}
+
+func (uc *userUsecase) GenerateUserSession(ctx context.Context, userID int) (*dto.Token, error) {
+	// generate session token with uuid
+	sessionID := uuid.New().String()
+
+	// generate access token and refresh token
+	accessToken, err := uc.GenerateJWTAccessToken(userID, accessTokenExpiry, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	refreshToken, err := uc.generateJWTRefreshToken(userID, refreshTokenExpiry, sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	// storing sessionID => { userID, csrfToken }
+	csrfToken := uc.generateCSRFToken(uc.cfg.CSRF.Key, sessionID)
+	sessionIDValues := map[string]interface{}{
+		"userID":    userID,
+		"csrfToken": csrfToken,
+	}
+	if err := uc.redisClient.HSet(ctx, sessionID, sessionIDValues); err != nil {
+		log.Println("failed to store userID and csrfToken in redis client", err)
+		return nil, err
+	}
+
+	// set expiration time for the hash table (user details and csrf token)
+	if err := uc.redisClient.Expire(ctx, sessionID, utils.SESSION_EXPIRY); err != nil {
+		log.Println("failed to extend sessionID hash table in redis client", err)
+		return nil, err
+	}
+	token := &dto.Token{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		CSRFToken:    csrfToken,
+	}
+
+	// storing userID => sessionID mapping in Redis Set to keep track of users with multiple devices logged on
+	userIDString := strconv.Itoa(userID)
+	if err := uc.redisClient.SAdd(ctx, userIDString, sessionID); err != nil {
+		return nil, err
+	}
+
+	return token, nil
+
+	// storing sessionID => sessionObject mapping
+	// TODO: Store roles, permissions, emails in sessionObject
+	// sessionObjectBytes, _ := json.Marshal(user)
+	//
+	//	if err := uc.redisClient.Set(ctx, sessionID, sessionObjectBytes); err != nil {
+	//		return nil, nil, err
+	//	}
 }
 
 // generateJWTAccessToken returns the JWT Access Token with the stores session ID

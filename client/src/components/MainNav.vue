@@ -64,7 +64,7 @@ const handleLogout = async () => {
     const { status } = await LOGOUT();
 
     if (status !== 200) {
-      console.log("logout was unsuccessful");
+      alert("logout was unsuccessful");
     }
 
     alert("logged out!");

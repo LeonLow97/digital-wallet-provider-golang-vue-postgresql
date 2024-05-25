@@ -189,7 +189,7 @@ func (r *userRepository) UpdateUser(ctx context.Context, user *domain.User) erro
 		SET first_name = $1,
 			last_name = $2,
 			username = $3,
-			mobile_country_code = $4
+			mobile_country_code = $4,
 			mobile_number = $5,
 			email = $6
 		WHERE id = $7;

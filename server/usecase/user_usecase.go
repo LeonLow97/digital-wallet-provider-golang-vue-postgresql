@@ -434,7 +434,7 @@ func (uc *userUsecase) UpdateUser(ctx context.Context, userID int, req dto.Updat
 
 	// update one user
 	if err := uc.userRepository.UpdateUser(ctx, &updatedUser); err != nil {
-		log.Printf("error updating one user with user id: %d\n", userID)
+		log.Printf("error updating one user with user id %d with error: %v\n", userID, err)
 		return err
 	}
 

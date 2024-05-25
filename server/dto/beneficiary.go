@@ -3,7 +3,8 @@ package dto
 import "strings"
 
 type CreateBeneficiaryRequest struct {
-	MobileNumber string `json:"mobile_number" validate:"required,min=1,max=255"`
+	MobileCountryCode string `json:"mobile_country_code" validate:"required,min=1,max=5"`
+	MobileNumber      string `json:"mobile_number" validate:"required,min=1,max=255"`
 }
 
 type UpdateBeneficiaryRequest struct {
@@ -12,14 +13,15 @@ type UpdateBeneficiaryRequest struct {
 }
 
 type GetBeneficiaryResponse struct {
-	BeneficiaryID           int    `json:"beneficiaryID"`
-	IsDeleted               int    `json:"isDeleted"`
-	BeneficiaryFirstName    string `json:"beneficiaryFirstName"`
-	BeneficiaryLastName     string `json:"beneficiaryLastName"`
-	BeneficiaryEmail        string `json:"beneficiaryEmail"`
-	BeneficiaryUsername     string `json:"beneficiaryUsername"`
-	IsActive                int    `json:"active"`
-	BeneficiaryMobileNumber string `json:"beneficiaryMobileNumber"`
+	BeneficiaryID                int    `json:"beneficiaryID"`
+	IsDeleted                    int    `json:"isDeleted"`
+	BeneficiaryFirstName         string `json:"beneficiaryFirstName"`
+	BeneficiaryLastName          string `json:"beneficiaryLastName"`
+	BeneficiaryEmail             string `json:"beneficiaryEmail"`
+	BeneficiaryUsername          string `json:"beneficiaryUsername"`
+	IsActive                     int    `json:"active"`
+	BeneficiaryMobileCountryCode string `json:"beneficiaryMobileCountryCode"`
+	BeneficiaryMobileNumber      string `json:"beneficiaryMobileNumber"`
 }
 
 type GetBeneficiariesResponse struct {
@@ -27,5 +29,6 @@ type GetBeneficiariesResponse struct {
 }
 
 func (req *CreateBeneficiaryRequest) CreateBeneficiarySanitize() {
+	req.MobileCountryCode = strings.TrimSpace(req.MobileCountryCode)
 	req.MobileNumber = strings.TrimSpace(req.MobileNumber)
 }

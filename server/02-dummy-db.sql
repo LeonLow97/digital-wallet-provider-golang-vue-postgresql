@@ -1,7 +1,7 @@
-INSERT INTO users (first_name, last_name, username, email, password, active, admin, mobile_number, created_at) 
+INSERT INTO users (first_name, last_name, username, email, password, active, admin, mobile_country_code, mobile_number, created_at) 
 VALUES
-('Leon', 'Low', 'leonlow97', 'leonlow@email.com', '$2a$10$p444biF49.py2HOTVe5TSuUNAhSKqelEtlbLtZXghUh3o21Et7DNO', 1, 0, '+65 1234567890', NOW()),
-('Admin', 'User', 'adminuser', 'adminuser@email.com', '$2a$10$GuPa.s8UqAVqDrC34uwRm.If7/vHAoAfGygZWPMk3UooywEsJivPu', 1, 1, '+65 98765432', NOW());
+('Leon', 'Low', 'leonlow97', 'leonlow@email.com', '$2a$10$p444biF49.py2HOTVe5TSuUNAhSKqelEtlbLtZXghUh3o21Et7DNO', 1, 0, '+65', '87654321', NOW()),
+('Admin', 'User', 'adminuser', 'adminuser@email.com', '$2a$10$GuPa.s8UqAVqDrC34uwRm.If7/vHAoAfGygZWPMk3UooywEsJivPu', 1, 1, '+65', '98765432', NOW());
 
 -- INSERT INTO user_beneficiary (user_id, beneficiary_id)
 -- VALUES

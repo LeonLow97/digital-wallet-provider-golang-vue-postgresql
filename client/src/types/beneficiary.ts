@@ -1,4 +1,5 @@
 export interface CREATE_BENEFICIARY_REQUEST {
+  mobile_country_code: string;
   mobile_number: string;
 }
 
@@ -16,6 +17,7 @@ export interface GET_BENEFICIARY_RESPONSE {
   beneficiaryEmail: string;
   beneficiaryUsername: string;
   active: number;
+  beneficiaryMobileCountryCode: string;
   beneficiaryMobileNumber: string;
 }
 

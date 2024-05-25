@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(60) NOT NULL,
     active INT NOT NULL DEFAULT 1,
     admin INT NOT NULL DEFAULT 0,
+    mobile_country_code VARCHAR(5) NOT NULL,
     mobile_number VARCHAR(255) NOT NULL UNIQUE,
     is_mfa_configured BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),

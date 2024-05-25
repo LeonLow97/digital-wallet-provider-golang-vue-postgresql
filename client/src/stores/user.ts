@@ -10,6 +10,7 @@ export const useUserStore = defineStore("user", () => {
     lastName: "",
     email: "",
     username: "",
+    mobileCountryCode: "",
     mobileNumber: "",
   });
   const isLoggedIn = ref(false);
@@ -46,6 +47,7 @@ export const useUserStore = defineStore("user", () => {
       lastName: data.lastName,
       email: data.email,
       username: data.username,
+      mobileCountryCode: data.mobileCountryCode,
       mobileNumber: data.mobileNumber,
     };
   };
@@ -56,6 +58,7 @@ export const useUserStore = defineStore("user", () => {
       lastName: data.lastName,
       email: data.email,
       username: data.username,
+      mobileCountryCode: data.mobileCountryCode,
       mobileNumber: data.mobileNumber,
     };
 
@@ -68,6 +71,7 @@ export const useUserStore = defineStore("user", () => {
       lastName: "",
       email: "",
       username: "",
+      mobileCountryCode: "",
       mobileNumber: "",
     };
 

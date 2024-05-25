@@ -3,6 +3,7 @@ export interface User {
   lastName: string;
   email: string;
   username: string;
+  mobileCountryCode: string;
   mobileNumber: string;
 }
 
@@ -21,6 +22,7 @@ interface LOGIN_RESPONSE_DATA {
   lastName: string;
   email: string;
   username: string;
+  mobileCountryCode: string;
   mobileNumber: string;
   isMfaConfigured?: boolean;
   mfaConfig?: MFA_CONFIG;
@@ -37,6 +39,7 @@ export interface SIGNUP_REQUEST {
   username: string;
   email: string;
   password: string;
+  mobile_country_code: string;
   mobile_number: string;
 }
 
@@ -59,6 +62,7 @@ export interface UPDATE_USER_REQUEST {
   last_name: string | null;
   username: string;
   email: string;
+  mobile_country_code: string;
   mobile_number: string;
 }
 

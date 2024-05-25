@@ -57,7 +57,7 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*dom
 	defer cancel()
 
 	query := `
-		SELECT id, first_name, last_name, email, username, password, mobile_number, active, admin, is_mfa_configured
+		SELECT id, first_name, last_name, email, username, password, mobile_country_code, mobile_number, active, admin, is_mfa_configured
 		FROM users 
 		WHERE email = $1;
 	`
@@ -70,6 +70,7 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*dom
 		&user.Email,
 		&user.Username,
 		&user.Password,
+		&user.MobileCountryCode,
 		&user.MobileNumber,
 		&user.Active,
 		&user.Admin,
@@ -119,9 +120,9 @@ func (r *userRepository) InsertUser(ctx context.Context, user *domain.User) erro
 	defer cancel()
 
 	query := `
-		INSERT INTO users (first_name, last_name, email, username, password, mobile_number)
+		INSERT INTO users (first_name, last_name, email, username, password, mobile_country_code, mobile_number)
 		VALUES 
-		($1, $2, $3, $4, $5, $6);
+		($1, $2, $3, $4, $5, $6, $7);
 	`
 
 	_, err := r.db.ExecContext(ctx, query,
@@ -130,6 +131,7 @@ func (r *userRepository) InsertUser(ctx context.Context, user *domain.User) erro
 		user.Email,
 		user.Username,
 		user.Password,
+		user.MobileCountryCode,
 		user.MobileNumber,
 	)
 
@@ -187,15 +189,17 @@ func (r *userRepository) UpdateUser(ctx context.Context, user *domain.User) erro
 		SET first_name = $1,
 			last_name = $2,
 			username = $3,
-			mobile_number = $4,
-			email = $5
-		WHERE id = $6;
+			mobile_country_code = $4
+			mobile_number = $5,
+			email = $6
+		WHERE id = $7;
 	`
 
 	if _, err := r.db.ExecContext(ctx, query,
 		user.FirstName,
 		user.LastName,
 		user.Username,
+		user.MobileCountryCode,
 		user.MobileNumber,
 		user.Email,
 		user.ID,

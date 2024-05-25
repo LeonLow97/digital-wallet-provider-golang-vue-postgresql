@@ -18,17 +18,18 @@ type TOTPConfiguration struct {
 
 // User is representing the User data struct
 type User struct {
-	ID              int     `db:"id"`
-	FirstName       string  `db:"first_name"`
-	LastName        string  `db:"last_name"`
-	Username        string  `db:"username"`
-	Email           string  `db:"email"`
-	Password        string  `db:"password"`
-	MobileNumber    string  `db:"mobile_number"`
-	IsMFAConfigured bool    `db:"is_mfa_configured"`
-	Active          bool    `db:"active"`
-	Admin           bool    `db:"admin"`
-	Balance         float64 `db:"balance"`
+	ID                int     `db:"id"`
+	FirstName         string  `db:"first_name"`
+	LastName          string  `db:"last_name"`
+	Username          string  `db:"username"`
+	Email             string  `db:"email"`
+	Password          string  `db:"password"`
+	MobileCountryCode string  `db:"mobile_country_code"`
+	MobileNumber      string  `db:"mobile_number"`
+	IsMFAConfigured   bool    `db:"is_mfa_configured"`
+	Active            bool    `db:"active"`
+	Admin             bool    `db:"admin"`
+	Balance           float64 `db:"balance"`
 }
 
 // UserUsecase represents the user's use cases

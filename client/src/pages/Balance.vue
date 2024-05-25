@@ -3,7 +3,7 @@
     <div class="mt-2 flex items-center justify-between">
       <router-link
         :to="{ name: 'Balances' }"
-        class="text-blue-600 underline underline-offset-8 hover:text-blue-300 tracking-wider"
+        class="tracking-wider text-blue-600 underline underline-offset-8 hover:text-blue-300"
         >&larr; Back to Balances</router-link
       >
       <div>

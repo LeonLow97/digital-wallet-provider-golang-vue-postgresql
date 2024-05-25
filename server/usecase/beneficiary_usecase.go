@@ -21,7 +21,7 @@ func NewBeneficiaryUsecase(beneficiaryRepository domain.BeneficiaryRepository) d
 
 func (uc *beneficiaryUsecase) CreateBeneficiary(ctx context.Context, userID int, req dto.CreateBeneficiaryRequest) error {
 	// retrieve beneficiary id by mobile number
-	beneficiaryID, err := uc.beneficiaryRepository.GetUserIDByMobileNumber(ctx, req.MobileNumber)
+	beneficiaryID, err := uc.beneficiaryRepository.GetUserIDByMobileNumber(ctx, req.MobileCountryCode, req.MobileNumber)
 	if err != nil {
 		log.Println("failed to get user id by mobile number with error:", err)
 		return err
@@ -75,14 +75,15 @@ func (uc *beneficiaryUsecase) GetBeneficiary(ctx context.Context, beneficiaryID 
 	}
 
 	resp := &dto.GetBeneficiaryResponse{
-		BeneficiaryID:           beneficiary.BeneficiaryID,
-		IsDeleted:               beneficiary.IsDeleted,
-		BeneficiaryFirstName:    beneficiary.BeneficiaryFirstName,
-		BeneficiaryLastName:     beneficiary.BeneficiaryLastName,
-		BeneficiaryEmail:        beneficiary.BeneficiaryEmail,
-		BeneficiaryUsername:     beneficiary.BeneficiaryUsername,
-		IsActive:                beneficiary.IsActive,
-		BeneficiaryMobileNumber: beneficiary.BeneficiaryMobileNumber,
+		BeneficiaryID:                beneficiary.BeneficiaryID,
+		IsDeleted:                    beneficiary.IsDeleted,
+		BeneficiaryFirstName:         beneficiary.BeneficiaryFirstName,
+		BeneficiaryLastName:          beneficiary.BeneficiaryLastName,
+		BeneficiaryEmail:             beneficiary.BeneficiaryEmail,
+		BeneficiaryUsername:          beneficiary.BeneficiaryUsername,
+		IsActive:                     beneficiary.IsActive,
+		BeneficiaryMobileCountryCode: beneficiary.BeneficiaryMobileCountryCode,
+		BeneficiaryMobileNumber:      beneficiary.BeneficiaryMobileNumber,
 	}
 
 	return resp, nil
@@ -99,14 +100,15 @@ func (uc *beneficiaryUsecase) GetBeneficiaries(ctx context.Context, userID int) 
 	resp := &dto.GetBeneficiariesResponse{}
 	for _, b := range *beneficiaries {
 		beneficiary := dto.GetBeneficiaryResponse{
-			BeneficiaryID:           b.BeneficiaryID,
-			IsDeleted:               b.IsDeleted,
-			BeneficiaryFirstName:    b.BeneficiaryFirstName,
-			BeneficiaryLastName:     b.BeneficiaryLastName,
-			BeneficiaryEmail:        b.BeneficiaryEmail,
-			BeneficiaryUsername:     b.BeneficiaryUsername,
-			IsActive:                b.IsActive,
-			BeneficiaryMobileNumber: b.BeneficiaryMobileNumber,
+			BeneficiaryID:                b.BeneficiaryID,
+			IsDeleted:                    b.IsDeleted,
+			BeneficiaryFirstName:         b.BeneficiaryFirstName,
+			BeneficiaryLastName:          b.BeneficiaryLastName,
+			BeneficiaryEmail:             b.BeneficiaryEmail,
+			BeneficiaryUsername:          b.BeneficiaryUsername,
+			IsActive:                     b.IsActive,
+			BeneficiaryMobileCountryCode: b.BeneficiaryMobileCountryCode,
+			BeneficiaryMobileNumber:      b.BeneficiaryMobileNumber,
 		}
 		resp.Beneficiaries = append(resp.Beneficiaries, beneficiary)
 	}

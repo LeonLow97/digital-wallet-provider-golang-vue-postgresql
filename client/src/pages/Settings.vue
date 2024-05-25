@@ -41,19 +41,16 @@
           v-model.trim="currentPassword"
           placeholder="Current Password"
           type="password"
-          autocomplete="off"
         />
         <text-input
           v-model.trim="newPassword"
           placeholder="New Password"
           type="password"
-          autocomplete="off"
         />
         <text-input
           v-model.trim="confirmPassword"
           placeholder="Confirm Password"
           type="password"
-          autocomplete="off"
         />
         <div class="flex justify-end gap-4">
           <action-button

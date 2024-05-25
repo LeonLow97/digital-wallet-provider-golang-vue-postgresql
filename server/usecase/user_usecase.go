@@ -68,12 +68,13 @@ func (uc *userUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.Lo
 	}
 
 	resp := dto.LoginResponse{
-		FirstName:       user.FirstName,
-		LastName:        user.LastName,
-		Email:           user.Email,
-		Username:        user.Username,
-		MobileNumber:    user.MobileNumber,
-		IsMFAConfigured: user.IsMFAConfigured,
+		FirstName:         user.FirstName,
+		LastName:          user.LastName,
+		Email:             user.Email,
+		Username:          user.Username,
+		MobileCountryCode: user.MobileCountryCode,
+		MobileNumber:      user.MobileNumber,
+		IsMFAConfigured:   user.IsMFAConfigured,
 	}
 
 	// if mfa is not configured, add the secret and url
@@ -113,10 +114,11 @@ func (uc *userUsecase) SignUp(ctx context.Context, req dto.SignUpRequest) error 
 	req.Password = string(hashedPasswordBytes)
 
 	insertUser := domain.User{
-		Username:     req.Username,
-		Email:        req.Email,
-		Password:     req.Password,
-		MobileNumber: req.MobileNumber,
+		Username:          req.Username,
+		Email:             req.Email,
+		Password:          req.Password,
+		MobileCountryCode: req.MobileCountryCode,
+		MobileNumber:      req.MobileNumber,
 	}
 
 	if req.FirstName != nil {
@@ -416,10 +418,11 @@ func (uc userUsecase) PasswordReset(ctx context.Context, req dto.PasswordResetRe
 
 func (uc *userUsecase) UpdateUser(ctx context.Context, userID int, req dto.UpdateUserRequest) error {
 	updatedUser := domain.User{
-		ID:           userID,
-		Username:     req.Username,
-		MobileNumber: req.MobileNumber,
-		Email:        req.Email,
+		ID:                userID,
+		Username:          req.Username,
+		MobileCountryCode: req.MobileCountryCode,
+		MobileNumber:      req.MobileNumber,
+		Email:             req.Email,
 	}
 
 	if req.FirstName != nil {

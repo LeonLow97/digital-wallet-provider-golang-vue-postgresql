@@ -61,6 +61,7 @@
             {{ beneficiary.beneficiaryUsername }}
           </td>
           <td class="px-4 py-2">
+            {{ beneficiary.beneficiaryMobileCountryCode }}
             {{ beneficiary.beneficiaryMobileNumber }}
           </td>
           <td class="px-4 py-2">

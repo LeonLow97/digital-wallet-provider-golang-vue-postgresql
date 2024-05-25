@@ -4,6 +4,7 @@
     class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
     :value="modelValue"
     @input="handleInput"
+    :autocomplete="props.textInputType === 'password' ? 'off' : ''"
   />
 </template>
 

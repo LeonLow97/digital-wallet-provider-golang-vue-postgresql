@@ -17,7 +17,19 @@
     </div>
     <div class="flex flex-col gap-2 text-sm">
       <label for="mobileNumber">Mobile Number:</label>
-      <text-input v-model.trim="mobileNumber" placeholder="Mobile Number" />
+      <div class="flex gap-4">
+        <select
+          class="rounded-md border border-gray-300 bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+          v-model.trim="mobileCountryCode"
+        >
+          <option value="+65">+ 65</option>
+          <option value="+60">+ 60</option>
+          <option value="+61">+ 61</option>
+          <option value="+1">+ 1</option>
+        </select>
+
+        <text-input v-model.trim="mobileNumber" placeholder="Mobile Number" />
+      </div>
     </div>
     <div class="flex flex-col gap-2 text-sm">
       <label for="email">Email:</label>
@@ -47,6 +59,7 @@ const userStore = useUserStore();
 const firstName = ref("");
 const lastName = ref("");
 const username = ref("");
+const mobileCountryCode = ref("");
 const mobileNumber = ref("");
 const email = ref("");
 
@@ -55,6 +68,7 @@ onMounted(async () => {
   lastName.value = userStore.user.lastName;
   username.value = userStore.user.username;
   email.value = userStore.user.email;
+  mobileCountryCode.value = userStore.user.mobileCountryCode;
   mobileNumber.value = userStore.user.mobileNumber;
 });
 
@@ -64,6 +78,7 @@ const handleSaveChanges = async () => {
       first_name: firstName.value === "" ? null : firstName.value,
       last_name: lastName.value === "" ? null : lastName.value,
       username: username.value,
+      mobile_country_code: mobileCountryCode.value,
       mobile_number: mobileNumber.value,
       email: email.value,
     };
@@ -75,6 +90,7 @@ const handleSaveChanges = async () => {
         firstName: firstName.value,
         lastName: lastName.value,
         username: username.value,
+        mobileCountryCode: mobileCountryCode.value,
         mobileNumber: mobileNumber.value,
         email: email.value,
       };

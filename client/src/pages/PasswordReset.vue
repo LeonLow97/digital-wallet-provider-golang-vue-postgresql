@@ -8,7 +8,6 @@
             type="password"
             v-model.trim="password"
             placeholder="New Password"
-            autocomplete="off"
           />
 
           <action-button

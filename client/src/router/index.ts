@@ -117,7 +117,8 @@ router.beforeEach(async (to, from, next) => {
           return;
         }
       } catch (error) {
-        alert(error); // FOR DEVELOPMENT ONLY, REMOVE THIS!
+        localStorage.setItem(IS_LOGGED_IN, "false");
+        console.error(error); // FOR DEVELOPMENT ONLY, REMOVE THIS!
       }
     }
     next();

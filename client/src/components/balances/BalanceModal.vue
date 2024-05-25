@@ -14,7 +14,7 @@
         </h1>
         <div class="grid grid-cols-3 gap-4">
           <text-input
-            v-model.number="amount"
+            v-model.number="amount!"
             placeholder="Amount"
             class="col-span-2"
           />
@@ -74,7 +74,7 @@ const props = defineProps<{
 }>();
 
 const isModalOpen = ref<boolean>(false);
-const amount = ref<number>(0);
+const amount = ref<number>();
 const currency = ref(props.balance?.currency);
 const balance = ref<Balance | null>();
 
@@ -124,7 +124,7 @@ const finalBalance = computed(() => {
 const handleSubmit = async () => {
   try {
     const body: DEPOSIT_REQUEST = {
-      amount: amount.value,
+      amount: amount.value!,
       currency: currency.value!,
     };
 
@@ -150,6 +150,6 @@ const closeModal = () => {
   isModalOpen.value = false;
   emits("closeModal", true);
 
-  amount.value = 0;
+  amount.value = undefined;
 };
 </script>

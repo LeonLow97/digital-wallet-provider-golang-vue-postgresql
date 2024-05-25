@@ -8,13 +8,14 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	FirstName       string           `json:"firstName"`
-	LastName        string           `json:"lastName"`
-	Email           string           `json:"email"`
-	Username        string           `json:"username"`
-	MobileNumber    string           `json:"mobileNumber"`
-	IsMFAConfigured bool             `json:"isMfaConfigured"`
-	MFAConfig       MFAConfiguration `json:"mfaConfig,omitempty"`
+	FirstName         string           `json:"firstName"`
+	LastName          string           `json:"lastName"`
+	Email             string           `json:"email"`
+	Username          string           `json:"username"`
+	MobileCountryCode string           `json:"mobileCountryCode"`
+	MobileNumber      string           `json:"mobileNumber"`
+	IsMFAConfigured   bool             `json:"isMfaConfigured"`
+	MFAConfig         MFAConfiguration `json:"mfaConfig,omitempty"`
 }
 
 type MFAConfiguration struct {
@@ -29,12 +30,13 @@ type Token struct {
 }
 
 type SignUpRequest struct {
-	FirstName    *string `json:"first_name,omitempty" validate:"omitempty,min=3,max=50"`
-	LastName     *string `json:"last_name,omitempty" validate:"omitempty,min=3,max=50"`
-	Username     string  `json:"username" validate:"required,min=7,max=20"`
-	Email        string  `json:"email" validate:"required,email,max=255"`
-	Password     string  `json:"password" validate:"required,min=7,max=60"`
-	MobileNumber string  `json:"mobile_number" validate:"required,min=5,max=255"`
+	FirstName         *string `json:"first_name,omitempty" validate:"omitempty,min=3,max=50"`
+	LastName          *string `json:"last_name,omitempty" validate:"omitempty,min=3,max=50"`
+	Username          string  `json:"username" validate:"required,min=7,max=20"`
+	Email             string  `json:"email" validate:"required,email,max=255"`
+	Password          string  `json:"password" validate:"required,min=7,max=60"`
+	MobileCountryCode string  `json:"mobile_country_code" validate:"required,min=1,max=5"`
+	MobileNumber      string  `json:"mobile_number" validate:"required,min=5,max=255"`
 }
 
 func (req *LoginRequest) LoginSanitize() {
@@ -52,6 +54,7 @@ func (req *SignUpRequest) SignUpSanitize() {
 	req.Username = strings.TrimSpace(req.Username)
 	req.Email = strings.TrimSpace(req.Email)
 	req.Password = strings.TrimSpace(req.Password)
+	req.MobileCountryCode = strings.TrimSpace(req.MobileCountryCode)
 	req.MobileNumber = strings.TrimSpace(req.MobileNumber)
 }
 
@@ -66,11 +69,12 @@ func (req *ChangePasswordRequest) ChangePasswordSanitize() {
 }
 
 type UpdateUserRequest struct {
-	FirstName    *string `json:"first_name,omitempty" validate:"omitempty,min=3,max=50"`
-	LastName     *string `json:"last_name,omitempty" validate:"omitempty,min=3,max=50"`
-	Username     string  `json:"username" validate:"required,min=7,max=20"`
-	Email        string  `json:"email" validate:"required,email,max=255"`
-	MobileNumber string  `json:"mobile_number" validate:"required,min=5,max=255"`
+	FirstName         *string `json:"first_name,omitempty" validate:"omitempty,min=3,max=50"`
+	LastName          *string `json:"last_name,omitempty" validate:"omitempty,min=3,max=50"`
+	Username          string  `json:"username" validate:"required,min=7,max=20"`
+	Email             string  `json:"email" validate:"required,email,max=255"`
+	MobileCountryCode string  `json:"mobile_country_code" validate:"required,min=1,max=5"`
+	MobileNumber      string  `json:"mobile_number" validate:"required,min=5,max=255"`
 }
 
 func (req *UpdateUserRequest) UpdateUserSanitize() {
@@ -83,6 +87,7 @@ func (req *UpdateUserRequest) UpdateUserSanitize() {
 
 	req.Username = strings.TrimSpace(req.Username)
 	req.Email = strings.TrimSpace(req.Email)
+	req.MobileCountryCode = strings.TrimSpace(req.MobileCountryCode)
 	req.MobileNumber = strings.TrimSpace(req.MobileNumber)
 }
 

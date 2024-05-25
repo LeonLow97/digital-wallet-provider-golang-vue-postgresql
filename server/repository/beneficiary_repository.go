@@ -19,11 +19,11 @@ func NewBeneficiaryRepository(db *sqlx.DB) domain.BeneficiaryRepository {
 	}
 }
 
-func (r *beneficiaryRepository) GetUserIDByMobileNumber(ctx context.Context, mobileNumber string) (int, error) {
-	query := `SELECT id FROM users WHERE mobile_number = $1`
+func (r *beneficiaryRepository) GetUserIDByMobileNumber(ctx context.Context, mobileCountryCode, mobileNumber string) (int, error) {
+	query := `SELECT id FROM users WHERE mobile_country_code = $1 AND mobile_number = $2`
 
 	var id int
-	err := r.db.QueryRowContext(ctx, query, mobileNumber).Scan(&id)
+	err := r.db.QueryRowContext(ctx, query, mobileCountryCode, mobileNumber).Scan(&id)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -97,7 +97,7 @@ func (r *beneficiaryRepository) GetBeneficiary(ctx context.Context, beneficiaryI
 	query := `
 		SELECT 
 			ub.beneficiary_id, ub.is_deleted, u.first_name, u.last_name, u.email,
-			u.username, u.active, u.mobile_number
+			u.username, u.active, u.mobile_country_code, u.mobile_number
 		FROM user_beneficiary ub
 		JOIN users u
 			ON u.id = ub.beneficiary_id
@@ -113,6 +113,7 @@ func (r *beneficiaryRepository) GetBeneficiary(ctx context.Context, beneficiaryI
 		&beneficiary.BeneficiaryEmail,
 		&beneficiary.BeneficiaryUsername,
 		&beneficiary.IsActive,
+		&beneficiary.BeneficiaryMobileCountryCode,
 		&beneficiary.BeneficiaryMobileNumber,
 	)
 
@@ -130,7 +131,7 @@ func (r *beneficiaryRepository) GetBeneficiaries(ctx context.Context, userID int
 	query := `
 		SELECT 
 			ub.beneficiary_id, ub.is_deleted, u.first_name, u.last_name, u.email,
-			u.username, u.active, u.mobile_number
+			u.username, u.active, u.mobile_country_code, u.mobile_number
 		FROM user_beneficiary ub
 		JOIN users u
 			ON u.id = ub.beneficiary_id

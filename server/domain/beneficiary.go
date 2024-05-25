@@ -7,14 +7,15 @@ import (
 )
 
 type Beneficiary struct {
-	BeneficiaryID           int    `db:"beneficiary_id"`
-	IsDeleted               int    `db:"is_deleted"`
-	BeneficiaryFirstName    string `db:"first_name"`
-	BeneficiaryLastName     string `db:"last_name"`
-	BeneficiaryEmail        string `db:"email"`
-	BeneficiaryUsername     string `db:"username"`
-	IsActive                int    `db:"active"`
-	BeneficiaryMobileNumber string `db:"mobile_number"`
+	BeneficiaryID                int    `db:"beneficiary_id"`
+	IsDeleted                    int    `db:"is_deleted"`
+	BeneficiaryFirstName         string `db:"first_name"`
+	BeneficiaryLastName          string `db:"last_name"`
+	BeneficiaryEmail             string `db:"email"`
+	BeneficiaryUsername          string `db:"username"`
+	IsActive                     int    `db:"active"`
+	BeneficiaryMobileCountryCode string `db:"mobile_country_code"`
+	BeneficiaryMobileNumber      string `db:"mobile_number"`
 }
 
 type BeneficiaryUsecase interface {
@@ -25,7 +26,7 @@ type BeneficiaryUsecase interface {
 }
 
 type BeneficiaryRepository interface {
-	GetUserIDByMobileNumber(ctx context.Context, mobileNumber string) (int, error)
+	GetUserIDByMobileNumber(ctx context.Context, mobileCountryCode, mobileNumber string) (int, error)
 	CreateBeneficiary(ctx context.Context, userID int, beneficiaryID int) error
 
 	IsLinkedByUserIDAndBeneficiaryID(ctx context.Context, userID int, beneficiaryID int) error

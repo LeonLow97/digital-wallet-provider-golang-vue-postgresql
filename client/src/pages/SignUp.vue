@@ -6,11 +6,25 @@
         <div class="grid grid-cols-2 gap-x-8 gap-y-6">
           <text-input v-model.trim="firstName" placeholder="First Name" />
           <text-input v-model.trim="lastName" placeholder="Last Name" />
-          <text-input
-            class="col-span-2"
-            v-model="mobileNumber"
-            placeholder="Mobile Number"
-          />
+
+          <div class="col-span-2 flex gap-4">
+            <select
+              class="rounded-md border border-gray-300 bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+              v-model.trim="mobileCountryCode"
+            >
+              <option value="+65">+ 65</option>
+              <option value="+60">+ 60</option>
+              <option value="+61">+ 61</option>
+              <option value="+1">+ 1</option>
+            </select>
+
+            <text-input
+              class="col-span-2"
+              v-model="mobileNumber"
+              placeholder="Mobile Number"
+            />
+          </div>
+
           <text-input
             class="col-span-2"
             v-model.trim="username"
@@ -69,6 +83,7 @@ const lastName = ref("");
 const username = ref("");
 const email = ref("");
 const password = ref("");
+const mobileCountryCode = ref("+65");
 const mobileNumber = ref("");
 
 const showPassword = ref(false);
@@ -86,6 +101,7 @@ const handleSubmit = async () => {
       username: username.value,
       email: email.value,
       password: password.value,
+      mobile_country_code: mobileCountryCode.value,
       mobile_number: mobileNumber.value,
     };
 

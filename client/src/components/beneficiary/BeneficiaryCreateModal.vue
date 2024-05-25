@@ -5,7 +5,25 @@
         <h1 class="text-xl font-bold capitalize dark:text-white">
           Create Beneficiary
         </h1>
-        <text-input v-model.trim="mobileNumber" placeholder="Mobile Number" />
+
+        <div class="flex gap-4">
+          <select
+            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+            v-model.trim="mobileCountryCode"
+          >
+            <option value="+65">+ 65</option>
+            <option value="+60">+ 60</option>
+            <option value="+61">+ 61</option>
+            <option value="+1">+ 1</option>
+          </select>
+
+          <text-input v-model.trim="mobileNumber" placeholder="Mobile Number" />
+        </div>
+
+        <em
+          ><strong>NOTE:</strong> Please remove all whitespaces and dashes in
+          mobile number.</em
+        >
 
         <div class="flex justify-end gap-4">
           <action-button
@@ -47,6 +65,7 @@ watch(
 const emits = defineEmits(["closeModal", "formSubmitted"]);
 const isModalOpen = ref<boolean>(false);
 const mobileNumber = ref("");
+const mobileCountryCode = ref("+65");
 
 const closeModal = () => {
   isModalOpen.value = false;
@@ -56,6 +75,7 @@ const closeModal = () => {
 const handleSubmit = async () => {
   try {
     const body: CREATE_BENEFICIARY_REQUEST = {
+      mobile_country_code: mobileCountryCode.value,
       mobile_number: mobileNumber.value,
     };
 

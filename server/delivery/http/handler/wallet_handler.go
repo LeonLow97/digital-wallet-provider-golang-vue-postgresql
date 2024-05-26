@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"log"
@@ -30,24 +29,25 @@ func NewWalletHandler(router *mux.Router, uc domain.WalletUsecase) {
 
 	walletRouter.HandleFunc("/{id:[0-9]+}", handler.GetWallet).Methods(http.MethodGet)
 	walletRouter.HandleFunc("/all", handler.GetWallets).Methods(http.MethodGet)
+	walletRouter.HandleFunc("/types", handler.GetWalletTypes).Methods(http.MethodGet)
 	walletRouter.HandleFunc("", handler.CreateWallet).Methods(http.MethodPost)
 	walletRouter.HandleFunc("", handler.UpdateWallet).Methods(http.MethodPut)
 }
 
 func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
+	ctx := r.Context()
+
+	// retrieve user id from context
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
 
 	// retrieve wallet id from url params
 	walletID, err := utils.ReadParamsInt(r, "id")
 	if err != nil {
 		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
-		return
-	}
-
-	// retrieve user id from context
-	userID, ok := r.Context().Value(utils.UserIDKey).(int)
-	if !ok {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -63,11 +63,11 @@ func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WalletHandler) GetWallets(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
+	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, ok := r.Context().Value(utils.UserIDKey).(int)
-	if !ok {
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
 		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
@@ -83,12 +83,23 @@ func (h *WalletHandler) GetWallets(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *WalletHandler) GetWalletTypes(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	resp, err := h.walletUseCase.GetWalletTypes(ctx)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, resp)
+}
+
 func (h *WalletHandler) CreateWallet(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
+	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, ok := r.Context().Value(utils.UserIDKey).(int)
-	if !ok {
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
 		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
@@ -107,33 +118,32 @@ func (h *WalletHandler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req.Type = strings.ToLower(req.Type)
-	req.UserID = userID
 	req.CreateWalletSanitize()
 
-	err = h.walletUseCase.CreateWallet(ctx, req)
-	switch {
-	case errors.Is(err, exception.ErrBalanceNotFound):
-		utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
-	case errors.Is(err, exception.ErrWalletTypeInvalid):
-		utils.ErrorJSON(w, apiErr.ErrWalletTypeInvalid, http.StatusBadRequest)
-	case errors.Is(err, exception.ErrWalletAlreadyExists):
-		utils.ErrorJSON(w, apiErr.ErrWalletAlreadyExists, http.StatusBadRequest)
-	case errors.Is(err, exception.ErrInsufficientFunds):
-		utils.ErrorJSON(w, apiErr.ErrInsufficientFundsInAccount, http.StatusBadRequest)
-	case err != nil:
-		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-	default:
-		utils.WriteNoContent(w, http.StatusCreated)
+	if err = h.walletUseCase.CreateWallet(ctx, userID, req); err != nil {
+		switch {
+		case errors.Is(err, exception.ErrBalanceNotFound):
+			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
+		case errors.Is(err, exception.ErrWalletTypeInvalid):
+			utils.ErrorJSON(w, apiErr.ErrWalletTypeInvalid, http.StatusBadRequest)
+		case errors.Is(err, exception.ErrWalletAlreadyExists):
+			utils.ErrorJSON(w, apiErr.ErrWalletAlreadyExists, http.StatusBadRequest)
+		case errors.Is(err, exception.ErrInsufficientFunds):
+			utils.ErrorJSON(w, apiErr.ErrInsufficientFundsInAccount, http.StatusBadRequest)
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		}
+		return
 	}
+	utils.WriteNoContent(w, http.StatusCreated)
 }
 
 func (h *WalletHandler) UpdateWallet(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
+	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, ok := r.Context().Value(utils.UserIDKey).(int)
-	if !ok {
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
 		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}

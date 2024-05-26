@@ -33,8 +33,8 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, ok := ctx.Value(utils.UserIDKey).(int)
-	if !ok {
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
 		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
@@ -48,8 +48,7 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 
 	req.Sanitize()
 
-	err := h.transactionUsecase.CreateTransaction(ctx, req, userID)
-	log.Println("err herer", err)
+	err = h.transactionUsecase.CreateTransaction(ctx, req, userID)
 
 	switch {
 	case errors.Is(err, exception.ErrAmountMustBePositive):
@@ -77,8 +76,8 @@ func (h *TransactionHandler) GetTransactions(w http.ResponseWriter, r *http.Requ
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, ok := ctx.Value(utils.UserIDKey).(int)
-	if !ok {
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
 		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}

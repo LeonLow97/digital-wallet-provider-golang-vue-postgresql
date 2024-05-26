@@ -84,7 +84,7 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) e
 	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
 	tx, err := uc.dbConn.BeginTx(ctx, nil)
 	if err != nil {
-		log.Printf("failed to begin sql transaction in deposit usecase with error: %v\n", err)
+		log.Printf("failed to begin sql transaction with error: %v\n", err)
 		return err
 	}
 
@@ -155,7 +155,7 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
 	tx, err := uc.dbConn.BeginTx(ctx, nil)
 	if err != nil {
-		log.Printf("failed to begin sql transaction in deposit usecase with error: %v\n", err)
+		log.Printf("failed to begin sql transaction with error: %v\n", err)
 		return err
 	}
 

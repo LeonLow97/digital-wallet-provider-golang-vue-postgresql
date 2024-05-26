@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
+	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	"github.com/jmoiron/sqlx"
 )
@@ -43,10 +44,8 @@ func (r *walletRepository) GetWalletByWalletType(ctx context.Context, userID int
 	err := r.db.QueryRowContext(ctx, query, userID, walletType).Scan(
 		&wallet.ID,
 		&wallet.UserID,
-		&wallet.Type,
-		&wallet.TypeID,
-		&wallet.Balance,
-		&wallet.Currency,
+		&wallet.WalletType,
+		&wallet.WalletTypeID,
 		&wallet.CreatedAt,
 	)
 	if err != nil {
@@ -80,10 +79,8 @@ func (r *walletRepository) GetWalletByWalletID(ctx context.Context, userID, wall
 	err := r.db.QueryRowContext(ctx, query, userID, walletID).Scan(
 		&wallet.ID,
 		&wallet.UserID,
-		&wallet.Type,
-		&wallet.TypeID,
-		&wallet.Balance,
-		&wallet.Currency,
+		&wallet.WalletType,
+		&wallet.WalletTypeID,
 		&wallet.CreatedAt,
 	)
 	if err != nil {
@@ -101,10 +98,8 @@ func (r *walletRepository) GetWallets(ctx context.Context, userID int) ([]domain
 	query := `
 		SELECT
 			w.id AS id,
-			wt.type AS type,
-			wt.id AS type_id,
-			w.balance,
-			w.currency,
+			wt.type AS wallet_type,
+			wt.id AS wallet_type_id,
 			w.created_at
 		FROM wallets w
 		JOIN wallet_types wt
@@ -113,15 +108,32 @@ func (r *walletRepository) GetWallets(ctx context.Context, userID int) ([]domain
 	`
 
 	var wallets []domain.Wallet
-	err := r.db.SelectContext(ctx, &wallets, query, userID)
-	if err != nil {
+	if err := r.db.SelectContext(ctx, &wallets, query, userID); err != nil {
 		return nil, err
 	}
 
 	return wallets, nil
 }
 
-func (r *walletRepository) GetWalletTypes(ctx context.Context) (map[string]int, error) {
+func (r *walletRepository) GetWalletBalancesByUserID(ctx context.Context, userID int) ([]domain.WalletCurrencyAmount, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
+	query := `
+		SELECT wallet_id, amount, currency, created_at, updated_at
+		FROM wallet_balances
+		WHERE user_id = $1;
+	`
+
+	var walletBalances []domain.WalletCurrencyAmount
+	if err := r.db.SelectContext(ctx, &walletBalances, query, userID); err != nil {
+		return nil, err
+	}
+
+	return walletBalances, nil
+}
+
+func (r *walletRepository) GetWalletTypes(ctx context.Context) (*[]dto.GetWalletTypesResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
@@ -129,54 +141,44 @@ func (r *walletRepository) GetWalletTypes(ctx context.Context) (map[string]int, 
 		SELECT id, type FROM wallet_types;
 	`
 
-	rows, err := r.db.QueryContext(ctx, query)
-	if err != nil {
+	var walletTypes []dto.GetWalletTypesResponse
+	if err := r.db.SelectContext(ctx, &walletTypes, query); err != nil {
 		return nil, err
 	}
 
-	// use a set to store the types
-	walletTypes := make(map[string]int)
-
-	for rows.Next() {
-		var walletType string
-		var walletID int
-
-		if err := rows.Scan(
-			&walletID,
-			&walletType,
-		); err != nil {
-			return nil, err
-		}
-		walletTypes[walletType] = walletID
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return walletTypes, nil
+	return &walletTypes, nil
 }
 
-func (r *walletRepository) CheckWalletExistsByUserID(ctx context.Context, userID int, walletType string) (int, error) {
+func (r *walletRepository) PerformWalletValidationByUserID(ctx context.Context, userID, walletTypeID int) (*dto.WalletValidation, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
 	query := `
-		SELECT COUNT(w.id)
-		FROM wallets w
-		JOIN wallet_types wt
-			ON w.wallet_type_id = wt.id
-		WHERE w.user_id = $1 AND wt.type = $2;
+		SELECT 
+		  (SELECT EXISTS (
+			SELECT 1
+			FROM wallets w
+			JOIN wallet_types wt
+			  ON w.wallet_type_id = wt.id
+			WHERE w.user_id = $1 AND wt.id = $2
+		  )) AS wallet_exists,
+		  (SELECT EXISTS (
+			SELECT 1
+			FROM wallet_types
+			WHERE id = $3
+		  )) AS is_valid_wallet_type
 	`
 
-	var count int
-	if err := r.db.QueryRowContext(ctx, query, userID, walletType).Scan(&count); err != nil {
-		return 0, err
+	args := []interface{}{userID, walletTypeID, walletTypeID}
+
+	var walletValidation dto.WalletValidation
+	if err := r.db.GetContext(ctx, &walletValidation, query, args...); err != nil { // Pass the third argument "valid_wallet_type"
+		return nil, err
 	}
-	return count, nil
+	return &walletValidation, nil
 }
 
-func (r *walletRepository) GetBalanceByUserID(ctx context.Context, userID int) (*domain.Balance, error) {
+func (r *walletRepository) GetAllBalancesByUserID(ctx context.Context, userID int) ([]domain.Balance, error) {
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
@@ -186,32 +188,45 @@ func (r *walletRepository) GetBalanceByUserID(ctx context.Context, userID int) (
 		WHERE user_id = $1;
 	`
 
-	var balance domain.Balance
-	err := r.db.QueryRowContext(ctx, query, userID).Scan(
-		&balance.Balance,
-		&balance.Currency,
-	)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, exception.ErrBalanceNotFound
-		}
+	var balances []domain.Balance
+	if err := r.db.SelectContext(ctx, &balances, query, userID); err != nil {
+		return nil, err
 	}
 
-	return &balance, nil
+	return balances, nil
 }
 
-func (r *walletRepository) CreateWallet(ctx context.Context, wallet *domain.Wallet) error {
+func (r *walletRepository) CreateWallet(ctx context.Context, tx *sql.Tx, wallet *domain.Wallet) (int, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
 	query := `
-		INSERT INTO wallets (balance, currency, wallet_type_id, user_id, created_at)
-		VALUES ($1, $2, $3, $4, $5);
+		INSERT INTO wallets (wallet_type_id, user_id, created_at)
+		VALUES ($1, $2, $3)
+		RETURNING id;
 	`
 
-	_, err := r.db.ExecContext(ctx, query, wallet.Balance, wallet.Currency, wallet.TypeID, wallet.UserID, time.Now())
-	if err != nil {
-		return err
+	var walletID int
+	if err := tx.QueryRowContext(ctx, query, wallet.WalletTypeID, wallet.UserID, time.Now()).Scan(&walletID); err != nil {
+		return 0, err
+	}
+
+	return walletID, nil
+}
+
+func (r *walletRepository) InsertWalletCurrencyAmount(ctx context.Context, tx *sql.Tx, walletID, userID int, currencyAmount []domain.WalletCurrencyAmount) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
+	query := `
+		INSERT INTO wallet_balances (amount, currency, wallet_id, user_id)
+		VALUES ($1, $2, $3, $4);
+	`
+
+	for _, c := range currencyAmount {
+		if _, err := tx.ExecContext(ctx, query, c.Amount, c.Currency, walletID, userID); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -228,63 +243,11 @@ func (r *walletRepository) UpdateWallet(ctx context.Context, wallet *domain.Wall
 	`
 
 	_, err := r.db.ExecContext(ctx, query,
-		wallet.Balance,
 		wallet.UserID,
-		wallet.TypeID,
-		wallet.Currency,
+		wallet.WalletTypeID,
 	)
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-func (r *walletRepository) GetUserAndWalletByUserID(ctx context.Context, userID int, walletID int, walletCurrency string) (*domain.Wallet, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*15)
-	defer cancel()
-
-	query := `
-		SELECT
-			u.id 				AS user_id,
-			u.first_name 		AS first_name,
-			u.last_name 		AS last_name, 
-			u.username 			AS username, 
-			u.email 			AS email, 
-			u.mobile_number 	AS mobile_number, 
-			u.active 			AS active, 
-			w.balance 			AS balance,
-			w.currency 			AS currency,
-			wt.type 			AS type,
-			wt.id				AS type_id
-		FROM users u
-		JOIN wallets w
-			ON w.user_id = u.id
-		JOIN wallet_types wt
-			ON w.wallet_type_id = wt.id
-		WHERE u.id = $1 AND w.id = $2 AND w.currency = $3;
-	`
-
-	var wallet domain.Wallet
-	err := r.db.QueryRowContext(ctx, query, userID, walletID, walletCurrency).Scan(
-		&wallet.UserID,
-		&wallet.FirstName,
-		&wallet.LastName,
-		&wallet.Username,
-		&wallet.Email,
-		&wallet.MobileNumber,
-		&wallet.Active,
-		&wallet.Balance,
-		&wallet.Currency,
-		&wallet.Type,
-		&wallet.TypeID,
-	)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, exception.ErrUserAndWalletAssociationNotFound
-		}
-		return nil, err
-	}
-
-	return &wallet, nil
 }

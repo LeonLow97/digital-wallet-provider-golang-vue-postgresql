@@ -25,6 +25,10 @@ VALUES
 INSERT INTO wallet_types (type)
 VALUES ('personal'), ('savings'), ('investment'), ('business');
 
-INSERT INTO wallets (balance, currency, wallet_type_id, user_id)
+INSERT INTO wallets (wallet_type_id, user_id)
 VALUES
-(8000, 'AUD', 4, 1);
+(4, 1);
+
+INSERT INTO wallet_balances (amount, currency, wallet_id, user_id)
+VALUES
+(10000, 'AUD', 1, 1);

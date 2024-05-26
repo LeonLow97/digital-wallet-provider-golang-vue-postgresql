@@ -36,7 +36,11 @@ func (h *BeneficiaryHandler) CreateBeneficiary(w http.ResponseWriter, r *http.Re
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, _ := utils.UserIDFromContext(ctx)
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
 
 	var req dto.CreateBeneficiaryRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -74,7 +78,11 @@ func (h *BeneficiaryHandler) UpdateBeneficiary(w http.ResponseWriter, r *http.Re
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, _ := utils.UserIDFromContext(ctx)
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
 
 	var req dto.UpdateBeneficiaryRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -114,8 +122,8 @@ func (h *BeneficiaryHandler) GetBeneficiary(w http.ResponseWriter, r *http.Reque
 	}
 
 	// retrieve user id from context
-	userID, ok := ctx.Value(utils.UserIDKey).(int)
-	if !ok {
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
 		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
@@ -138,7 +146,11 @@ func (h *BeneficiaryHandler) GetBeneficiaries(w http.ResponseWriter, r *http.Req
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, _ := utils.UserIDFromContext(ctx)
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
 
 	// get beneficiaries
 	resp, err := h.beneficiaryUsecase.GetBeneficiaries(ctx, userID)

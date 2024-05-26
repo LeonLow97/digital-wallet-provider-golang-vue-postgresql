@@ -2,8 +2,7 @@
   <div :class="cardClass">
     <h2 class="mb-2 text-xl font-bold">{{ formattedType }}</h2>
     <div class="mb-4 flex gap-2 text-lg">
-      <div>{{ currency }}</div>
-      <div>{{ amount }}</div>
+      <div>{{ currencyAmount }}</div>
     </div>
     <div class="flex items-center justify-between">
       <router-link
@@ -18,7 +17,6 @@
     </div>
   </div>
 </template>
-
 <script lang="ts" setup>
 import ActionButton from "@/components/ActionButton.vue";
 import { computed } from "vue";
@@ -28,12 +26,8 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  amount: {
-    type: Number,
-    required: true,
-  },
-  currency: {
-    type: String,
+  currencyAmount: {
+    type: Array,
     required: true,
   },
 });
@@ -46,10 +40,10 @@ const cardClass = computed(() => {
   let dynamicClass = "rounded-lg border p-6 shadow-lg dark:text-black";
 
   const typeClassMapping: Record<string, string> = {
-    personal: "bg-gradient-to-r from-purple-100 to-purple-300 shadow-lg",
-    savings: "bg-gradient-to-r from-green-100 to-green-300 shadow-lg",
-    investment: "bg-gradient-to-r from-blue-100 to-blue-300 shadow-lg",
-    business: "bg-gradient-to-r from-red-100 to-red-300 shadow-lg",
+    personal: "bg-purple-300 shadow-lg",
+    savings: "bg-green-300 shadow-lg",
+    investment: "bg-blue-300 shadow-lg",
+    business: "bg-red-300 shadow-lg",
   };
 
   if (props.type in typeClassMapping) {

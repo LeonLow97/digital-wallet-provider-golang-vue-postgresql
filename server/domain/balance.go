@@ -33,4 +33,5 @@ type BalanceRepository interface {
 	GetBalanceById(ctx context.Context, userID int, balanceId int) (*Balance, error)
 	CreateBalance(ctx context.Context, tx *sql.Tx, balance *Balance) error
 	UpdateBalance(ctx context.Context, tx *sql.Tx, balance *Balance) error
+	UpdateBalances(ctx context.Context, tx *sql.Tx, userID int, finalBalancesMap map[string]float64) error
 }

@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
@@ -185,6 +187,38 @@ func (r *balanceRepository) UpdateBalance(ctx context.Context, tx *sql.Tx, balan
 		return err
 	}
 	return nil
+}
+
+func (r *balanceRepository) UpdateBalances(ctx context.Context, tx *sql.Tx, userID int, finalBalancesMap map[string]float64) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
+	placeholders := make([]string, 0)
+
+	for k, v := range finalBalancesMap {
+		placeholder := fmt.Sprintf("( %d, '%s', %f )", userID, k, v)
+		placeholders = append(placeholders, placeholder)
+	}
+
+	// Updating multiple rows in PostgreSQL
+	// https://www.geeksforgeeks.org/how-to-update-multiple-rows-in-postgresql/
+	query := fmt.Sprintf(
+		`
+		UPDATE balances
+		SET balance = data.new_balance
+		FROM (
+			VALUES
+				%s
+		) AS data (user_id, currency, new_balance)
+		WHERE 
+			balances.user_id = data.user_id AND 
+			balances.currency = data.currency;
+		`, strings.Join(placeholders, ", "),
+	)
+
+	_, err := tx.ExecContext(ctx, query)
+
+	return err
 }
 
 func (r *balanceRepository) CreateBalanceHistory(ctx context.Context, tx *sql.Tx, balance *domain.Balance, depositedBalance float64, balanceType string) error {

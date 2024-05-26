@@ -1,6 +1,6 @@
 <template>
   <main-nav @toggle-side-nav="toggleSideNav" v-if="isLoggedIn" />
-  <div :class="dynamicClass">
+  <div :class="dynamicClass" class="relative">
     <side-nav
       :class="sideNavDynamicCss"
       v-if="isLoggedIn"
@@ -12,6 +12,8 @@
     >
       <router-view />
     </div>
+
+    <toast v-if="false" />
   </div>
 </template>
 
@@ -20,6 +22,7 @@ import { useUserStore } from "@/stores/user";
 import { ref, computed } from "vue";
 import MainNav from "@/components/MainNav.vue";
 import SideNav from "@/components/SideNav.vue";
+import Toast from "@/components/Toast.vue";
 
 const userStore = useUserStore();
 

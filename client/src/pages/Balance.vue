@@ -13,7 +13,7 @@
           @click="handleDeposit"
         />
         <action-button
-          class="rounded-lg border border-none bg-orange-600 px-8 py-2 text-center text-white transition hover:bg-orange-400"
+          class="rounded-lg border border-none bg-pink-600 px-8 py-2 text-center text-white transition hover:bg-pink-400"
           text="Withdraw"
           @click="handleWithdraw"
         />

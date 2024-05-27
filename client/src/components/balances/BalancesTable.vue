@@ -26,7 +26,7 @@
           />
           <action-button
             text="Withdraw"
-            class="rounded-lg border-2 border-orange-500 px-2 text-center text-orange-500 transition hover:border-orange-200 hover:text-orange-300"
+            class="rounded-lg border-2 border-pink-500 px-2 text-center text-pink-500 transition hover:border-pink-200 hover:text-pink-300"
             @click="handleWithdraw(balance)"
           />
         </td>
@@ -64,13 +64,15 @@ const openModal = ref(false);
 const selectedBalance = ref<Balance>({
   id: 0,
   balance: 0,
-  currency: '',
-  createdAt: '',
-  updatedAt: '',
+  currency: "",
+  createdAt: "",
+  updatedAt: "",
 });
 
-const formatDate = (dateString: string): string => {
-  return format(new Date(dateString), "PPpp");
+const formatDate = (dateString: string | undefined): string | undefined => {
+  if (dateString) {
+    return format(new Date(dateString), "PPpp");
+  }
 };
 
 const handleClickViewBalances = (balanceId: number) => {

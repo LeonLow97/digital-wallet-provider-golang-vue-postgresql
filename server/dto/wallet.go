@@ -48,8 +48,8 @@ type WalletCurrencyAmount struct {
 }
 
 func (req *CreateWalletRequest) CreateWalletSanitize() {
-	for _, c := range req.CurrencyAmount {
-		c.Currency = strings.TrimSpace(c.Currency)
+	for idx, c := range req.CurrencyAmount {
+		req.CurrencyAmount[idx].Currency = strings.TrimSpace(c.Currency)
 	}
 }
 
@@ -66,4 +66,14 @@ type GetWalletTypesResponse struct {
 type WalletValidation struct {
 	WalletExists      bool `db:"wallet_exists"`
 	IsValidWalletType bool `db:"is_valid_wallet_type"`
+}
+
+type TopUpWalletRequest struct {
+	CurrencyAmount []CurrencyAmount `json:"currency_amount" validate:"required"`
+}
+
+func (req *TopUpWalletRequest) TopUpWalletSanitize() {
+	for idx, ca := range req.CurrencyAmount {
+		req.CurrencyAmount[idx].Currency = strings.TrimSpace(ca.Currency)
+	}
 }

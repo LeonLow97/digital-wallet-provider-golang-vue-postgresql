@@ -7,11 +7,13 @@
       @click="handleCreateWallet"
     />
   </div>
-  <div class="grid grid-cols-3 gap-4">
+  <div class="grid grid-cols-3 gap-8">
     <span v-for="wallet of wallets" :key="wallet.id">
       <wallet-card
+        @click="handleClickViewWallet(wallet.id)"
         :type="wallet.walletType"
         :currency-amount="wallet.currencyAmount"
+        class="transition duration-300 ease-in-out hover:scale-y-105"
       />
     </span>
   </div>
@@ -23,6 +25,7 @@
   />
 </template>
 <script lang="ts" setup>
+import { useRouter } from "vue-router";
 import WalletCard from "@/components/wallets/WalletCard.vue";
 import { GET_WALLETS } from "@/api/wallet";
 import { onMounted, ref } from "vue";
@@ -30,6 +33,7 @@ import type { Wallet } from "@/types/wallet";
 import ActionButton from "@/components/ActionButton.vue";
 import CreateWalletModal from "@/components/wallets/CreateWalletModal.vue";
 
+const router = useRouter();
 const openModal = ref(false);
 
 // Change the type of wallets to match the expected structure
@@ -47,6 +51,10 @@ const getWallets = async () => {
   } catch (error: unknown) {
     alert(error);
   }
+};
+
+const handleClickViewWallet = (walletId: number) => {
+  router.push({ name: "Wallet", params: { id: walletId } });
 };
 
 const handleCreateWallet = () => {

@@ -3,30 +3,32 @@ import type { APIResponse, GENERIC_STATUS_RESPONSE } from "@/types/generic";
 import type {
   CreateWalletRequest,
   GetWalletTypesResponse,
-  GetWalletsResponse,
+  Wallet,
 } from "@/types/wallet";
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
 
 const GET_WALLETS_URL = `${API_URL}/wallet/all`;
+const GET_WALLET_URL = `${API_URL}/wallet/`;
 const GET_WALLET_TYPES_URL = `${API_URL}/wallet/types`;
 const CREATE_WALLET_URL = `${API_URL}/wallet`;
 
-export const GET_WALLETS = async (): Promise<
-  APIResponse<GetWalletsResponse>
-> => {
-  try {
-    const { data, status } = await axios.get<GetWalletsResponse>(
-      GET_WALLETS_URL,
-      {
-        withCredentials: true,
-      },
-    );
+export const GET_WALLETS = async (): Promise<APIResponse<Wallet[]>> => {
+  const { data, status } = await axios.get<Wallet[]>(GET_WALLETS_URL, {
+    withCredentials: true,
+  });
 
-    return { data, status };
-  } catch (error: unknown) {
-    throw error;
-  }
+  return { data, status };
+};
+
+export const GET_WALLET = async (
+  paramId: number,
+): Promise<APIResponse<Wallet>> => {
+  const { data, status } = await axios.get<Wallet>(GET_WALLET_URL + paramId, {
+    withCredentials: true,
+  });
+
+  return { data, status };
 };
 
 export const GET_WALLET_TYPES = async (): Promise<

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -48,9 +47,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var req dto.LoginRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Println("error decoding req body in login handler", err)
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := utils.ReadJSONBody(w, r, &req); err != nil {
 		return
 	}
 
@@ -64,26 +61,26 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	req.LoginSanitize()
 
 	resp, err := h.userUsecase.Login(ctx, req)
-	switch {
-	case errors.Is(err, exception.ErrUserNotFound) || errors.Is(err, exception.ErrInvalidCredentials):
-		utils.ErrorJSON(w, apiErr.ErrInvalidCredentials, http.StatusUnauthorized)
-	case errors.Is(err, exception.ErrInactiveUser):
-		utils.ErrorJSON(w, apiErr.ErrInactiveUser, http.StatusUnauthorized)
-	case err != nil:
-		log.Println("error in login handler", err)
-		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-	default:
-		utils.WriteJSON(w, http.StatusOK, resp)
+	if err != nil {
+		switch {
+		case errors.Is(err, exception.ErrUserNotFound) || errors.Is(err, exception.ErrInvalidCredentials):
+			utils.ErrorJSON(w, apiErr.ErrInvalidCredentials, http.StatusUnauthorized)
+		case errors.Is(err, exception.ErrInactiveUser):
+			utils.ErrorJSON(w, apiErr.ErrInactiveUser, http.StatusUnauthorized)
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		}
+		return
 	}
+
+	utils.WriteJSON(w, http.StatusOK, resp)
 }
 
 func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var req dto.SignUpRequest
-	if err := utils.ReadJSON(w, r, &req); err != nil {
-		log.Println("error decoding req body in sign up handler", err)
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := utils.ReadJSONBody(w, r, &req); err != nil {
 		return
 	}
 
@@ -96,18 +93,19 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.userUsecase.SignUp(ctx, req)
-	switch {
-	case errors.Is(err, exception.ErrUserFound):
-		utils.ErrorJSON(w, apiErr.ErrUserFound, http.StatusBadRequest)
-	case errors.Is(err, exception.ErrInvalidPassword):
-		utils.ErrorJSON(w, apiErr.ErrInvalidPassword, http.StatusBadRequest)
-	case err != nil:
-		log.Println("error in sign up handler", err)
-		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-	default:
-		utils.WriteNoContent(w, http.StatusNoContent)
+	if err = h.userUsecase.SignUp(ctx, req); err != nil {
+		switch {
+		case errors.Is(err, exception.ErrUserFound):
+			utils.ErrorJSON(w, apiErr.ErrUserFound, http.StatusBadRequest)
+		case errors.Is(err, exception.ErrInvalidPassword):
+			utils.ErrorJSON(w, apiErr.ErrInvalidPassword, http.StatusBadRequest)
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		}
+		return
 	}
+
+	utils.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
@@ -147,9 +145,7 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req dto.ChangePasswordRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Println("error decoding req body in change password handler", err)
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+	if err := utils.ReadJSONBody(w, r, &req); err != nil {
 		return
 	}
 
@@ -166,17 +162,14 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, exception.ErrUserNotFound):
 			utils.ErrorJSON(w, apiErr.ErrUserNotFound, http.StatusNotFound)
-			return
 		case errors.Is(err, exception.ErrInvalidCredentials):
 			utils.ErrorJSON(w, apiErr.ErrCurrentPasswordIncorrect, http.StatusBadRequest)
-			return
 		case errors.Is(err, exception.ErrSamePassword):
 			utils.ErrorJSON(w, apiErr.ErrSamePassword, http.StatusBadRequest)
-			return
 		default:
 			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
-			return
 		}
+		return
 	}
 
 	utils.WriteNoContent(w, http.StatusNoContent)
@@ -186,9 +179,7 @@ func (h *UserHandler) ConfigureMFA(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var req dto.ConfigureMFARequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Println("error decoding req body with error:", err)
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := utils.ReadJSONBody(w, r, &req); err != nil {
 		return
 	}
 
@@ -206,17 +197,14 @@ func (h *UserHandler) ConfigureMFA(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, exception.ErrInvalidMFACode):
 			utils.ErrorJSON(w, apiErr.ErrInvalidMFACode, http.StatusUnauthorized)
-			return
 		case errors.Is(err, exception.ErrUserNotFound):
 			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
-			return
 		case errors.Is(err, exception.ErrTOTPSecretExists):
 			utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
-			return
 		default:
 			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-			return
 		}
+		return
 	}
 
 	// TODO: utilise refresh token or remove it from user use case
@@ -230,9 +218,7 @@ func (h *UserHandler) VerifyMFA(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var req dto.VerifyMFARequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Println("error decoding req body with error:", err)
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := utils.ReadJSONBody(w, r, &req); err != nil {
 		return
 	}
 
@@ -250,14 +236,12 @@ func (h *UserHandler) VerifyMFA(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, exception.ErrUserNotFound):
 			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
-			return
 		case errors.Is(err, exception.ErrInvalidMFACode):
 			utils.ErrorJSON(w, apiErr.ErrInvalidMFACode, http.StatusUnauthorized)
-			return
 		default:
 			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-			return
 		}
+		return
 	}
 
 	// TODO: utilise refresh token or remove it from user use case
@@ -271,9 +255,7 @@ func (h *UserHandler) PasswordReset(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var req dto.PasswordResetRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Println("error decoding req body in password reset handler", err)
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := utils.ReadJSONBody(w, r, &req); err != nil {
 		return
 	}
 
@@ -290,11 +272,10 @@ func (h *UserHandler) PasswordReset(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, exception.ErrSamePassword):
 			utils.ErrorJSON(w, apiErr.ErrSamePassword, http.StatusBadRequest)
-			return
 		default:
 			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-			return
 		}
+		return
 	}
 
 	utils.WriteNoContent(w, http.StatusNoContent)
@@ -304,9 +285,7 @@ func (h *UserHandler) SendPasswordResetEmail(w http.ResponseWriter, r *http.Requ
 	ctx := r.Context()
 
 	var req dto.SendPasswordResetEmailRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Println("error decoding req body in send password reset email handler", err)
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := utils.ReadJSONBody(w, r, &req); err != nil {
 		return
 	}
 
@@ -325,11 +304,10 @@ func (h *UserHandler) SendPasswordResetEmail(w http.ResponseWriter, r *http.Requ
 			// return the same status when email is not found, prevent
 			// cyber attacks from brute forcing and retrieving valid emails
 			utils.WriteNoContent(w, http.StatusNoContent)
-			return
 		default:
 			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-			return
 		}
+		return
 	}
 
 	utils.WriteNoContent(w, http.StatusNoContent)
@@ -346,9 +324,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req dto.UpdateUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Println("error decoding req body in update user handler", err)
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := utils.ReadJSONBody(w, r, &req); err != nil {
 		return
 	}
 

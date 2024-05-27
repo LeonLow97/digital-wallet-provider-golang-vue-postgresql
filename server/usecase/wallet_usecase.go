@@ -24,19 +24,23 @@ func NewWalletUsecase(dbConn *sqlx.DB, walletRepository domain.WalletRepository,
 	}
 }
 
-func (uc *walletUsecase) GetWallet(ctx context.Context, userID, walletID int) (*dto.GetWalletResponse, error) {
+func (uc *walletUsecase) GetWallet(ctx context.Context, userID, walletID int) (*domain.Wallet, error) {
+	// retrieve one wallet by user id and wallet ID
 	wallet, err := uc.walletRepository.GetWalletByWalletID(ctx, userID, walletID)
 	if err != nil {
-		log.Println("error getting one wallet", err)
+		log.Printf("failed to get wallet for user id %d with error: %v\n", userID, err)
 		return nil, err
 	}
 
-	return &dto.GetWalletResponse{
-		WalletID:     wallet.ID,
-		WalletType:   wallet.WalletType,
-		WalletTypeID: wallet.WalletTypeID,
-		CreatedAt:    wallet.CreatedAt,
-	}, nil
+	// retrieve wallet balances by user id and wallet id
+	walletBalances, err := uc.walletRepository.GetWalletBalancesByUserIDAndWalletID(ctx, userID, walletID)
+	if err != nil {
+		log.Printf("failed to get wallet balances for user id %d and wallet id %d with error: %v\n", userID, walletID, err)
+		return nil, err
+	}
+	wallet.CurrencyAmount = walletBalances
+
+	return wallet, nil
 }
 
 func (uc *walletUsecase) GetWallets(ctx context.Context, userID int) (*[]domain.Wallet, error) {

@@ -4,6 +4,7 @@ import type {
   GetBalanceResponse,
   GetBalancesResponse,
   GetBalanceHistoryResponse,
+  GetUserBalanceCurrenciesResponse,
   DEPOSIT_REQUEST,
   WITHDRAW_REQUEST,
 } from "@/types/balances";
@@ -16,6 +17,20 @@ const GET_BALANCE_URL = `${API_URL}/balances/`;
 const GET_BALANCE_HISTORY_URL = `${API_URL}/balances/history/`;
 const DEPOSIT_URL = `${API_URL}/balances/deposit`;
 const WITHDRAW_URL = `${API_URL}/balances/withdraw`;
+const GET_USER_BALANCE_CURRENCIES_URL = `${API_URL}/balances/currencies`;
+
+export const GET_USER_BALANCE_CURRENCIES = async (): Promise<
+  APIResponse<GetUserBalanceCurrenciesResponse[]>
+> => {
+  const { data, status } = await axios.get<GetUserBalanceCurrenciesResponse[]>(
+    GET_USER_BALANCE_CURRENCIES_URL,
+    {
+      withCredentials: true,
+    },
+  );
+
+  return { data, status };
+};
 
 export const GET_BALANCES = async (): Promise<
   APIResponse<GetBalancesResponse>

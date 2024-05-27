@@ -66,8 +66,6 @@ func (r *walletRepository) GetWalletByWalletID(ctx context.Context, userID, wall
 			w.user_id AS user_id,
 			wt.type AS type,
 			wt.id AS type_id,
-			w.balance,
-			w.currency,
 			w.created_at
 		FROM wallets w
 		JOIN wallet_types wt
@@ -127,6 +125,24 @@ func (r *walletRepository) GetWalletBalancesByUserID(ctx context.Context, userID
 
 	var walletBalances []domain.WalletCurrencyAmount
 	if err := r.db.SelectContext(ctx, &walletBalances, query, userID); err != nil {
+		return nil, err
+	}
+
+	return walletBalances, nil
+}
+
+func (r *walletRepository) GetWalletBalancesByUserIDAndWalletID(ctx context.Context, userID, walletID int) ([]domain.WalletCurrencyAmount, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
+	query := `
+		SELECT wallet_id, amount, currency, created_at, updated_at
+		FROM wallet_balances
+		WHERE user_id = $1 AND wallet_id = $2;
+	`
+
+	var walletBalances []domain.WalletCurrencyAmount
+	if err := r.db.SelectContext(ctx, &walletBalances, query, userID, walletID); err != nil {
 		return nil, err
 	}
 

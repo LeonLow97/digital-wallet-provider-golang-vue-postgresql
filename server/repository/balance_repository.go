@@ -92,6 +92,24 @@ func (r *balanceRepository) GetBalance(ctx context.Context, userID int, currency
 	return &balance, nil
 }
 
+func (r *balanceRepository) GetUserBalanceCurrencies(ctx context.Context, userID int) (*[]dto.GetUserBalanceCurrenciesResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+
+	query := `
+		SELECT currency
+		FROM balances
+		WHERE user_id = $1;
+	`
+
+	var balanceCurrencies []dto.GetUserBalanceCurrenciesResponse
+	if err := r.db.SelectContext(ctx, &balanceCurrencies, query, userID); err != nil {
+		return nil, err
+	}
+
+	return &balanceCurrencies, nil
+}
+
 func (r *balanceRepository) GetBalanceTx(ctx context.Context, tx *sql.Tx, userID int, currency string) (*domain.Balance, error) {
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()

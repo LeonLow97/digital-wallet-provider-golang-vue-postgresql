@@ -20,6 +20,7 @@ type BalanceUsecase interface {
 	GetBalanceHistory(ctx context.Context, userID int, balanceID int) (*dto.GetBalanceHistory, error)
 	GetBalance(ctx context.Context, userID int, balanceID int) (*dto.GetBalanceResponse, error)
 	GetBalances(ctx context.Context, userID int) (*dto.GetBalancesResponse, error)
+	GetUserBalanceCurrencies(ctx context.Context, userID int) (*[]dto.GetUserBalanceCurrenciesResponse, error)
 	Deposit(ctx context.Context, req dto.DepositRequest) error
 	Withdraw(ctx context.Context, req dto.WithdrawRequest) error
 }
@@ -29,6 +30,7 @@ type BalanceRepository interface {
 	GetBalanceHistory(ctx context.Context, userID, balanceID int) (*[]dto.BalanceHistory, error)
 	GetBalances(ctx context.Context, userID int) (*[]Balance, error)
 	GetBalance(ctx context.Context, userID int, currency string) (*Balance, error)
+	GetUserBalanceCurrencies(ctx context.Context, userID int) (*[]dto.GetUserBalanceCurrenciesResponse, error)
 	GetBalanceTx(ctx context.Context, tx *sql.Tx, userID int, currency string) (*Balance, error)
 	GetBalanceById(ctx context.Context, userID int, balanceId int) (*Balance, error)
 	CreateBalance(ctx context.Context, tx *sql.Tx, balance *Balance) error

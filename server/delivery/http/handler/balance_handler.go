@@ -28,6 +28,7 @@ func NewBalanceHandler(router *mux.Router, uc domain.BalanceUsecase) {
 	balanceRouter.HandleFunc("", handler.GetBalances).Methods(http.MethodGet)
 	balanceRouter.HandleFunc("/{id:[0-9]+}", handler.GetBalance).Methods(http.MethodGet)
 	balanceRouter.HandleFunc("/history/{id:[0-9]+}", handler.GetBalanceHistory).Methods(http.MethodGet)
+	balanceRouter.HandleFunc("/currencies", handler.GetUserBalanceCurrencies).Methods(http.MethodGet)
 	balanceRouter.HandleFunc("/deposit", handler.Deposit).Methods(http.MethodPost)
 	balanceRouter.HandleFunc("/withdraw", handler.Withdraw).Methods(http.MethodPost)
 }
@@ -43,9 +44,8 @@ func (h *BalanceHandler) GetBalanceHistory(w http.ResponseWriter, r *http.Reques
 	}
 
 	// retrieve balance id from url params
-	balanceID, err := utils.ReadParamsInt(r, "id")
+	balanceID, err := utils.ReadParamsInt(w, r, "id")
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -54,11 +54,10 @@ func (h *BalanceHandler) GetBalanceHistory(w http.ResponseWriter, r *http.Reques
 		switch {
 		case errors.Is(err, exception.ErrBalanceHistoryNotFound):
 			utils.ErrorJSON(w, apiErr.ErrBalanceHistoryNotFound, http.StatusNotFound)
-			return
 		default:
 			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-			return
 		}
+		return
 	}
 
 	utils.WriteJSON(w, http.StatusOK, resp)
@@ -75,9 +74,8 @@ func (h *BalanceHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// retrieve balance id from url params
-	balanceID, err := utils.ReadParamsInt(r, "id")
+	balanceID, err := utils.ReadParamsInt(w, r, "id")
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -86,11 +84,10 @@ func (h *BalanceHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, exception.ErrBalanceNotFound):
 			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
-			return
 		default:
 			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-			return
 		}
+		return
 	}
 
 	utils.WriteJSON(w, http.StatusOK, resp)
@@ -111,14 +108,32 @@ func (h *BalanceHandler) GetBalances(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, exception.ErrBalanceNotFound):
 			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
-			return
 		default:
 			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-			return
 		}
+		return
 	}
 
 	utils.WriteJSON(w, http.StatusOK, balances)
+}
+
+func (h *BalanceHandler) GetUserBalanceCurrencies(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// retrieve user id from context
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	resp, err := h.balanceUsecase.GetUserBalanceCurrencies(ctx, userID)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, resp)
 }
 
 func (h *BalanceHandler) Deposit(w http.ResponseWriter, r *http.Request) {
@@ -127,15 +142,12 @@ func (h *BalanceHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 	// retrieve user id from context
 	userID, err := utils.UserIDFromContext(ctx)
 	if err != nil {
-		log.Println("failed to retrieve user id from context", err)
 		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	var req dto.DepositRequest
-	if err := utils.ReadJSON(w, r, &req); err != nil {
-		log.Println("error decoding req body in deposit handler", err)
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := utils.ReadJSONBody(w, r, &req); err != nil {
 		return
 	}
 
@@ -162,15 +174,12 @@ func (h *BalanceHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	// retrieve user id from context
 	userID, err := utils.UserIDFromContext(ctx)
 	if err != nil {
-		log.Println("failed to retrieve user id from context", err)
 		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	var req dto.WithdrawRequest
-	if err := utils.ReadJSON(w, r, &req); err != nil {
-		log.Println("error decoding req body in withdraw handler", err)
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := utils.ReadJSONBody(w, r, &req); err != nil {
 		return
 	}
 
@@ -193,6 +202,7 @@ func (h *BalanceHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 		default:
 			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
+		return
 	}
 
 	utils.WriteNoContent(w, http.StatusNoContent)

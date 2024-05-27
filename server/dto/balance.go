@@ -34,6 +34,10 @@ type GetBalancesResponse struct {
 	Balances []GetBalanceResponse `json:"balances"`
 }
 
+type GetUserBalanceCurrenciesResponse struct {
+	Currency string `json:"currency" db:"currency"`
+}
+
 type WithdrawRequest struct {
 	Balance  float64 `json:"amount" validate:"required,gt=0"`
 	Currency string  `json:"currency" validate:"required"`

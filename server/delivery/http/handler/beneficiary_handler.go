@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -43,9 +42,7 @@ func (h *BeneficiaryHandler) CreateBeneficiary(w http.ResponseWriter, r *http.Re
 	}
 
 	var req dto.CreateBeneficiaryRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Println("error decoding req body in create beneficiary handler", err)
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := utils.ReadJSONBody(w, r, &req); err != nil {
 		return
 	}
 
@@ -59,19 +56,21 @@ func (h *BeneficiaryHandler) CreateBeneficiary(w http.ResponseWriter, r *http.Re
 	// sanitize request body
 	req.CreateBeneficiarySanitize()
 
-	err = h.beneficiaryUsecase.CreateBeneficiary(ctx, userID, req)
-	switch {
-	case errors.Is(err, exception.ErrUserNotFound):
-		utils.ErrorJSON(w, apiErr.ErrUserNotFound, http.StatusNotFound)
-	case errors.Is(err, exception.ErrUserIDEqualBeneficiaryID):
-		utils.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
-	case errors.Is(err, exception.ErrBeneficiaryAlreadyExists):
-		utils.ErrorJSON(w, apiErr.ErrBeneficiaryAlreadyExists, http.StatusBadRequest)
-	case err != nil:
-		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-	default:
-		utils.WriteNoContent(w, http.StatusCreated)
+	if err = h.beneficiaryUsecase.CreateBeneficiary(ctx, userID, req); err != nil {
+		switch {
+		case errors.Is(err, exception.ErrUserNotFound):
+			utils.ErrorJSON(w, apiErr.ErrUserNotFound, http.StatusNotFound)
+		case errors.Is(err, exception.ErrUserIDEqualBeneficiaryID):
+			utils.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
+		case errors.Is(err, exception.ErrBeneficiaryAlreadyExists):
+			utils.ErrorJSON(w, apiErr.ErrBeneficiaryAlreadyExists, http.StatusBadRequest)
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		}
+		return
 	}
+
+	utils.WriteNoContent(w, http.StatusCreated)
 }
 
 func (h *BeneficiaryHandler) UpdateBeneficiary(w http.ResponseWriter, r *http.Request) {
@@ -85,9 +84,7 @@ func (h *BeneficiaryHandler) UpdateBeneficiary(w http.ResponseWriter, r *http.Re
 	}
 
 	var req dto.UpdateBeneficiaryRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Println("error decoding req body in update beneficiary handler", err)
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := utils.ReadJSONBody(w, r, &req); err != nil {
 		return
 	}
 
@@ -98,26 +95,27 @@ func (h *BeneficiaryHandler) UpdateBeneficiary(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err = h.beneficiaryUsecase.UpdateBeneficiary(ctx, userID, req)
-	switch {
-	case errors.Is(err, exception.ErrUserIDEqualBeneficiaryID):
-		utils.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
-	case errors.Is(err, exception.ErrUserNotLinkedToBeneficiary):
-		utils.ErrorJSON(w, apiErr.ErrUserNotLinkedToBeneficiary, http.StatusBadRequest)
-	case err != nil:
-		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-	default:
-		utils.WriteNoContent(w, http.StatusNoContent)
+	if err = h.beneficiaryUsecase.UpdateBeneficiary(ctx, userID, req); err != nil {
+		switch {
+		case errors.Is(err, exception.ErrUserIDEqualBeneficiaryID):
+			utils.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
+		case errors.Is(err, exception.ErrUserNotLinkedToBeneficiary):
+			utils.ErrorJSON(w, apiErr.ErrUserNotLinkedToBeneficiary, http.StatusBadRequest)
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		}
+		return
 	}
+
+	utils.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *BeneficiaryHandler) GetBeneficiary(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve beneficiary id from url params
-	beneficiaryID, err := utils.ReadParamsInt(r, "id")
+	beneficiaryID, err := utils.ReadParamsInt(w, r, "id")
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -130,16 +128,19 @@ func (h *BeneficiaryHandler) GetBeneficiary(w http.ResponseWriter, r *http.Reque
 
 	// get one beneficiary
 	resp, err := h.beneficiaryUsecase.GetBeneficiary(ctx, beneficiaryID, userID)
-	switch {
-	case errors.Is(err, exception.ErrUserIDEqualBeneficiaryID):
-		utils.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
-	case errors.Is(err, exception.ErrUserNotLinkedToBeneficiary):
-		utils.ErrorJSON(w, apiErr.ErrUserNotLinkedToBeneficiary, http.StatusBadRequest)
-	case err != nil:
-		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-	default:
-		utils.WriteJSON(w, http.StatusOK, resp)
+	if err != nil {
+		switch {
+		case errors.Is(err, exception.ErrUserIDEqualBeneficiaryID):
+			utils.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
+		case errors.Is(err, exception.ErrUserNotLinkedToBeneficiary):
+			utils.ErrorJSON(w, apiErr.ErrUserNotLinkedToBeneficiary, http.StatusBadRequest)
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		}
+		return
 	}
+
+	utils.WriteJSON(w, http.StatusOK, resp)
 }
 
 func (h *BeneficiaryHandler) GetBeneficiaries(w http.ResponseWriter, r *http.Request) {
@@ -154,12 +155,15 @@ func (h *BeneficiaryHandler) GetBeneficiaries(w http.ResponseWriter, r *http.Req
 
 	// get beneficiaries
 	resp, err := h.beneficiaryUsecase.GetBeneficiaries(ctx, userID)
-	switch {
-	case errors.Is(err, exception.ErrUserHasNoBeneficiary):
-		utils.ErrorJSON(w, apiErr.ErrUserNotLinkedToAnyBeneficiary, http.StatusBadRequest)
-	case err != nil:
-		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-	default:
-		utils.WriteJSON(w, http.StatusOK, resp)
+	if err != nil {
+		switch {
+		case errors.Is(err, exception.ErrUserHasNoBeneficiary):
+			utils.ErrorJSON(w, apiErr.ErrUserNotLinkedToAnyBeneficiary, http.StatusBadRequest)
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		}
+		return
 	}
+
+	utils.WriteJSON(w, http.StatusOK, resp)
 }

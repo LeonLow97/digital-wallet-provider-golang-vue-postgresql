@@ -24,6 +24,10 @@ export interface GetBalanceResponse {
   createdAt: string;
 }
 
+export interface GetUserBalanceCurrenciesResponse {
+  currency: string;
+}
+
 export interface GetBalanceHistoryResponse {
   balanceHistory: BalanceHistory[];
 }

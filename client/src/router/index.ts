@@ -74,6 +74,11 @@ const routes = [
     component: () => import("@/pages/Wallets.vue"),
   },
   {
+    path: "/wallet/:id",
+    name: "Wallet",
+    component: () => import("@/pages/Wallet.vue"),
+  },
+  {
     path: "/error",
     name: "Error",
     component: () => import("@/pages/Error.vue"),

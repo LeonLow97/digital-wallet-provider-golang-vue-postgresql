@@ -15,10 +15,6 @@ export interface WalletCurrencyAmount {
   updatedAt: string;
 }
 
-export interface GetWalletsResponse {
-  wallets: Wallet[];
-}
-
 export interface GetWalletTypesResponse {
   id: number;
   walletType: string;
@@ -30,6 +26,6 @@ export interface CreateWalletRequest {
 }
 
 export interface CurrencyAmount {
-  amount: number;
+  amount: number | null;
   currency: string;
 }

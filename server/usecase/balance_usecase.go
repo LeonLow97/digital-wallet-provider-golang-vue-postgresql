@@ -76,6 +76,16 @@ func (uc *balanceUsecase) GetBalances(ctx context.Context, userID int) (*dto.Get
 	return &resp, nil
 }
 
+func (uc *balanceUsecase) GetUserBalanceCurrencies(ctx context.Context, userID int) (*[]dto.GetUserBalanceCurrenciesResponse, error) {
+	resp, err := uc.balanceRepository.GetUserBalanceCurrencies(ctx, userID)
+	if err != nil {
+		log.Printf("failed to get user balance currencies for user id %d with error: %v\n", userID, err)
+		return nil, err
+	}
+
+	return resp, nil
+}
+
 func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) error {
 	// In a real-world scenario, connect via Go HTTP client to the user's credit card API
 	// to retrieve the deposited amount. For the purpose of this project, we assume

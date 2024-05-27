@@ -25,7 +25,7 @@ type WalletCurrencyAmount struct {
 }
 
 type WalletUsecase interface {
-	GetWallet(ctx context.Context, userID, walletID int) (*dto.GetWalletResponse, error)
+	GetWallet(ctx context.Context, userID, walletID int) (*Wallet, error)
 	GetWallets(ctx context.Context, userID int) (*[]Wallet, error)
 	GetWalletTypes(ctx context.Context) (*[]dto.GetWalletTypesResponse, error)
 	CreateWallet(ctx context.Context, userID int, req dto.CreateWalletRequest) error
@@ -38,6 +38,7 @@ type WalletRepository interface {
 	GetWallets(ctx context.Context, userID int) ([]Wallet, error)
 	GetWalletTypes(ctx context.Context) (*[]dto.GetWalletTypesResponse, error)
 	GetWalletBalancesByUserID(ctx context.Context, userID int) ([]WalletCurrencyAmount, error)
+	GetWalletBalancesByUserIDAndWalletID(ctx context.Context, userID, walletID int) ([]WalletCurrencyAmount, error)
 	PerformWalletValidationByUserID(ctx context.Context, userID, walletTypeID int) (*dto.WalletValidation, error)
 	GetAllBalancesByUserID(ctx context.Context, userID int) ([]Balance, error)
 	CreateWallet(ctx context.Context, tx *sql.Tx, wallet *Wallet) (int, error)

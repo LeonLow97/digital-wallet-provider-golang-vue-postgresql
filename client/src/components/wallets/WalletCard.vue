@@ -1,25 +1,15 @@
 <template>
   <div :class="cardClass">
     <h2 class="mb-2 text-xl font-bold">{{ formattedType }}</h2>
-    <div class="mb-4 flex gap-2 text-lg">
-      <div>{{ currencyAmount }}</div>
-    </div>
-    <div class="flex items-center justify-between">
-      <router-link
-        class="text-blue-500 underline underline-offset-4"
-        :to="{ name: '' }"
-        >History</router-link
-      >
-      <action-button
-        class="hover rounded-lg bg-blue-500 px-4 py-2 text-white transition hover:bg-blue-300"
-        text="Transfer"
-      />
+    <div class="mb-4 flex gap-2 text-lg" v-for="item in currencyAmount">
+      <div>{{ item.amount }} {{ item.currency }}</div>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
-import ActionButton from "@/components/ActionButton.vue";
 import { computed } from "vue";
+import type { PropType } from "vue";
+import type { WalletCurrencyAmount } from "@/types/wallet";
 
 const props = defineProps({
   type: {
@@ -27,7 +17,7 @@ const props = defineProps({
     required: true,
   },
   currencyAmount: {
-    type: Array,
+    type: Array as PropType<WalletCurrencyAmount[]>,
     required: true,
   },
 });
@@ -37,13 +27,14 @@ const formattedType = computed(() => {
 });
 
 const cardClass = computed(() => {
-  let dynamicClass = "rounded-lg border p-6 shadow-lg dark:text-black";
+  let dynamicClass =
+    " cursor-pointer rounded-lg border p-6 shadow-lg dark:text-black";
 
   const typeClassMapping: Record<string, string> = {
-    personal: "bg-purple-300 shadow-lg",
-    savings: "bg-green-300 shadow-lg",
-    investment: "bg-blue-300 shadow-lg",
-    business: "bg-red-300 shadow-lg",
+    personal: "bg-purple-100 shadow-lg",
+    savings: "bg-yellow-100 shadow-lg",
+    investment: "bg-blue-100 shadow-lg",
+    business: "bg-red-100 shadow-lg",
   };
 
   if (props.type in typeClassMapping) {

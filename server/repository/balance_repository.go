@@ -212,16 +212,19 @@ func (r *balanceRepository) UpdateBalances(ctx context.Context, tx *sql.Tx, user
 	defer cancel()
 
 	placeholders := make([]string, 0)
+	args := make([]interface{}, 0)
 
+	i := 1
 	for k, v := range finalBalancesMap {
-		placeholder := fmt.Sprintf("( %d, '%s', %f )", userID, k, v)
+		placeholder := fmt.Sprintf("( $%d, $%d, $%d )", i, i+1, i+2)
 		placeholders = append(placeholders, placeholder)
+		args = append(args, userID, k, v)
+		i += 3
 	}
 
 	// Updating multiple rows in PostgreSQL
 	// https://www.geeksforgeeks.org/how-to-update-multiple-rows-in-postgresql/
-	query := fmt.Sprintf(
-		`
+	query := fmt.Sprintf(`
 		UPDATE balances
 		SET balance = data.new_balance
 		FROM (
@@ -231,10 +234,9 @@ func (r *balanceRepository) UpdateBalances(ctx context.Context, tx *sql.Tx, user
 		WHERE 
 			balances.user_id = data.user_id AND 
 			balances.currency = data.currency;
-		`, strings.Join(placeholders, ", "),
-	)
+	`, strings.Join(placeholders, ", "))
 
-	_, err := tx.ExecContext(ctx, query)
+	_, err := tx.ExecContext(ctx, query, args...)
 
 	return err
 }

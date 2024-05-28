@@ -2,10 +2,8 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
 	"github.com/LeonLow97/go-clean-architecture/dto"
@@ -31,7 +29,6 @@ func NewWalletHandler(router *mux.Router, uc domain.WalletUsecase) {
 	walletRouter.HandleFunc("/all", handler.GetWallets).Methods(http.MethodGet)
 	walletRouter.HandleFunc("/types", handler.GetWalletTypes).Methods(http.MethodGet)
 	walletRouter.HandleFunc("", handler.CreateWallet).Methods(http.MethodPost)
-	walletRouter.HandleFunc("", handler.UpdateWallet).Methods(http.MethodPut)
 	walletRouter.HandleFunc("/topup/{id:[0-9]+}", handler.TopUpWallet).Methods(http.MethodPut)
 }
 
@@ -142,52 +139,6 @@ func (h *WalletHandler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	utils.WriteNoContent(w, http.StatusCreated)
 }
 
-func (h *WalletHandler) UpdateWallet(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	// retrieve user id from context
-	userID, err := utils.UserIDFromContext(ctx)
-	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
-		return
-	}
-
-	var req dto.UpdateWalletRequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		return
-	}
-
-	errMessage, err := infrastructure.ValidateStruct(req)
-	if err != nil {
-		log.Println("error validating req struct in create wallet handler", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
-		return
-	}
-
-	req.Type = strings.ToLower(req.Type)
-	req.UserID = userID
-	req.UpdateWalletSanitize()
-
-	resp, err := h.walletUseCase.UpdateWallet(ctx, req)
-	if err != nil {
-		switch {
-		case errors.Is(err, exception.ErrNoWalletFound):
-			utils.ErrorJSON(w, apiErr.ErrNoWalletFound, http.StatusNotFound)
-		case errors.Is(err, exception.ErrBalanceNotFound):
-			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
-		case errors.Is(err, exception.ErrInsufficientFundsForWithdrawal):
-			utils.ErrorJSON(w, apiErr.ErrInsufficientFundsForWithdrawalFromWallet, http.StatusBadRequest)
-		case errors.Is(err, exception.ErrInsufficientFundsForDeposit):
-			utils.ErrorJSON(w, apiErr.ErrInsufficientFundsForDepositToWallet, http.StatusBadRequest)
-		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-		}
-		return
-	}
-
-	utils.WriteJSON(w, http.StatusOK, resp)
-}
-
 func (h *WalletHandler) TopUpWallet(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -208,7 +159,60 @@ func (h *WalletHandler) TopUpWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(userID)
+	if err := h.walletUseCase.TopUpWallet(ctx, userID, walletID, req); err != nil {
+		switch {
+		case errors.Is(err, exception.ErrNoWalletFound):
+			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		case errors.Is(err, exception.ErrWalletTypeInvalid):
+			utils.ErrorJSON(w, apiErr.ErrWalletTypeInvalid, http.StatusBadRequest)
+		case errors.Is(err, exception.ErrBalanceNotFound):
+			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusBadRequest)
+		case errors.Is(err, exception.ErrInsufficientFunds):
+			utils.ErrorJSON(w, apiErr.ErrInsufficientFundsInAccount, http.StatusBadRequest)
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		}
+		return
+	}
 
-	utils.WriteJSON(w, http.StatusOK, walletID)
+	utils.WriteNoContent(w, http.StatusNoContent)
+}
+
+func (h *WalletHandler) CashOutWallet(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// retrieve user id from context
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	walletID, err := utils.ReadParamsInt(w, r, "id")
+	if err != nil {
+		return
+	}
+
+	var req dto.UpdateWalletRequest
+	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		return
+	}
+
+	if err := h.walletUseCase.CashOutWallet(ctx, userID, walletID, req); err != nil {
+		switch {
+		case errors.Is(err, exception.ErrNoWalletFound):
+			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		case errors.Is(err, exception.ErrWalletTypeInvalid):
+			utils.ErrorJSON(w, apiErr.ErrWalletTypeInvalid, http.StatusBadRequest)
+		case errors.Is(err, exception.ErrWalletBalanceNotFound):
+			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusBadRequest)
+		case errors.Is(err, exception.ErrInsufficientFundsForWithdrawal):
+			utils.ErrorJSON(w, apiErr.ErrInsufficientFundsForWithdrawal, http.StatusBadRequest)
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	utils.WriteNoContent(w, http.StatusNoContent)
 }

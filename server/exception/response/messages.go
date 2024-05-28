@@ -5,6 +5,7 @@ var (
 	ErrBadRequest          = "Bad Request"
 	ErrInternalServerError = "Internal Server Error"
 	ErrUnauthorized        = "Unauthorized"
+	ErrForbidden           = "Forbidden"
 )
 
 // User
@@ -43,6 +44,7 @@ var (
 	ErrBalanceNotFound                = "Balance not found. Please deposit to create a new balance."
 	ErrBalanceHistoryNotFound         = "Balance History not found. Please deposit to create a new balance."
 	ErrInsufficientFundsForWithdrawal = "The specified amount for withdrawal is more than the current balance amount. Please lower the withdrawal amount."
+	ErrWalletBalanceNotFound          = "Wallet Balance not found."
 )
 
 // Beneficiary

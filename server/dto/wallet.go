@@ -4,13 +4,6 @@ import (
 	"strings"
 )
 
-type UpdateWalletRequest struct {
-	Type            string  `json:"type" validate:"required,min=5,max=100"`
-	Balance         float64 `json:"balance" validate:"required"`
-	BalanceCurrency string  `json:"balance_currency" validate:"required"`
-	UserID          int     `json:"-"`
-}
-
 type UpdateWalletResponse struct {
 	WalletID int     `json:"wallet_id"`
 	Type     string  `json:"type"`
@@ -53,11 +46,6 @@ func (req *CreateWalletRequest) CreateWalletSanitize() {
 	}
 }
 
-func (req *UpdateWalletRequest) UpdateWalletSanitize() {
-	req.Type = strings.TrimSpace(req.Type)
-	req.BalanceCurrency = strings.TrimSpace(req.BalanceCurrency)
-}
-
 type GetWalletTypesResponse struct {
 	ID         int    `json:"id" db:"id"`
 	WalletType string `json:"walletType" db:"type"`
@@ -68,11 +56,11 @@ type WalletValidation struct {
 	IsValidWalletType bool `db:"is_valid_wallet_type"`
 }
 
-type TopUpWalletRequest struct {
+type UpdateWalletRequest struct {
 	CurrencyAmount []CurrencyAmount `json:"currency_amount" validate:"required"`
 }
 
-func (req *TopUpWalletRequest) TopUpWalletSanitize() {
+func (req *UpdateWalletRequest) TopUpWalletSanitize() {
 	for idx, ca := range req.CurrencyAmount {
 		req.CurrencyAmount[idx].Currency = strings.TrimSpace(ca.Currency)
 	}

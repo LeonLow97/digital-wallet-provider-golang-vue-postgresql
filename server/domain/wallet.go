@@ -29,7 +29,8 @@ type WalletUsecase interface {
 	GetWallets(ctx context.Context, userID int) (*[]Wallet, error)
 	GetWalletTypes(ctx context.Context) (*[]dto.GetWalletTypesResponse, error)
 	CreateWallet(ctx context.Context, userID int, req dto.CreateWalletRequest) error
-	UpdateWallet(ctx context.Context, req dto.UpdateWalletRequest) (*dto.UpdateWalletResponse, error)
+	TopUpWallet(ctx context.Context, userID, walletID int, req dto.UpdateWalletRequest) error
+	CashOutWallet(ctx context.Context, userID, walletID int, req dto.UpdateWalletRequest) error
 }
 
 type WalletRepository interface {
@@ -37,11 +38,13 @@ type WalletRepository interface {
 	GetWalletByWalletType(ctx context.Context, userID int, walletType string) (*Wallet, error)
 	GetWallets(ctx context.Context, userID int) ([]Wallet, error)
 	GetWalletTypes(ctx context.Context) (*[]dto.GetWalletTypesResponse, error)
+	GetWalletBalancesByUserID_TX(ctx context.Context, tx *sql.Tx, userID int) ([]WalletCurrencyAmount, error)
 	GetWalletBalancesByUserID(ctx context.Context, userID int) ([]WalletCurrencyAmount, error)
 	GetWalletBalancesByUserIDAndWalletID(ctx context.Context, userID, walletID int) ([]WalletCurrencyAmount, error)
 	PerformWalletValidationByUserID(ctx context.Context, userID, walletTypeID int) (*dto.WalletValidation, error)
-	GetAllBalancesByUserID(ctx context.Context, userID int) ([]Balance, error)
+	GetAllBalancesByUserID(ctx context.Context, tx *sql.Tx, userID int) ([]Balance, error)
 	CreateWallet(ctx context.Context, tx *sql.Tx, wallet *Wallet) (int, error)
 	InsertWalletCurrencyAmount(ctx context.Context, tx *sql.Tx, walletID, userID int, currencyAmount []WalletCurrencyAmount) error
-	UpdateWallet(ctx context.Context, wallet *Wallet) error
+	TopUpWalletBalances(ctx context.Context, tx *sql.Tx, userID, walletID int, finalWalletBalancesMap map[string]float64) error
+	CashOutWalletBalances(ctx context.Context, tx *sql.Tx, userID, walletID int, finalWalletBalancesMap map[string]float64) error
 }

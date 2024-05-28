@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
@@ -113,6 +115,38 @@ func (r *walletRepository) GetWallets(ctx context.Context, userID int) ([]domain
 	return wallets, nil
 }
 
+func (r *walletRepository) GetWalletBalancesByUserID_TX(ctx context.Context, tx *sql.Tx, userID int) ([]domain.WalletCurrencyAmount, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
+	query := `
+		SELECT wallet_id, amount, currency, created_at, updated_at
+		FROM wallet_balances
+		WHERE user_id = $1;
+	`
+
+	rows, err := tx.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var walletBalances []domain.WalletCurrencyAmount
+	for rows.Next() {
+		var balance domain.WalletCurrencyAmount
+		if err := rows.Scan(&balance.WalletID, &balance.Amount, &balance.Currency, &balance.CreatedAt, &balance.UpdatedAt); err != nil {
+			return nil, err
+		}
+		walletBalances = append(walletBalances, balance)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return walletBalances, nil
+}
+
 func (r *walletRepository) GetWalletBalancesByUserID(ctx context.Context, userID int) ([]domain.WalletCurrencyAmount, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
@@ -194,18 +228,32 @@ func (r *walletRepository) PerformWalletValidationByUserID(ctx context.Context, 
 	return &walletValidation, nil
 }
 
-func (r *walletRepository) GetAllBalancesByUserID(ctx context.Context, userID int) ([]domain.Balance, error) {
+func (r *walletRepository) GetAllBalancesByUserID(ctx context.Context, tx *sql.Tx, userID int) ([]domain.Balance, error) {
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
 	query := `
-		SELECT balance, currency
-		FROM balances
+		SELECT amount, currency
+		FROM wallet_balances
 		WHERE user_id = $1;
 	`
 
+	rows, err := tx.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
 	var balances []domain.Balance
-	if err := r.db.SelectContext(ctx, &balances, query, userID); err != nil {
+	for rows.Next() {
+		var balance domain.Balance
+		if err := rows.Scan(&balance.Balance, &balance.Currency); err != nil {
+			return nil, err
+		}
+		balances = append(balances, balance)
+	}
+
+	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
@@ -248,22 +296,71 @@ func (r *walletRepository) InsertWalletCurrencyAmount(ctx context.Context, tx *s
 	return nil
 }
 
-func (r *walletRepository) UpdateWallet(ctx context.Context, wallet *domain.Wallet) error {
+func (r *walletRepository) TopUpWalletBalances(ctx context.Context, tx *sql.Tx, userID, walletID int, finalWalletBalancesMap map[string]float64) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
-	query := `
-		UPDATE wallets
-		SET balance = $1, updated_at = NOW()
-		WHERE user_id = $2 AND wallet_type_id = $3 AND currency = $4;
-	`
+	placeholders := make([]string, 0)
+	args := make([]interface{}, 0)
 
-	_, err := r.db.ExecContext(ctx, query,
-		wallet.UserID,
-		wallet.WalletTypeID,
-	)
-	if err != nil {
-		return err
+	i := 1
+	for currency, amount := range finalWalletBalancesMap {
+		placeholder := fmt.Sprintf("( $%d, $%d, $%d, $%d, $%d, $%d )", i, i+1, i+2, i+3, i+4, i+5)
+		placeholders = append(placeholders, placeholder)
+		args = append(args, amount, currency, walletID, userID, time.Now(), time.Now())
+		i += 6
 	}
-	return nil
+
+	// Syntax for UPSERT in Postgres
+	// https://stackoverflow.com/questions/36359440/postgresql-insert-on-conflict-update-upsert-use-all-excluded-values
+	query := fmt.Sprintf(`
+		INSERT INTO wallet_balances (amount, currency, wallet_id, user_id, created_at, updated_at)
+		VALUES 
+			%s
+		ON CONFLICT (currency, wallet_id, user_id)
+		DO UPDATE SET
+			amount = EXCLUDED.amount,
+			updated_at = EXCLUDED.updated_at;
+	`, strings.Join(placeholders, ", "))
+
+	_, err := tx.ExecContext(ctx, query, args...)
+
+	return err
+}
+
+func (r *walletRepository) CashOutWalletBalances(ctx context.Context, tx *sql.Tx, userID, walletID int, finalWalletBalancesMap map[string]float64) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
+	placeholders := make([]string, 0)
+	args := make([]interface{}, 0)
+
+	i := 1
+	for currency, amount := range finalWalletBalancesMap {
+		placeholder := fmt.Sprintf("( $%d, $%d, $%d, $%d, $%d )", i, i+1, i+2, i+3, i+4)
+		placeholders = append(placeholders, placeholder)
+		args = append(args, userID, walletID, currency, amount, time.Now())
+		i += 5
+	}
+
+	// Updating multiple rows in PostgreSQL
+	// https://www.geeksforgeeks.org/how-to-update-multiple-rows-in-postgresql/
+	query := fmt.Sprintf(`
+		UPDATE wallet_balances
+		SET 
+			amount = data.new_amount,
+			updated_at = data.updated_at
+		FROM (
+			VALUES
+				%s
+		) AS data (user_id, wallet_id, currency, new_amount, updated_at)
+		WHERE
+			wallet_balances.user_id = data.user_id AND
+			wallet_balances.wallet_id = data.wallet_id AND
+			wallet_balances.currency = data.currency
+	`, strings.Join(placeholders, ", "))
+
+	_, err := tx.ExecContext(ctx, query, args...)
+
+	return err
 }

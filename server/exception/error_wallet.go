@@ -11,4 +11,6 @@ var (
 
 	ErrInsufficientFundsForWithdrawal = errors.New("wallet has insufficient funds for withdrawal")
 	ErrInsufficientFundsForDeposit    = errors.New("insufficient funds in account to top up wallet")
+
+	ErrWalletBalanceNotFound = errors.New("wallet balance not found")
 )

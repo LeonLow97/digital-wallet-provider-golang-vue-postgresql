@@ -127,7 +127,7 @@ func (uc *walletUsecase) CreateWallet(ctx context.Context, userID int, req dto.C
 	}
 
 	// retrieve main balance and check if sufficient funds
-	allBalances, err := uc.walletRepository.GetAllBalancesByUserID(ctx, userID)
+	allBalances, err := uc.walletRepository.GetAllBalancesByUserID(ctx, tx, userID)
 	if err != nil {
 		log.Printf("failed to retrieve all balances for user id %d with error: %v\n", userID, err)
 		return err
@@ -190,12 +190,12 @@ func (uc *walletUsecase) CreateWallet(ctx context.Context, userID int, req dto.C
 	return nil
 }
 
-func (uc *walletUsecase) UpdateWallet(ctx context.Context, req dto.UpdateWalletRequest) (*dto.UpdateWalletResponse, error) {
+func (uc *walletUsecase) TopUpWallet(ctx context.Context, userID, walletID int, req dto.UpdateWalletRequest) error {
 	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
 	tx, err := uc.dbConn.BeginTx(ctx, nil)
 	if err != nil {
 		log.Printf("failed to begin sql transaction with error: %v\n", err)
-		return nil, err
+		return err
 	}
 
 	// Defer rollback or commit the transaction based on the outcome
@@ -214,57 +214,184 @@ func (uc *walletUsecase) UpdateWallet(ctx context.Context, req dto.UpdateWalletR
 		}
 	}()
 
-	// wallet, err := uc.walletRepository.GetWalletByWalletType(ctx, req.UserID, req.Type)
-	// if err != nil {
-	// 	log.Println("error getting one wallet", err)
-	// 	return nil, err
-	// }
+	// check if user has already created these wallets
+	walletValidation, err := uc.walletRepository.PerformWalletValidationByUserID(ctx, userID, walletID)
+	if err != nil {
+		log.Printf("failed to check wallet exists by user id %d with error: %v\n", userID, err)
+		return err
+	}
+	if !walletValidation.WalletExists {
+		return exception.ErrNoWalletFound
+	}
+	if !walletValidation.IsValidWalletType {
+		return exception.ErrWalletTypeInvalid
+	}
 
-	// accountBalance, err := uc.walletRepository.GetBalanceByUserID(ctx, req.UserID)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	// retrieve main balance and check if sufficient funds
+	allBalances, err := uc.walletRepository.GetAllBalancesByUserID(ctx, tx, userID)
+	if err != nil {
+		log.Printf("failed to retrieve all balances for user id %d with error: %v\n", userID, err)
+		return err
+	}
 
-	// // Check if amount to be updated is negative or positive
-	// // negative = withdraw, positive = deposit
-	// if req.Balance < 0 {
-	// 	if math.Abs(req.Balance) > wallet.Balance {
-	// 		return nil, exception.ErrInsufficientFundsForWithdrawal
-	// 	}
-	// } else if req.Balance > 0 {
-	// 	if req.Balance > accountBalance.Balance {
-	// 		return nil, exception.ErrInsufficientFundsForDeposit
-	// 	}
-	// } else {
-	// 	// req.Balance is 0, no need to update
-	// 	return nil, nil
-	// }
+	// convert slice of user balances into map for faster performance of accessing keys in map
+	allBalancesMap := make(map[string]float64)
+	for _, b := range allBalances {
+		allBalancesMap[b.Currency] = b.Balance
+	}
 
-	// // update the wallet balance
-	// updatedWalletBalance := wallet.Balance + req.Balance
-	// wallet.Balance = updatedWalletBalance
+	// retrieve main balance and check if sufficient funds
+	walletBalances, err := uc.walletRepository.GetWalletBalancesByUserID_TX(ctx, tx, userID)
+	if err != nil {
+		log.Printf("failed to retrieve all balances for user id %d with error: %v\n", userID, err)
+		return err
+	}
 
-	// // TODO: Add concurrency here --> DB Transaction
-	// err = uc.walletRepository.UpdateWallet(ctx, wallet)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	// convert slice of wallet balances into map for faster performance of accessing keys in map
+	walletBalancesMap := make(map[string]float64)
+	for _, b := range walletBalances {
+		walletBalancesMap[b.Currency] = b.Amount
+	}
 
-	// updatedAccountBalance := accountBalance.Balance - req.Balance
-	// b := domain.Balance{
-	// 	Balance:  updatedAccountBalance,
-	// 	UserID:   req.UserID,
-	// 	Currency: req.BalanceCurrency,
-	// }
-	// if err := uc.balanceRepository.UpdateBalance(ctx, tx, &b); err != nil {
-	// 	return nil, err
-	// }
+	finalBalancesMap := make(map[string]float64)
+	finalWalletBalancesMap := make(map[string]float64)
 
-	// return &dto.UpdateWalletResponse{
-	// 	WalletID: wallet.ID,
-	// 	Type:     wallet.Type,
-	// 	Balance:  wallet.Balance,
-	// }, nil
+	// ensure all balances are sufficient to top up new wallet
+	for _, a := range req.CurrencyAmount {
+		if currentBalance, found := allBalancesMap[a.Currency]; !found {
+			// user does not have a balance in this currency
+			log.Printf("user %d does not have a balance in this currency\n", userID)
+			return exception.ErrBalanceNotFound
+		} else {
+			if currentBalance < a.Amount {
+				log.Printf("user %d has insufficient funds to top up wallet\n", userID)
+				return exception.ErrInsufficientFunds
+			}
 
-	return nil, nil
+			finalBalance := allBalancesMap[a.Currency] - a.Amount
+			finalBalancesMap[a.Currency] = finalBalance
+
+			if walletAmount, found := walletBalancesMap[a.Currency]; found {
+				finalWalletBalance := walletAmount + a.Amount
+				finalWalletBalancesMap[a.Currency] = finalWalletBalance
+			} else {
+				finalWalletBalancesMap[a.Currency] = a.Amount
+			}
+		}
+	}
+
+	// update user balances
+	if err := uc.balanceRepository.UpdateBalances(ctx, tx, userID, finalBalancesMap); err != nil {
+		log.Printf("failed to update balances for user id %d with error: %v\n", userID, err)
+		return err
+	}
+
+	// update wallet balances
+	if err := uc.walletRepository.TopUpWalletBalances(ctx, tx, userID, walletID, finalWalletBalancesMap); err != nil {
+		log.Printf("failed to top up wallet balances for user id %d with error: %v\n", userID, err)
+		return err
+	}
+
+	return nil
+}
+
+func (uc *walletUsecase) CashOutWallet(ctx context.Context, userID, walletID int, req dto.UpdateWalletRequest) error {
+	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
+	tx, err := uc.dbConn.BeginTx(ctx, nil)
+	if err != nil {
+		log.Printf("failed to begin sql transaction with error: %v\n", err)
+		return err
+	}
+
+	// Defer rollback or commit the transaction based on the outcome
+	defer func() {
+		if p := recover(); p != nil {
+			tx.Rollback()
+			panic(p)
+		} else if err != nil {
+			tx.Rollback()
+			log.Printf("failed to complete sql transaction with error: %v\n", err)
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				log.Printf("failed to commit sql transaction with error: %v\n", err)
+			}
+		}
+	}()
+
+	// check if user has already created these wallets
+	walletValidation, err := uc.walletRepository.PerformWalletValidationByUserID(ctx, userID, walletID)
+	if err != nil {
+		log.Printf("failed to check wallet exists by user id %d with error: %v\n", userID, err)
+		return err
+	}
+	if !walletValidation.WalletExists {
+		return exception.ErrNoWalletFound
+	}
+	if !walletValidation.IsValidWalletType {
+		return exception.ErrWalletTypeInvalid
+	}
+
+	// retrieve main balance and check if sufficient funds
+	allBalances, err := uc.walletRepository.GetAllBalancesByUserID(ctx, tx, userID)
+	if err != nil {
+		log.Printf("failed to retrieve all balances for user id %d with error: %v\n", userID, err)
+		return err
+	}
+
+	// convert slice of user balances into map for faster performance of accessing keys in map
+	allBalancesMap := make(map[string]float64)
+	for _, b := range allBalances {
+		allBalancesMap[b.Currency] = b.Balance
+	}
+
+	// retrieve main balance and check if sufficient funds
+	walletBalances, err := uc.walletRepository.GetWalletBalancesByUserID_TX(ctx, tx, userID)
+	if err != nil {
+		log.Printf("failed to retrieve all balances for user id %d with error: %v\n", userID, err)
+		return err
+	}
+
+	// convert slice of wallet balances into map for faster performance of accessing keys in map
+	walletBalancesMap := make(map[string]float64)
+	for _, b := range walletBalances {
+		walletBalancesMap[b.Currency] = b.Amount
+	}
+
+	finalBalancesMap := make(map[string]float64)
+	finalWalletBalancesMap := make(map[string]float64)
+
+	// ensure all wallet balances are sufficient for cashing out to main balance
+	for _, ca := range req.CurrencyAmount {
+		if walletAmount, found := walletBalancesMap[ca.Currency]; !found {
+			// user does not have this currency in the wallet
+			log.Printf("user %d does not have this currency in the wallet\n", userID)
+			return exception.ErrWalletBalanceNotFound
+		} else {
+			if ca.Amount > walletAmount {
+				log.Printf("user %d has insufficient funds in wallet for currency %s\n", userID, ca.Currency)
+				return exception.ErrInsufficientFundsForWithdrawal
+			}
+
+			finalBalance := allBalancesMap[ca.Currency] + ca.Amount
+			finalBalancesMap[ca.Currency] = finalBalance
+
+			finalWalletBalance := walletAmount - ca.Amount
+			finalWalletBalancesMap[ca.Currency] = finalWalletBalance
+		}
+	}
+
+	// update user balances
+	if err := uc.balanceRepository.UpdateBalances(ctx, tx, userID, finalBalancesMap); err != nil {
+		log.Printf("failed to update balances for user id %d with error: %v\n", userID, err)
+		return err
+	}
+
+	// update wallet balances
+	if err := uc.walletRepository.CashOutWalletBalances(ctx, tx, userID, walletID, finalWalletBalancesMap); err != nil {
+		log.Printf("failed to cash out wallet balances for user id %d with error: %v\n", userID, err)
+		return err
+	}
+
+	return nil
 }

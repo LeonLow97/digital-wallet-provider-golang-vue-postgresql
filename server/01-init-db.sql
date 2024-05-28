@@ -57,7 +57,8 @@ CREATE TABLE IF NOT EXISTS wallet_balances (
     wallet_id INT REFERENCES wallets(id) ON DELETE CASCADE,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    UNIQUE(currency, wallet_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS balances (

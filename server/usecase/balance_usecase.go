@@ -55,14 +55,37 @@ func (uc *balanceUsecase) GetBalance(ctx context.Context, userID int, balanceID 
 }
 
 func (uc *balanceUsecase) GetBalances(ctx context.Context, userID int) (*dto.GetBalancesResponse, error) {
-	balances, err := uc.balanceRepository.GetBalances(ctx, userID)
+	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
+	tx, err := uc.dbConn.BeginTx(ctx, nil)
+	if err != nil {
+		log.Printf("failed to begin sql transaction with error: %v\n", err)
+		return nil, err
+	}
+
+	// Defer rollback or commit the transaction based on the outcome
+	defer func() {
+		if p := recover(); p != nil {
+			tx.Rollback()
+			panic(p)
+		} else if err != nil {
+			tx.Rollback()
+			log.Printf("failed to complete sql transaction with error: %v\n", err)
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				log.Printf("failed to commit sql transaction with error: %v\n", err)
+			}
+		}
+	}()
+
+	balances, err := uc.balanceRepository.GetBalances(ctx, tx, userID)
 	if err != nil {
 		log.Printf("failed to get balances for user id %d with error: %v\n", userID, err)
 		return nil, err
 	}
 
 	var resp dto.GetBalancesResponse
-	for _, b := range *balances {
+	for _, b := range balances {
 		balance := dto.GetBalanceResponse{
 			ID:        b.ID,
 			Balance:   b.Balance,

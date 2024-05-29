@@ -35,6 +35,14 @@
       <p class="text-blue-600">{{ item.currency }}</p>
     </div>
   </div>
+
+  <top-up-wallet-modal
+    @close-modal="closeTopUpModal"
+    @form-submitted="formSubmittedTopUp"
+    :open-modal-top-up="openModalTopUp"
+    :wallet-id="walletId"
+    :wallet-currencies="walletCurrencies!"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -42,12 +50,25 @@ import { useRoute, useRouter } from "vue-router";
 import { onMounted, ref } from "vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { GET_WALLET } from "@/api/wallet";
-import type { Wallet } from "@/types/wallet";
+import type { Wallet, CurrencyAmount } from "@/types/wallet";
+import TopUpWalletModal from "@/components/wallets/TopUpWalletModal.vue";
 
 const route = useRoute();
 const router = useRouter();
 
 const wallet = ref<Wallet | null>(null);
+const walletId = ref<number | null>(null);
+const walletCurrencies = ref<string[]>([]);
+
+const openModalTopUp = ref(false);
+
+const closeTopUpModal = () => {
+  openModalTopUp.value = false;
+};
+
+const formSubmittedTopUp = () => {
+  getWallet();
+};
 
 onMounted(() => {
   getWallet();
@@ -60,12 +81,16 @@ const getWallet = async () => {
     router.push({ name: "Wallets" });
     return;
   }
+  walletId.value = id;
 
   try {
     const { data, status } = await GET_WALLET(id);
 
     if (status === 200) {
       wallet.value = data;
+      wallet.value.currencyAmount.forEach((item) => {
+        walletCurrencies.value?.push(item.currency);
+      });
     }
   } catch (error: unknown) {
     alert(error);
@@ -73,7 +98,7 @@ const getWallet = async () => {
 };
 
 const handleTopUpWallet = () => {
-  alert("Top Up Wallet");
+  openModalTopUp.value = true;
 };
 
 const handleCashOutWallet = () => {

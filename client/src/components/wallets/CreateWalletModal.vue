@@ -163,7 +163,7 @@ const handleCreateWallet = async () => {
     const { status } = await CREATE_WALLET(body);
 
     if (status === 201) {
-      alert("Creating wallet...");
+      alert("Created Wallet Successfully!");
 
       selectedWalletTypeId.value = 0;
       emits("formSubmitted");

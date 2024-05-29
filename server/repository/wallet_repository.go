@@ -183,6 +183,38 @@ func (r *walletRepository) GetWalletBalancesByUserIDAndWalletID(ctx context.Cont
 	return walletBalances, nil
 }
 
+func (r *walletRepository) GetWalletBalancesByUserIDAndWalletID_TX(ctx context.Context, tx *sql.Tx, userID, walletID int) ([]domain.WalletCurrencyAmount, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
+	query := `
+		SELECT wallet_id, amount, currency, created_at, updated_at
+		FROM wallet_balances
+		WHERE user_id = $1 AND wallet_id = $2;
+	`
+
+	var walletBalances []domain.WalletCurrencyAmount
+	rows, err := tx.QueryContext(ctx, query, userID, walletID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var walletBalance domain.WalletCurrencyAmount
+		if err := rows.Scan(&walletBalance.WalletID, &walletBalance.Amount, &walletBalance.Currency, &walletBalance.CreatedAt, &walletBalance.UpdatedAt); err != nil {
+			return nil, err
+		}
+		walletBalances = append(walletBalances, walletBalance)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return walletBalances, nil
+}
+
 func (r *walletRepository) GetWalletTypes(ctx context.Context) (*[]dto.GetWalletTypesResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
@@ -210,7 +242,8 @@ func (r *walletRepository) PerformWalletValidationByUserID(ctx context.Context, 
 			FROM wallets w
 			JOIN wallet_types wt
 			  ON w.wallet_type_id = wt.id
-			WHERE w.user_id = $1 AND wt.id = $2
+			WHERE w.user_id = $1 AND 
+				wt.id = ( SELECT wallet_type_id FROM wallets WHERE id = $2 )
 		  )) AS wallet_exists,
 		  (SELECT EXISTS (
 			SELECT 1

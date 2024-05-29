@@ -30,6 +30,7 @@ func NewWalletHandler(router *mux.Router, uc domain.WalletUsecase) {
 	walletRouter.HandleFunc("/types", handler.GetWalletTypes).Methods(http.MethodGet)
 	walletRouter.HandleFunc("", handler.CreateWallet).Methods(http.MethodPost)
 	walletRouter.HandleFunc("/topup/{id:[0-9]+}", handler.TopUpWallet).Methods(http.MethodPut)
+	walletRouter.HandleFunc("/cashout/{id:[0-9]+}", handler.CashOutWallet).Methods(http.MethodPut)
 }
 
 func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {
@@ -159,6 +160,13 @@ func (h *WalletHandler) TopUpWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	errMessage, err := infrastructure.ValidateStruct(req)
+	if err != nil {
+		log.Println("error validating req struct in withdraw handler", err)
+		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		return
+	}
+
 	if err := h.walletUseCase.TopUpWallet(ctx, userID, walletID, req); err != nil {
 		switch {
 		case errors.Is(err, exception.ErrNoWalletFound):
@@ -195,6 +203,13 @@ func (h *WalletHandler) CashOutWallet(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.UpdateWalletRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		return
+	}
+
+	errMessage, err := infrastructure.ValidateStruct(req)
+	if err != nil {
+		log.Println("error validating req struct in withdraw handler", err)
+		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 

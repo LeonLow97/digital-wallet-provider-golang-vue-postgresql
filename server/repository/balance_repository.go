@@ -3,8 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
@@ -43,7 +41,7 @@ func (r *balanceRepository) GetBalanceHistory(ctx context.Context, userID, balan
 	return &balanceHistory, nil
 }
 
-func (r *balanceRepository) GetBalances(ctx context.Context, userID int) (*[]domain.Balance, error) {
+func (r *balanceRepository) GetBalances(ctx context.Context, tx *sql.Tx, userID int) ([]domain.Balance, error) {
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
@@ -54,14 +52,25 @@ func (r *balanceRepository) GetBalances(ctx context.Context, userID int) (*[]dom
 	`
 
 	var balances []domain.Balance
-	if err := r.db.SelectContext(ctx, &balances, query, userID); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, exception.ErrBalanceNotFound
+	rows, err := tx.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var balance domain.Balance
+		if err := rows.Scan(&balance.ID, &balance.Balance, &balance.Currency, &balance.CreatedAt, &balance.UpdatedAt); err != nil {
+			return nil, err
 		}
+		balances = append(balances, balance)
+	}
+
+	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
-	return &balances, nil
+	return balances, nil
 }
 
 func (r *balanceRepository) GetBalance(ctx context.Context, userID int, currency string) (*domain.Balance, error) {
@@ -211,35 +220,52 @@ func (r *balanceRepository) UpdateBalances(ctx context.Context, tx *sql.Tx, user
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
-	placeholders := make([]string, 0)
-	args := make([]interface{}, 0)
+	for currency, newBalance := range finalBalancesMap {
+		query := `
+			UPDATE balances
+			SET balance = $1
+			WHERE user_id = $2 AND currency = $3;
+		`
 
-	i := 1
-	for k, v := range finalBalancesMap {
-		placeholder := fmt.Sprintf("( $%d, $%d, $%d )", i, i+1, i+2)
-		placeholders = append(placeholders, placeholder)
-		args = append(args, userID, k, v)
-		i += 3
+		_, err := tx.ExecContext(ctx, query, newBalance, userID, currency)
+		if err != nil {
+			return err
+		}
 	}
 
-	// Updating multiple rows in PostgreSQL
-	// https://www.geeksforgeeks.org/how-to-update-multiple-rows-in-postgresql/
-	query := fmt.Sprintf(`
-		UPDATE balances
-		SET balance = data.new_balance
-		FROM (
-			VALUES
-				%s
-		) AS data (user_id, currency, new_balance)
-		WHERE 
-			balances.user_id = data.user_id AND 
-			balances.currency = data.currency;
-	`, strings.Join(placeholders, ", "))
-
-	_, err := tx.ExecContext(ctx, query, args...)
-
-	return err
+	return nil
 }
+
+// func (r *balanceRepository) UpdateBalances(ctx context.Context, tx *sql.Tx, userID int, finalBalancesMap map[string]float64) error {
+// 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+// 	defer cancel()
+
+// 	placeholders := []string{}
+// 	args := []interface{}{}
+
+// 	i := 1
+// 	for currency, newBalance := range finalBalancesMap {
+// 		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d)", i, i+1, i+2))
+// 		args = append(args, userID, currency, newBalance)
+// 		i += 3
+// 	}
+
+// 	// Updating multiple rows in PostgreSQL
+// 	// https://www.geeksforgeeks.org/how-to-update-multiple-rows-in-postgresql/
+// 	query := fmt.Sprintf(`
+// 		UPDATE balances
+// 		SET balance = data.new_balance
+// 		FROM (
+// 			VALUES %s
+// 		) AS data (user_id, currency, new_balance)
+// 		WHERE
+// 			balances.user_id = data.user_id AND
+// 			balances.currency = data.currency;
+// 	`, strings.Join(placeholders, ", "))
+
+// 	_, err := tx.ExecContext(ctx, query, args...)
+// 	return err
+// }
 
 func (r *balanceRepository) CreateBalanceHistory(ctx context.Context, tx *sql.Tx, balance *domain.Balance, depositedBalance float64, balanceType string) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)

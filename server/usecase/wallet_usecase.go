@@ -228,7 +228,7 @@ func (uc *walletUsecase) TopUpWallet(ctx context.Context, userID, walletID int, 
 	}
 
 	// retrieve main balance and check if sufficient funds
-	allBalances, err := uc.walletRepository.GetAllBalancesByUserID(ctx, tx, userID)
+	allBalances, err := uc.balanceRepository.GetBalances(ctx, tx, userID)
 	if err != nil {
 		log.Printf("failed to retrieve all balances for user id %d with error: %v\n", userID, err)
 		return err
@@ -241,7 +241,7 @@ func (uc *walletUsecase) TopUpWallet(ctx context.Context, userID, walletID int, 
 	}
 
 	// retrieve main balance and check if sufficient funds
-	walletBalances, err := uc.walletRepository.GetWalletBalancesByUserID_TX(ctx, tx, userID)
+	walletBalances, err := uc.walletRepository.GetWalletBalancesByUserIDAndWalletID_TX(ctx, tx, userID, walletID)
 	if err != nil {
 		log.Printf("failed to retrieve all balances for user id %d with error: %v\n", userID, err)
 		return err
@@ -269,6 +269,9 @@ func (uc *walletUsecase) TopUpWallet(ctx context.Context, userID, walletID int, 
 			}
 
 			finalBalance := allBalancesMap[a.Currency] - a.Amount
+			if _, found := finalBalancesMap[a.Currency]; !found {
+				finalBalancesMap[a.Currency] = 0
+			}
 			finalBalancesMap[a.Currency] = finalBalance
 
 			if walletAmount, found := walletBalancesMap[a.Currency]; found {
@@ -333,7 +336,7 @@ func (uc *walletUsecase) CashOutWallet(ctx context.Context, userID, walletID int
 	}
 
 	// retrieve main balance and check if sufficient funds
-	allBalances, err := uc.walletRepository.GetAllBalancesByUserID(ctx, tx, userID)
+	allBalances, err := uc.balanceRepository.GetBalances(ctx, tx, userID)
 	if err != nil {
 		log.Printf("failed to retrieve all balances for user id %d with error: %v\n", userID, err)
 		return err
@@ -345,8 +348,8 @@ func (uc *walletUsecase) CashOutWallet(ctx context.Context, userID, walletID int
 		allBalancesMap[b.Currency] = b.Balance
 	}
 
-	// retrieve main balance and check if sufficient funds
-	walletBalances, err := uc.walletRepository.GetWalletBalancesByUserID_TX(ctx, tx, userID)
+	// retrieve wallet balances by user id and wallet id
+	walletBalances, err := uc.walletRepository.GetWalletBalancesByUserIDAndWalletID_TX(ctx, tx, userID, walletID)
 	if err != nil {
 		log.Printf("failed to retrieve all balances for user id %d with error: %v\n", userID, err)
 		return err
@@ -374,9 +377,15 @@ func (uc *walletUsecase) CashOutWallet(ctx context.Context, userID, walletID int
 			}
 
 			finalBalance := allBalancesMap[ca.Currency] + ca.Amount
+			if _, found := finalBalancesMap[ca.Currency]; !found {
+				finalBalancesMap[ca.Currency] = 0
+			}
 			finalBalancesMap[ca.Currency] = finalBalance
 
 			finalWalletBalance := walletAmount - ca.Amount
+			if _, found := finalWalletBalancesMap[ca.Currency]; !found {
+				finalWalletBalancesMap[ca.Currency] = 0
+			}
 			finalWalletBalancesMap[ca.Currency] = finalWalletBalance
 		}
 	}

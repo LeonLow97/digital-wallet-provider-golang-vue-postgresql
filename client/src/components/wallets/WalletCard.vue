@@ -1,7 +1,10 @@
 <template>
   <div :class="cardClass">
-    <h2 class="mb-2 text-xl font-bold">{{ formattedType }}</h2>
-    <div class="mb-4 flex gap-2 text-lg" v-for="item in currencyAmount">
+    <h2 class="mb-2 text-xl font-bold tracking-wider">{{ formattedType }}</h2>
+    <div
+      class="flex gap-2 text-lg tracking-wide"
+      v-for="item in currencyAmount"
+    >
       <div>{{ item.amount }} {{ item.currency }}</div>
     </div>
   </div>
@@ -28,7 +31,7 @@ const formattedType = computed(() => {
 
 const cardClass = computed(() => {
   let dynamicClass =
-    " cursor-pointer rounded-lg border p-6 shadow-lg dark:text-black";
+    "cursor-pointer rounded-lg border border-none p-6 shadow-lg dark:text-black";
 
   const typeClassMapping: Record<string, string> = {
     personal: "bg-purple-100 shadow-lg",

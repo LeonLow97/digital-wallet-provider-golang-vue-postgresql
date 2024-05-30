@@ -1,5 +1,5 @@
 <template>
-  <h1 class="text-xl font-bold">User Profile</h1>
+  <h1 class="text-xl font-bold tracking-wider">User Profile</h1>
   <div class="flex w-1/2 flex-col gap-6">
     <div class="flex justify-between gap-6">
       <div class="flex w-full flex-col gap-2 text-sm">

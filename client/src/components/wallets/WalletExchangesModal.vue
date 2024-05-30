@@ -3,7 +3,7 @@
     <form @submit.prevent="handleTopUpWallet">
       <div class="flex flex-col gap-4">
         <h1 class="text-xl font-bold capitalize dark:text-white">
-          Top Up Wallet
+          {{ props.actionType }} Wallet
         </h1>
 
         <div
@@ -46,21 +46,20 @@ import Modal from "@/components/Modal.vue";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { onMounted, ref, watch } from "vue";
-import type { CurrencyAmount, TopUpWalletRequest } from "@/types/wallet";
-import { TOP_UP_WALLET } from "@/api/wallet";
+import type { CurrencyAmount, WalletExchangesRequest } from "@/types/wallet";
+import { TOP_UP_WALLET, CASH_OUT_WALLET } from "@/api/wallet";
 import type { GetUserBalanceCurrenciesResponse } from "@/types/balances";
 import { GET_USER_BALANCE_CURRENCIES } from "@/api/balances";
 
 const props = defineProps<{
-  openModalTopUp: boolean;
+  openModal: boolean;
   walletId: number | null;
   walletCurrencies: string[];
+  actionType: string;
 }>();
 
 const isModalOpen = ref<boolean>(false);
-const currencyAmountInputs = ref<CurrencyAmount[]>([
-  { amount: null, currency: "" },
-]);
+
 const userBalanceCurrencies = ref<GetUserBalanceCurrenciesResponse[]>([]);
 const topUpAmounts = ref<{ [index: number]: number }>({});
 
@@ -71,9 +70,9 @@ onMounted(() => {
 });
 
 watch(
-  () => props.openModalTopUp,
+  () => props.openModal,
   (newValue) => {
-    if (props.openModalTopUp) {
+    if (props.openModal) {
       isModalOpen.value = newValue;
     }
   },
@@ -91,18 +90,29 @@ const handleTopUpWallet = async () => {
       });
     }
 
-    const body: TopUpWalletRequest = {
+    const body: WalletExchangesRequest = {
       currency_amount: finalCurrencyAmount,
     };
 
-    const { status } = await TOP_UP_WALLET(props.walletId!, body);
-    if (status === 204) {
-      alert("Top Up Successful!");
+    let responseStatus: number = 0;
+
+    if (props.actionType === "Top Up") {
+      const { status } = await TOP_UP_WALLET(props.walletId!, body);
+      responseStatus = status;
+    } else if (props.actionType === "Cash Out") {
+      const { status } = await CASH_OUT_WALLET(props.walletId!, body);
+      responseStatus = status;
+    }
+
+    if (responseStatus === 204) {
       closeModal();
-      emits("formSubmitted");
+      emits("formSubmitted", props.actionType);
     }
   } catch (error: unknown) {
     alert(error);
+  } finally {
+    // clean data
+    topUpAmounts.value = {};
   }
 };
 

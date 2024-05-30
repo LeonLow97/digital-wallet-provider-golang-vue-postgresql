@@ -7,14 +7,19 @@
     >
     <div>
       <action-button
+        class="mr-8 rounded-lg border border-none bg-blue-500 px-8 py-2 text-center text-white transition hover:bg-blue-400"
+        text="Make a Transfer"
+        @click="handleTransfer"
+      />
+      <action-button
         class="mr-8 rounded-lg border border-none bg-green-500 px-8 py-2 text-center text-white transition hover:bg-green-400"
-        text="Top Up"
-        @click="handleTopUpWallet"
+        text="Top Up Wallet"
+        @click="handleWalletExchanges('Top Up')"
       />
       <action-button
         class="rounded-lg border border-none bg-pink-600 px-8 py-2 text-center text-white transition hover:bg-pink-500"
-        text="Cash Out"
-        @click="handleCashOutWallet"
+        text="Cash Out to Main Balance"
+        @click="handleWalletExchanges('Cash Out')"
       />
     </div>
   </div>
@@ -36,12 +41,13 @@
     </div>
   </div>
 
-  <top-up-wallet-modal
-    @close-modal="closeTopUpModal"
-    @form-submitted="formSubmittedTopUp"
-    :open-modal-top-up="openModalTopUp"
+  <wallet-exchanges-modal
+    @close-modal="closeModal"
+    @form-submitted="formSubmitted"
+    :open-modal="openModal"
     :wallet-id="walletId"
     :wallet-currencies="walletCurrencies!"
+    :action-type="actionType"
   />
 </template>
 
@@ -50,8 +56,8 @@ import { useRoute, useRouter } from "vue-router";
 import { onMounted, ref } from "vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { GET_WALLET } from "@/api/wallet";
-import type { Wallet, CurrencyAmount } from "@/types/wallet";
-import TopUpWalletModal from "@/components/wallets/TopUpWalletModal.vue";
+import type { Wallet } from "@/types/wallet";
+import WalletExchangesModal from "@/components/wallets/WalletExchangesModal.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -59,15 +65,22 @@ const router = useRouter();
 const wallet = ref<Wallet | null>(null);
 const walletId = ref<number | null>(null);
 const walletCurrencies = ref<string[]>([]);
+const actionType = ref("");
 
-const openModalTopUp = ref(false);
+const openModal = ref(false);
 
-const closeTopUpModal = () => {
-  openModalTopUp.value = false;
+const closeModal = () => {
+  openModal.value = false;
 };
 
-const formSubmittedTopUp = () => {
+const formSubmitted = (val: string) => {
   getWallet();
+
+  // clean data
+  walletCurrencies.value = [];
+
+  const msg = `${val} Successfully!`;
+  alert(msg)
 };
 
 onMounted(() => {
@@ -91,17 +104,19 @@ const getWallet = async () => {
       wallet.value.currencyAmount.forEach((item) => {
         walletCurrencies.value?.push(item.currency);
       });
+      console.log("length of wallet currencies", walletCurrencies.value.length);
     }
   } catch (error: unknown) {
     alert(error);
   }
 };
 
-const handleTopUpWallet = () => {
-  openModalTopUp.value = true;
+const handleWalletExchanges = (action: string) => {
+  openModal.value = true;
+  actionType.value = action;
 };
 
-const handleCashOutWallet = () => {
-  alert("Cash out wallet");
+const handleTransfer = () => {
+  alert("Transferring");
 };
 </script>

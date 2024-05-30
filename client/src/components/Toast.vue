@@ -1,12 +1,12 @@
 <template>
   <div
-    class="absolute right-4 top-4 max-w-xs rounded-xl border border-gray-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-800"
+    class="absolute top-5 max-w-md left-1/2 -translate-x-1/2 rounded-xl border border-none bg-green-100 shadow-lg drop-shadow-md dark:border-neutral-700 dark:bg-neutral-800"
     role="alert"
   >
     <div class="flex p-4">
       <div class="flex-shrink-0">
         <svg
-          class="mt-0.5 size-4 flex-shrink-0 text-blue-500"
+          class="mt-0.5 size-4 flex-shrink-0 text-green-500"
           xmlns="http://www.w3.org/2000/svg"
           width="16"
           height="16"
@@ -19,12 +19,11 @@
         </svg>
       </div>
       <div class="ms-3">
-        <p class="text-sm text-gray-700 dark:text-neutral-400">
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit vel quae
-          unde, rem delectus iusto aut harum labore iste? Pariatur debitis quas
-          aliquid sint ratione molestias, accusamus libero iusto veritatis!
+        <p class="text-sm tracking-wider text-green-800 dark:text-neutral-400 capitalize">
+          Created Wallet Successfully!
         </p>
       </div>
     </div>
   </div>
 </template>
+

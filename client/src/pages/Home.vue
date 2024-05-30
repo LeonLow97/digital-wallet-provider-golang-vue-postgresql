@@ -1,9 +1,10 @@
 <template>
-  <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+  <h3 class="text-xl font-bold tracking-wider text-gray-900 dark:text-white">
     Welcome Back, <br />
-    <span class="text-2xl uppercase text-blue-600 dark:text-blue-500">{{
-      username
-    }}</span>
+    <span
+      class="text-2xl uppercase tracking-wider text-blue-600 dark:text-blue-500"
+      >{{ username }}</span
+    >
   </h3>
 </template>
 

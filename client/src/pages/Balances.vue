@@ -1,5 +1,5 @@
 <template>
-  <h1 class="text-xl font-bold">Balances</h1>
+  <h1 class="text-xl font-bold tracking-wider">Balances</h1>
   <balances-table @form-submitted="formSubmitted" :balances="balances" />
 </template>
 

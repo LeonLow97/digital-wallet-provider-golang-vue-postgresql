@@ -118,6 +118,14 @@ const finalBalance = computed(() => {
     }
   }
 
+  if (
+    props.balance?.balance === 0 &&
+    props.actionType?.toLowerCase() === "deposit" &&
+    amount.value
+  ) {
+    finalValue = props.balance?.balance + amount.value;
+  }
+
   return finalValue <= 0 ? 0 : finalValue;
 });
 

@@ -1,5 +1,5 @@
 <template>
-  <h1 class="text-xl font-bold">Settings</h1>
+  <h1 class="text-xl font-bold tracking-wider">Settings</h1>
 
   <div>
     <div class="mb-4 text-sm text-slate-600">Toggle Mode</div>

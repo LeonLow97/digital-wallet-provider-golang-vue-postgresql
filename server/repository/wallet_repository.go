@@ -243,7 +243,7 @@ func (r *walletRepository) PerformWalletValidationByUserID(ctx context.Context, 
 			JOIN wallet_types wt
 			  ON w.wallet_type_id = wt.id
 			WHERE w.user_id = $1 AND 
-				wt.id = ( SELECT wallet_type_id FROM wallets WHERE id = $2 )
+				wt.id = $2
 		  )) AS wallet_exists,
 		  (SELECT EXISTS (
 			SELECT 1
@@ -365,35 +365,23 @@ func (r *walletRepository) CashOutWalletBalances(ctx context.Context, tx *sql.Tx
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
-	placeholders := make([]string, 0)
-	args := make([]interface{}, 0)
-
-	i := 1
 	for currency, amount := range finalWalletBalancesMap {
-		placeholder := fmt.Sprintf("( $%d, $%d, $%d, $%d, $%d )", i, i+1, i+2, i+3, i+4)
-		placeholders = append(placeholders, placeholder)
-		args = append(args, userID, walletID, currency, amount, time.Now())
-		i += 5
+		query := `
+			UPDATE wallet_balances
+			SET 
+				amount = $1,
+				updated_at = $2
+			WHERE
+				user_id = $3 AND
+				wallet_id = $4 AND
+				currency = $5
+		`
+
+		_, err := tx.ExecContext(ctx, query, amount, time.Now(), userID, walletID, currency)
+		if err != nil {
+			return err
+		}
 	}
 
-	// Updating multiple rows in PostgreSQL
-	// https://www.geeksforgeeks.org/how-to-update-multiple-rows-in-postgresql/
-	query := fmt.Sprintf(`
-		UPDATE wallet_balances
-		SET 
-			amount = data.new_amount,
-			updated_at = data.updated_at
-		FROM (
-			VALUES
-				%s
-		) AS data (user_id, wallet_id, currency, new_amount, updated_at)
-		WHERE
-			wallet_balances.user_id = data.user_id AND
-			wallet_balances.wallet_id = data.wallet_id AND
-			wallet_balances.currency = data.currency
-	`, strings.Join(placeholders, ", "))
-
-	_, err := tx.ExecContext(ctx, query, args...)
-
-	return err
+	return nil
 }

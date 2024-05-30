@@ -1,5 +1,5 @@
 <template>
-  <h1 class="text-xl font-bold">Beneficiary</h1>
+  <h1 class="text-xl font-bold tracking-wider">Beneficiary</h1>
   <div class="flex items-center justify-between">
     <div class="p-4 text-center tracking-wider text-blue-600 shadow-md">
       You have

@@ -1,5 +1,5 @@
 <template>
-  <h1 class="text-xl font-bold">Wallets</h1>
+  <h1 class="text-xl font-bold tracking-wider">Wallets</h1>
   <div class="mb-4">
     <action-button
       class="rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
@@ -7,15 +7,16 @@
       @click="handleCreateWallet"
     />
   </div>
-  <div class="grid grid-cols-3 gap-8">
-    <span v-for="wallet of wallets" :key="wallet.id">
+
+  <div class="grid auto-rows-fr grid-cols-3 gap-8">
+    <div v-for="wallet of wallets" :key="wallet.id" class="flex">
       <wallet-card
         @click="handleClickViewWallet(wallet.id)"
         :type="wallet.walletType"
         :currency-amount="wallet.currencyAmount"
-        class="transition duration-300 ease-in-out hover:scale-y-105"
+        class="h-full flex-grow transition duration-300 ease-in-out hover:scale-y-105"
       />
-    </span>
+    </div>
   </div>
 
   <create-wallet-modal

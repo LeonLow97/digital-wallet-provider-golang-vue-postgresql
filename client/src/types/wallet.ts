@@ -25,7 +25,7 @@ export interface CreateWalletRequest {
   currency_amount: CurrencyAmount[];
 }
 
-export interface TopUpWalletRequest {
+export interface WalletExchangesRequest {
   currency_amount: CurrencyAmount[];
 }
 

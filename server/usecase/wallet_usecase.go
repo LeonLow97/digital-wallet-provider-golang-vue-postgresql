@@ -127,7 +127,7 @@ func (uc *walletUsecase) CreateWallet(ctx context.Context, userID int, req dto.C
 	}
 
 	// retrieve main balance and check if sufficient funds
-	allBalances, err := uc.walletRepository.GetAllBalancesByUserID(ctx, tx, userID)
+	allBalances, err := uc.balanceRepository.GetBalances(ctx, tx, userID)
 	if err != nil {
 		log.Printf("failed to retrieve all balances for user id %d with error: %v\n", userID, err)
 		return err
@@ -214,8 +214,15 @@ func (uc *walletUsecase) TopUpWallet(ctx context.Context, userID, walletID int, 
 		}
 	}()
 
+	// get wallet type id
+	wallet, err := uc.walletRepository.GetWalletByWalletID(ctx, userID, walletID)
+	if err != nil {
+		log.Printf("failed to get wallet by wallet ID for user id %d with error: %v\n", userID, err)
+		return err
+	}
+
 	// check if user has already created these wallets
-	walletValidation, err := uc.walletRepository.PerformWalletValidationByUserID(ctx, userID, walletID)
+	walletValidation, err := uc.walletRepository.PerformWalletValidationByUserID(ctx, userID, wallet.WalletTypeID)
 	if err != nil {
 		log.Printf("failed to check wallet exists by user id %d with error: %v\n", userID, err)
 		return err

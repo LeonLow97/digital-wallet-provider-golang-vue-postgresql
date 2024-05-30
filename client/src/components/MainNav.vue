@@ -8,7 +8,7 @@
         @click="toggleSideNav"
       />
       <router-link
-        class="cursor-pointer font-mono text-lg font-bold uppercase"
+        class="cursor-pointer font-mono text-lg font-bold uppercase tracking-wider"
         :to="{ name: 'Home' }"
       >
         Digital Wallet

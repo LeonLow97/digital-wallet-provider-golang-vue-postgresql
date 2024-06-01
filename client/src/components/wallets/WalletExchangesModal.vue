@@ -108,8 +108,8 @@ const handleTopUpWallet = async () => {
       closeModal();
       emits("formSubmitted", props.actionType);
     }
-  } catch (error: unknown) {
-    alert(error);
+  } catch (error: any) {
+    alert(error?.response.data.message);
   } finally {
     // clean data
     topUpAmounts.value = {};
@@ -123,8 +123,8 @@ const getUserBalanceCurrencies = async () => {
     if (status === 200) {
       userBalanceCurrencies.value = data;
     }
-  } catch (error: unknown) {
-    alert(error);
+  } catch (error: any) {
+    alert(error?.response.data.message);
   }
 };
 

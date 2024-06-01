@@ -49,8 +49,8 @@ const getWallets = async () => {
     const { data, status } = await GET_WALLETS();
 
     wallets.value = data;
-  } catch (error: unknown) {
-    alert(error);
+  } catch (error: any) {
+    alert(error?.response.data.message);
   }
 };
 

@@ -68,12 +68,8 @@ const handleLogout = async () => {
     }
 
     alert("logged out!");
-  } catch (error: unknown) {
-    if (error instanceof AxiosError) {
-      if (error.response) {
-        alert(error.response?.data?.message);
-      }
-    } else console.error("Unexpected error", error);
+  } catch (error: any) {
+    alert(error?.response.data.message);
   } finally {
     // regardless of error, logout the user
     userStore.LOGOUT_USER();

@@ -93,8 +93,6 @@ const level = ref<Level>("M");
 const renderAs = ref<RenderAs>("svg");
 const mfaCode = ref("");
 
-const responseMessage = ref("");
-
 defineProps({
   email: {
     type: String,
@@ -125,14 +123,8 @@ const handleConfigureMFA = async (email: string, secret: string) => {
     if (status === 204) {
       emit("mfaConfigured", true);
     }
-  } catch (error: unknown) {
-    if (error instanceof AxiosError) {
-      if (error.response) {
-        alert(error.response?.data?.message);
-      }
-    } else {
-      responseMessage.value = "Unexpected error occurred";
-    }
+  } catch (error: any) {
+    alert(error?.response.data.message);
   }
 };
 </script>

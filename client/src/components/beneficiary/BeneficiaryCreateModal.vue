@@ -85,8 +85,8 @@ const handleSubmit = async () => {
       emits("formSubmitted");
       alert("Beneficiary created successfully!");
     }
-  } catch (error: unknown) {
-    alert(error);
+  } catch (error: any) {
+    alert(error?.response.data.message);
   } finally {
     mobileNumber.value = "";
   }

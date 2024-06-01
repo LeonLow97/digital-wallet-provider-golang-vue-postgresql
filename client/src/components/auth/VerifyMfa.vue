@@ -19,9 +19,7 @@ import TextInput from "../TextInput.vue";
 import ActionButton from "../ActionButton.vue";
 import type { VERIFY_MFA_REQUEST } from "@/types/user";
 import { VERIFY_MFA } from "@/api/user";
-import { AxiosError } from "axios";
 
-const responseMessage = ref("");
 const mfaCode = ref("");
 
 defineProps({
@@ -45,14 +43,8 @@ const handleVerifyMFA = async (email: string) => {
     if (status === 204) {
       emit("mfaVerified", true);
     }
-  } catch (error: unknown) {
-    if (error instanceof AxiosError) {
-      if (error.response) {
-        alert(error.response?.data?.message);
-      }
-    } else {
-      responseMessage.value = "Unexpected error occurred";
-    }
+  } catch (error: any) {
+    alert(error?.response.data.message);
   }
 };
 </script>

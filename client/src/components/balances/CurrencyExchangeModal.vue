@@ -109,8 +109,8 @@ const handleSubmit = async () => {
       emits("closeModal", true);
       alert("Successfully exchanged currency!");
     }
-  } catch (error: unknown) {
-    alert(error);
+  } catch (error: any) {
+    alert(error?.response.data.message);
   }
 };
 

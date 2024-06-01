@@ -48,7 +48,7 @@ const handleSubmit = async () => {
         "Password reset email sent successfully! If the email address is registered, you will receive an email with instructions to reset your password.",
       );
     }
-  } catch (error: unknown) {
+  } catch (error: any) {
     if (error instanceof AxiosError) {
       if (error.response) {
         alert(error.response?.data?.message);

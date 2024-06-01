@@ -149,8 +149,8 @@ const handleSubmit = async () => {
       closeModal();
       emits("formSubmitted");
     }
-  } catch (error: unknown) {
-    alert(error);
+  } catch (error: any) {
+    alert(error?.response.data.message);
   }
 };
 

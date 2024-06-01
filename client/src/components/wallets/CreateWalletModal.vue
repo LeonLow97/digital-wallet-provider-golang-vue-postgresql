@@ -14,7 +14,7 @@
             class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50"
             v-model.trim="selectedWalletTypeId"
           >
-            <option disabled value="">Select a wallet type</option>
+            <option disabled value="">Select Wallet Type</option>
             <option
               v-for="walletType in walletTypes"
               :key="walletType.id"
@@ -130,8 +130,8 @@ const getWalletTypes = async () => {
     if (status === 200) {
       walletTypes.value = data;
     }
-  } catch (error: unknown) {
-    alert(error);
+  } catch (error: any) {
+    alert(error?.response.data.message);
   }
 };
 
@@ -142,8 +142,8 @@ const getUserBalanceCurrencies = async () => {
     if (status === 200) {
       userBalanceCurrencies.value = data;
     }
-  } catch (error: unknown) {
-    alert(error);
+  } catch (error: any) {
+    alert(error?.response.data.message);
   }
 };
 
@@ -169,8 +169,8 @@ const handleCreateWallet = async () => {
       emits("formSubmitted");
       closeModal();
     }
-  } catch (error: unknown) {
-    alert(error);
+  } catch (error: any) {
+    alert(error?.response.data.message);
   }
 };
 

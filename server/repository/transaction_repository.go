@@ -22,7 +22,7 @@ func NewTransactionRepository(db *sqlx.DB) domain.TransactionRepository {
 
 func (r *transactionRepository) CheckLinkageOfSenderAndBeneficiaryByMobileNumber(ctx context.Context, userID int, mobileCountryCode, mobileNumber string) (int, bool, error) {
 	query := `
-		SELECT ub.beneficiary_id, ub.active
+		SELECT ub.beneficiary_id, u.active
 		FROM user_beneficiary ub
 		JOIN users u
 			ON u.id = ub.beneficiary_id

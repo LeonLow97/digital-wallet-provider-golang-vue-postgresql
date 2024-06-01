@@ -66,7 +66,7 @@ const handleSubmit = async () => {
 
       alert("Successfully reset password!");
     }
-  } catch (error: unknown) {
+  } catch (error: any) {
     if (error instanceof AxiosError) {
       if (error.response) {
         alert(error.response?.data?.message);

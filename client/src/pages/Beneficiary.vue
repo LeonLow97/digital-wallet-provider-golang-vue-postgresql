@@ -145,8 +145,8 @@ const getBeneficiaries = async () => {
     const { data, status } = await GET_BENEFICIARIES();
 
     beneficiaries.value = data.beneficiaries;
-  } catch (error: unknown) {
-    alert(error);
+  } catch (error: any) {
+    alert(error?.response.data.message);
   }
 };
 

@@ -78,8 +78,8 @@ const getBalances = async () => {
         currentAmount.value = balance.balance;
       }
     });
-  } catch (error: unknown) {
-    alert(error);
+  } catch (error: any) {
+    alert(error?.response.data.message);
   }
 };
 

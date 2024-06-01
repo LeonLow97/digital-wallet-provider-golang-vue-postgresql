@@ -11,7 +11,9 @@ INSERT INTO balances (balance, currency, user_id)
 VALUES
 (20000, 'AUD', 1),
 (15000, 'SGD', 1),
-(5000, 'USD', 1);
+(5000, 'USD', 1),
+(30000, 'AUD', 2),
+(4000, 'SGD', 2);
 
 INSERT INTO balances_history (amount, currency, type, user_id, balance_id, created_at)
 VALUES

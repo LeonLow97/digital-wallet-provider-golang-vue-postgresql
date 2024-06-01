@@ -49,6 +49,14 @@
     :wallet-currencies="walletCurrencies!"
     :action-type="actionType"
   />
+
+  <create-transaction-modal
+    @close-transaction-modal="closeTransactionModal"
+    @form-submitted="formSubmitted"
+    :open-transaction-modal="openTransactionModal"
+    :wallet-currencies="walletCurrencies!"
+    :wallet-id="walletId!"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -58,6 +66,7 @@ import ActionButton from "@/components/ActionButton.vue";
 import { GET_WALLET } from "@/api/wallet";
 import type { Wallet } from "@/types/wallet";
 import WalletExchangesModal from "@/components/wallets/WalletExchangesModal.vue";
+import CreateTransactionModal from "@/components/transactions/CreateTransactionModal.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -68,9 +77,14 @@ const walletCurrencies = ref<string[]>([]);
 const actionType = ref("");
 
 const openModal = ref(false);
+const openTransactionModal = ref(false);
 
 const closeModal = () => {
   openModal.value = false;
+};
+
+const closeTransactionModal = () => {
+  openTransactionModal.value = false;
 };
 
 const formSubmitted = (val: string) => {
@@ -80,7 +94,7 @@ const formSubmitted = (val: string) => {
   walletCurrencies.value = [];
 
   const msg = `${val} Successfully!`;
-  alert(msg)
+  alert(msg);
 };
 
 onMounted(() => {
@@ -104,10 +118,9 @@ const getWallet = async () => {
       wallet.value.currencyAmount.forEach((item) => {
         walletCurrencies.value?.push(item.currency);
       });
-      console.log("length of wallet currencies", walletCurrencies.value.length);
     }
-  } catch (error: unknown) {
-    alert(error);
+  } catch (error: any) {
+    alert(error?.response.data.message);
   }
 };
 
@@ -117,6 +130,6 @@ const handleWalletExchanges = (action: string) => {
 };
 
 const handleTransfer = () => {
-  alert("Transferring");
+  openTransactionModal.value = true;
 };
 </script>

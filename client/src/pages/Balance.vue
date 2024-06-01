@@ -147,8 +147,8 @@ const getBalanceAndBalanceHistory = async () => {
     if (balanceHistoryResponse.status === 200) {
       balanceHistory.value = balanceHistoryResponse.data;
     }
-  } catch (error: unknown) {
-    alert(error);
+  } catch (error: any) {
+    alert(error?.response.data.message);
   }
 };
 

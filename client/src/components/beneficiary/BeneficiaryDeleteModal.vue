@@ -4,7 +4,7 @@
       <div class="flex flex-col gap-6">
         <h1 class="text-xl font-bold dark:text-white">
           Are you sure you want to
-          <span class="text-blue-500 uppercase">{{
+          <span class="uppercase text-blue-500">{{
             props.actionDelete ? "delete" : "reactivate"
           }}</span>
           this beneficiary?
@@ -68,8 +68,8 @@ const handleSubmit = async () => {
       alert("Updated Successfully!");
       emits("formSubmitted");
     }
-  } catch (error: unknown) {
-    alert(error);
+  } catch (error: any) {
+    alert(error?.response.data.message);
   }
 };
 </script>

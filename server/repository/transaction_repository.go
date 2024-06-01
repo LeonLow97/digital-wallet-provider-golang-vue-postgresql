@@ -99,10 +99,10 @@ func (r *transactionRepository) GetTransactions(ctx context.Context, userID int)
 			sender.mobile_number 		AS sender_mobile_number,
 			beneficiary.username 		AS beneficiary_username,
 			beneficiary.mobile_number 	AS beneficiary_mobile_number,
-			t.sent_amount,
+			t.source_amount,
 			t.source_currency,
-			t.received_amount,
-			t.received_currency,
+			t.destination_amount,
+			t.destination_currency,
 			t.source_of_transfer,
 			t.status,
 			t.created_at
@@ -116,11 +116,11 @@ func (r *transactionRepository) GetTransactions(ctx context.Context, userID int)
 	`
 
 	var transactions []domain.Transaction
-	err := r.db.SelectContext(ctx, &transactions, query, userID)
-	if err != nil {
+	if err := r.db.SelectContext(ctx, &transactions, query, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, exception.ErrNoTransactionsFound
 		}
+		return nil, err
 	}
 
 	return &transactions, nil

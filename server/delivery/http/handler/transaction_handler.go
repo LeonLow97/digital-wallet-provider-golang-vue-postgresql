@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
@@ -41,12 +40,12 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 
 	var req dto.CreateTransactionRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
-		log.Println("error validating req struct in handler", err)
 		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
@@ -55,20 +54,14 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 
 	if err = h.transactionUsecase.CreateTransaction(ctx, req, userID); err != nil {
 		switch {
-		case errors.Is(err, exception.ErrAmountMustBePositive):
-			utils.ErrorJSON(w, apiErr.ErrAmountMustBePositive, http.StatusBadRequest)
-		case errors.Is(err, exception.ErrUserIsInactive):
-			utils.ErrorJSON(w, apiErr.ErrInactiveUser, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrBeneficiaryIsInactive):
 			utils.ErrorJSON(w, apiErr.ErrBeneficiaryIsInactive, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrUserIDEqualBeneficiaryID):
 			utils.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
+		case errors.Is(err, exception.ErrSenderWalletInvalid):
+			utils.ErrorJSON(w, apiErr.ErrSenderWalletInvalid, http.StatusForbidden)
 		case errors.Is(err, exception.ErrInsufficientFundsInWallet):
 			utils.ErrorJSON(w, apiErr.ErrInsufficientFundsInWallet, http.StatusBadRequest)
-		case errors.Is(err, exception.ErrUserNotLinkedToBeneficiary):
-			utils.ErrorJSON(w, apiErr.ErrUserNotLinkedToBeneficiary, http.StatusBadRequest)
-		case errors.Is(err, exception.ErrUserAndWalletAssociationNotFound):
-			utils.ErrorJSON(w, apiErr.ErrUserAndWalletAssociationNotFound, http.StatusBadRequest)
 		default:
 			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}

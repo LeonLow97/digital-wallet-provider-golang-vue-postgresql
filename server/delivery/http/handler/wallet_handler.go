@@ -110,6 +110,7 @@ func (h *WalletHandler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.CreateWalletRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -157,6 +158,7 @@ func (h *WalletHandler) TopUpWallet(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.UpdateWalletRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -203,6 +205,7 @@ func (h *WalletHandler) CashOutWallet(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.UpdateWalletRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 

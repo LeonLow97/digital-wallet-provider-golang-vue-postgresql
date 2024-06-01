@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"log"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -34,7 +35,12 @@ func ValidationErrors(v *Validator, req interface{}) (string, error) {
 func ValidateStruct(req interface{}) (string, error) {
 	validate := NewValidator()
 	errMessage, err := ValidationErrors(validate, req)
-	return errMessage, err
+	if err != nil {
+		log.Println("error validating req struct in handler", err)
+		return errMessage, err
+	}
+
+	return "", nil
 }
 
 var currencyISOCodes = map[string]struct{}{

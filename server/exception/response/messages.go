@@ -48,7 +48,7 @@ var (
 
 	ErrInsufficientFundsForCurrencyExchange = "Insufficient funds for currency exchange. Please deposit."
 
-	ErrDepositCurrencyNotAllowed = "Deposit Currency is not allowed."
+	ErrDepositCurrencyNotAllowed  = "Deposit Currency is not allowed."
 	ErrWithdrawCurrencyNotAllowed = "Withdraw Currency is not allowed."
 )
 
@@ -63,10 +63,11 @@ var (
 
 // Transaction
 var (
-	ErrAmountMustBePositive             = "Amount must be greater than 0."
 	ErrUserAndWalletAssociationNotFound = "User is not associated with the specified wallet."
 	ErrNoTransactionsFound              = "No transactions found."
 
 	ErrBeneficiaryIsInactive     = "Beneficiary is inactive. Please contact the system administrator."
 	ErrInsufficientFundsInWallet = "Insufficient funds in the specified wallet. Please top up."
+
+	ErrSenderWalletInvalid = "No wallet found with the specified Wallet ID. Please try again."
 )

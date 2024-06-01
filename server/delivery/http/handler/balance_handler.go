@@ -149,6 +149,7 @@ func (h *BalanceHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.DepositRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -187,6 +188,7 @@ func (h *BalanceHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.WithdrawRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -229,6 +231,7 @@ func (h *BalanceHandler) CurrencyExchange(w http.ResponseWriter, r *http.Request
 
 	var req dto.CurrencyExchangeRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 

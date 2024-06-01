@@ -43,6 +43,7 @@ func (h *BeneficiaryHandler) CreateBeneficiary(w http.ResponseWriter, r *http.Re
 
 	var req dto.CreateBeneficiaryRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -85,6 +86,7 @@ func (h *BeneficiaryHandler) UpdateBeneficiary(w http.ResponseWriter, r *http.Re
 
 	var req dto.UpdateBeneficiaryRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 

@@ -192,7 +192,7 @@ func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.Cre
 func (uc *transactionUsecase) GetTransactions(ctx context.Context, userID int) (*[]domain.Transaction, error) {
 	transactions, err := uc.transactionRepository.GetTransactions(ctx, userID)
 	if err != nil {
-		log.Println("failed to get transactions", err)
+		log.Printf("failed to get transactions for user id %d with error: %v\n", userID, err)
 		return nil, err
 	}
 

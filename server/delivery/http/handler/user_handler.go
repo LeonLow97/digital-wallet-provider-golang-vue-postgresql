@@ -48,6 +48,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.LoginRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -81,6 +82,7 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.SignUpRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -146,6 +148,7 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.ChangePasswordRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -180,6 +183,7 @@ func (h *UserHandler) ConfigureMFA(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.ConfigureMFARequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -218,6 +222,7 @@ func (h *UserHandler) VerifyMFA(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.VerifyMFARequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -254,6 +259,7 @@ func (h *UserHandler) PasswordReset(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.PasswordResetRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -284,6 +290,7 @@ func (h *UserHandler) SendPasswordResetEmail(w http.ResponseWriter, r *http.Requ
 
 	var req dto.SendPasswordResetEmailRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -323,6 +330,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.UpdateUserRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 

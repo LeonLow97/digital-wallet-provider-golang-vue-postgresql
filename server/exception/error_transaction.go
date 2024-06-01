@@ -3,7 +3,6 @@ package exception
 import "errors"
 
 var (
-	ErrAmountMustBePositive  = errors.New("amount for transaction must be positive")
 	ErrUserIsInactive        = errors.New("user is inactive")
 	ErrBeneficiaryIsInactive = errors.New("beneficiary is inactive")
 	ErrSenderWalletInvalid   = errors.New("sender wallet invalid")

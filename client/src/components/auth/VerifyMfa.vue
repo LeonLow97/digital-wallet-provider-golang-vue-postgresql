@@ -19,7 +19,9 @@ import TextInput from "../TextInput.vue";
 import ActionButton from "../ActionButton.vue";
 import type { VERIFY_MFA_REQUEST } from "@/types/user";
 import { VERIFY_MFA } from "@/api/user";
+import { useToastStore } from "@/stores/toast";
 
+const toastStore = useToastStore();
 const mfaCode = ref("");
 
 defineProps({
@@ -44,7 +46,7 @@ const handleVerifyMFA = async (email: string) => {
       emit("mfaVerified", true);
     }
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 </script>

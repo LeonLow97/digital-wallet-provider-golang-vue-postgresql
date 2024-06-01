@@ -109,7 +109,9 @@ import type { Balance, GetBalanceHistoryResponse } from "@/types/balances";
 import { format } from "date-fns";
 import ActionButton from "@/components/ActionButton.vue";
 import BalanceModal from "@/components/balances/BalanceModal.vue";
+import { useToastStore } from "@/stores/toast";
 
+const toastStore = useToastStore();
 const userStore = useUserStore();
 const route = useRoute();
 const router = useRouter();
@@ -160,7 +162,7 @@ const getBalanceAndBalanceHistory = async () => {
       balanceHistory.value = balanceHistoryResponse.data;
     }
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 
@@ -176,7 +178,7 @@ const getBalances = async () => {
       currency: filteredMainBalance[0].currency,
     };
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 

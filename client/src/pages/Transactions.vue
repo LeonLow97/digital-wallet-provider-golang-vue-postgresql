@@ -42,7 +42,9 @@
 import { GET_TRANSACTIONS } from "@/api/transactions";
 import type { Transaction } from "@/types/transactions";
 import { onMounted, ref } from "vue";
+import { useToastStore } from "@/stores/toast";
 
+const toastStore = useToastStore();
 const transactions = ref<Transaction[]>([]);
 
 onMounted(() => {
@@ -57,7 +59,7 @@ const getTransactions = async () => {
       transactions.value = data;
     }
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 </script>

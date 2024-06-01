@@ -82,11 +82,12 @@ import type {
 import { CREATE_WALLET, GET_WALLET_TYPES } from "@/api/wallet";
 import { GET_USER_BALANCE_CURRENCIES } from "@/api/balances";
 import type { GetUserBalanceCurrenciesResponse } from "@/types/balances";
+import { useToastStore } from "@/stores/toast";
 
 const props = defineProps<{
   openModal: boolean;
 }>();
-
+const toastStore = useToastStore();
 const selectedWalletTypeId = ref(0);
 const currencyAmountInputs = ref<CurrencyAmount[]>([
   { amount: null, currency: "" },
@@ -131,7 +132,7 @@ const getWalletTypes = async () => {
       walletTypes.value = data;
     }
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 
@@ -143,7 +144,7 @@ const getUserBalanceCurrencies = async () => {
       userBalanceCurrencies.value = data;
     }
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 
@@ -163,14 +164,14 @@ const handleCreateWallet = async () => {
     const { status } = await CREATE_WALLET(body);
 
     if (status === 201) {
-      alert("Created Wallet Successfully!");
+      toastStore.SUCCESS_TOAST("Created Wallet Successfully!");
 
       selectedWalletTypeId.value = 0;
       emits("formSubmitted");
       closeModal();
     }
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 

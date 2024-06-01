@@ -1,29 +1,44 @@
 <template>
   <div
-    class="absolute top-5 max-w-md left-1/2 -translate-x-1/2 rounded-xl border border-none bg-green-100 shadow-lg drop-shadow-md dark:border-neutral-700 dark:bg-neutral-800"
+    class="absolute left-1/2 top-5 max-w-md -translate-x-1/2 rounded-xl border border-none shadow-lg drop-shadow-md dark:border-neutral-700 dark:bg-neutral-800"
     role="alert"
+    :class="dynamicCss('bg')"
   >
     <div class="flex p-4">
-      <div class="flex-shrink-0">
-        <svg
-          class="mt-0.5 size-4 flex-shrink-0 text-green-500"
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          fill="currentColor"
-          viewBox="0 0 16 16"
+      <div>
+        <p
+          class="text-sm capitalize tracking-wider dark:text-neutral-400"
+          :class="dynamicCss('text')"
         >
-          <path
-            d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"
-          ></path>
-        </svg>
-      </div>
-      <div class="ms-3">
-        <p class="text-sm tracking-wider text-green-800 dark:text-neutral-400 capitalize">
-          Created Wallet Successfully!
+          {{ props.message }}
         </p>
       </div>
     </div>
   </div>
 </template>
 
+<script lang="ts" setup>
+const props = defineProps<{
+  message: string;
+  toastType: string;
+}>();
+
+const dynamicCss = (property: "bg" | "text") => {
+  const typeClassMapping: Record<string, Record<"bg" | "text", string>> = {
+    success: {
+      bg: "bg-green-100",
+      text: "text-green-800",
+    },
+    error: {
+      bg: "bg-red-100",
+      text: "text-red-800",
+    },
+  };
+
+  if (props?.toastType?.toLowerCase() in typeClassMapping) {
+    return typeClassMapping[props.toastType.toLowerCase()][property];
+  } else {
+    return property === "bg" ? "bg-blue-100" : "text-blue-800";
+  }
+};
+</script>

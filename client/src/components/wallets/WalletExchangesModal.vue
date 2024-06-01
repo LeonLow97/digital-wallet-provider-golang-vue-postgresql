@@ -50,6 +50,7 @@ import type { CurrencyAmount, WalletExchangesRequest } from "@/types/wallet";
 import { TOP_UP_WALLET, CASH_OUT_WALLET } from "@/api/wallet";
 import type { GetUserBalanceCurrenciesResponse } from "@/types/balances";
 import { GET_USER_BALANCE_CURRENCIES } from "@/api/balances";
+import { useToastStore } from "@/stores/toast";
 
 const props = defineProps<{
   openModal: boolean;
@@ -57,7 +58,7 @@ const props = defineProps<{
   walletCurrencies: string[];
   actionType: string;
 }>();
-
+const toastStore = useToastStore();
 const isModalOpen = ref<boolean>(false);
 
 const userBalanceCurrencies = ref<GetUserBalanceCurrenciesResponse[]>([]);
@@ -109,7 +110,7 @@ const handleTopUpWallet = async () => {
       emits("formSubmitted", props.actionType);
     }
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   } finally {
     // clean data
     topUpAmounts.value = {};
@@ -124,7 +125,7 @@ const getUserBalanceCurrencies = async () => {
       userBalanceCurrencies.value = data;
     }
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 

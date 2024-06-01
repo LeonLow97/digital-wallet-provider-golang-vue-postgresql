@@ -31,7 +31,9 @@ import Modal from "@/components/Modal.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { DELETE_BENEFICIARY } from "@/api/beneficiary";
 import type { DELETE_BENEFICIARY_REQUEST } from "@/types/beneficiary";
+import { useToastStore } from "@/stores/toast";
 
+const toastStore = useToastStore();
 const props = defineProps<{
   openModal: boolean;
   beneficiaryId: number;
@@ -65,11 +67,13 @@ const handleSubmit = async () => {
     const { status } = await DELETE_BENEFICIARY(body);
 
     if (status === 204) {
-      alert("Updated Successfully!");
+      toastStore.SUCCESS_TOAST(
+        `${props.actionDelete ? "Deleted" : "Reactivated"} Successfully!`,
+      );
       emits("formSubmitted");
     }
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 </script>

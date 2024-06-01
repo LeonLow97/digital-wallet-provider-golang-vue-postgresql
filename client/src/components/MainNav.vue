@@ -46,11 +46,11 @@ import {
   mdiMenuClose,
 } from "@mdi/js";
 import SvgIcon from "@jamescoyle/vue-icon";
-import { AxiosError } from "axios";
 import { LOGOUT } from "@/api/user";
 import { useUserStore } from "@/stores/user";
 import { useRouter } from "vue-router";
 import { ref } from "vue";
+import { useToastStore } from "@/stores/toast";
 
 const openSideNav = ref(true);
 
@@ -59,17 +59,13 @@ const userStore = useUserStore();
 
 const emits = defineEmits(["toggleSideNav"]);
 
+const toastStore = useToastStore();
+
 const handleLogout = async () => {
   try {
     const { status } = await LOGOUT();
-
-    if (status !== 200) {
-      alert("logout was unsuccessful");
-    }
-
-    alert("logged out!");
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST("Internal Server Error", 2);
   } finally {
     // regardless of error, logout the user
     userStore.LOGOUT_USER();

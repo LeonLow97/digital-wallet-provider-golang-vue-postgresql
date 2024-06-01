@@ -84,14 +84,14 @@ import { GET_BENEFICIARIES } from "@/api/beneficiary";
 import type { GET_BENEFICIARY_RESPONSE } from "@/types/beneficiary";
 import type { CreateTransactionRequest } from "@/types/transactions";
 import { CREATE_TRANSACTION } from "@/api/transactions";
-import type { AxiosError } from "axios";
+import { useToastStore } from "@/stores/toast";
 
 const props = defineProps<{
   openTransactionModal: boolean;
   walletCurrencies: string[];
   walletId: number;
 }>();
-
+const toastStore = useToastStore();
 const isModalOpen = ref<boolean>(false);
 const beneficiaries = ref<GET_BENEFICIARY_RESPONSE[]>([]);
 const selectedCurrency = ref();
@@ -136,7 +136,7 @@ const handleTransfer = async () => {
       clearData();
     }
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 
@@ -157,7 +157,7 @@ const getBeneficiaries = async () => {
 
     beneficiaries.value = data.beneficiaries;
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 </script>

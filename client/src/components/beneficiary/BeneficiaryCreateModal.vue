@@ -48,7 +48,9 @@ import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { CREATE_BENEFICIARY } from "@/api/beneficiary";
 import type { CREATE_BENEFICIARY_REQUEST } from "@/types/beneficiary";
+import { useToastStore } from "@/stores/toast";
 
+const toastStore = useToastStore();
 const props = defineProps<{
   openModal: boolean;
 }>();
@@ -83,10 +85,10 @@ const handleSubmit = async () => {
 
     if (status === 201) {
       emits("formSubmitted");
-      alert("Beneficiary created successfully!");
+      toastStore.SUCCESS_TOAST("Beneficiary Created Successfully!");
     }
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   } finally {
     mobileNumber.value = "";
   }

@@ -115,7 +115,9 @@ import BeneficiaryCreateModal from "@/components/beneficiary/BeneficiaryCreateMo
 import BeneficiaryDeleteModal from "@/components/beneficiary/BeneficiaryDeleteModal.vue";
 import { mdiTrashCanOutline, mdiAccountReactivateOutline } from "@mdi/js";
 import SvgIcon from "@jamescoyle/vue-icon";
+import { useToastStore } from "@/stores/toast";
 
+const toastStore = useToastStore();
 const beneficiaries = ref<GET_BENEFICIARY_RESPONSE[]>([]);
 const deleteBeneficiaryId = ref<number>(0);
 
@@ -146,7 +148,7 @@ const getBeneficiaries = async () => {
 
     beneficiaries.value = data.beneficiaries;
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 

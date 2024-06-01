@@ -13,18 +13,24 @@
       <router-view />
     </div>
 
-    <toast v-if="false" />
+    <toast
+      v-if="toast.visible"
+      :message="toast.message"
+      :toastType="toast.toastType"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useUserStore } from "@/stores/user";
+import { useToastStore } from "@/stores/toast";
 import { ref, computed } from "vue";
 import MainNav from "@/components/MainNav.vue";
 import SideNav from "@/components/SideNav.vue";
 import Toast from "@/components/Toast.vue";
 
 const userStore = useUserStore();
+const toast = useToastStore().toast;
 
 const sideNavDynamicCss = ref("col-span-2");
 const routerViewDynamicCss = ref("col-span-8");

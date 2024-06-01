@@ -28,10 +28,11 @@ import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { SEND_PASSWORD_RESET_EMAIL } from "@/api/user";
 import type { SEND_PASSWORD_RESET_EMAIL_REQUEST } from "@/types/user";
-import { AxiosError } from "axios";
+import { useToastStore } from "@/stores/toast";
+
+const toastStore = useToastStore();
 
 const email = ref("");
-const responseMessage = ref("");
 
 const handleSubmit = async () => {
   try {
@@ -44,18 +45,12 @@ const handleSubmit = async () => {
     if (status === 204) {
       email.value = "";
 
-      alert(
+      toastStore.SUCCESS_TOAST(
         "Password reset email sent successfully! If the email address is registered, you will receive an email with instructions to reset your password.",
       );
     }
   } catch (error: any) {
-    if (error instanceof AxiosError) {
-      if (error.response) {
-        alert(error.response?.data?.message);
-      }
-    } else {
-      responseMessage.value = "Unexpected error occurred";
-    }
+    toastStore.ERROR_TOAST(error?.response.data.message)
   }
 };
 </script>

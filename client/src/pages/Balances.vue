@@ -49,7 +49,9 @@ import ActionButton from "@/components/ActionButton.vue";
 import BalancesTable from "@/components/balances/BalancesTable.vue";
 import BalanceModal from "@/components/balances/BalanceModal.vue";
 import CurrencyExchangeModal from "@/components/balances/CurrencyExchangeModal.vue";
+import { useToastStore } from "@/stores/toast";
 
+const toastStore = useToastStore();
 const userStore = useUserStore();
 const currentAmount = ref(0);
 let balances = ref([] as Balance[]);
@@ -79,7 +81,7 @@ const getBalances = async () => {
       }
     });
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 

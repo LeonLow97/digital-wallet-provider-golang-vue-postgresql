@@ -33,6 +33,9 @@ import { onMounted, ref } from "vue";
 import type { Wallet } from "@/types/wallet";
 import ActionButton from "@/components/ActionButton.vue";
 import CreateWalletModal from "@/components/wallets/CreateWalletModal.vue";
+import { useToastStore } from "@/stores/toast";
+
+const toastStore = useToastStore();
 
 const router = useRouter();
 const openModal = ref(false);
@@ -50,7 +53,7 @@ const getWallets = async () => {
 
     wallets.value = data;
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 

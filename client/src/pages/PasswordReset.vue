@@ -27,20 +27,19 @@
 </template>
 
 <script lang="ts" setup>
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import { ref, onMounted } from "vue";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
-import { AxiosError } from "axios";
 import { PASSWORD_RESET } from "@/api/user";
 import type { PASSWORD_RESET_REQUEST } from "@/types/user";
+import { useToastStore } from "@/stores/toast";
 
+const toastStore = useToastStore();
 const route = useRoute();
-const router = useRouter();
 
 const token = ref("");
 const password = ref("");
-const responseMessage = ref("");
 
 onMounted(async () => {
   const tokenParam = route.params.token;
@@ -64,16 +63,10 @@ const handleSubmit = async () => {
     if (status === 204) {
       password.value = "";
 
-      alert("Successfully reset password!");
+      toastStore.SUCCESS_TOAST("Successfully Reset Password!");
     }
   } catch (error: any) {
-    if (error instanceof AxiosError) {
-      if (error.response) {
-        alert(error.response?.data?.message);
-      }
-    } else {
-      responseMessage.value = "Unexpected error occurred";
-    }
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 </script>

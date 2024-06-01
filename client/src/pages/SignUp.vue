@@ -71,11 +71,11 @@
 import { ref } from "vue";
 import { mdiEyeOutline, mdiEyeOffOutline } from "@mdi/js";
 import SvgIcon from "@jamescoyle/vue-icon";
-import { AxiosError } from "axios";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { SIGNUP } from "@/api/user";
 import type { SIGNUP_REQUEST } from "@/types/user";
+import { useToastStore } from "@/stores/toast";
 
 // Data Fields
 const firstName = ref("");
@@ -85,8 +85,9 @@ const email = ref("");
 const password = ref("");
 const mobileCountryCode = ref("+65");
 const mobileNumber = ref("");
-
 const showPassword = ref(false);
+
+const toastStore = useToastStore();
 
 // Methods
 const togglePasswordVisibility = () => {
@@ -115,14 +116,10 @@ const handleSubmit = async () => {
       password.value = "";
       mobileNumber.value = "";
 
-      alert("Signed up successfully!");
+      toastStore.SUCCESS_TOAST("Signed up successfully!");
     }
   } catch (error: any) {
-    if (error instanceof AxiosError) {
-      if (error.response) {
-        alert(error.response?.data?.message);
-      }
-    } else console.error("Unexpected error", error);
+    toastStore.ERROR_TOAST(error.response?.data?.message);
   }
 };
 </script>

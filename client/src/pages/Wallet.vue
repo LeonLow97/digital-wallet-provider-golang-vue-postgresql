@@ -67,7 +67,9 @@ import { GET_WALLET } from "@/api/wallet";
 import type { Wallet } from "@/types/wallet";
 import WalletExchangesModal from "@/components/wallets/WalletExchangesModal.vue";
 import CreateTransactionModal from "@/components/transactions/CreateTransactionModal.vue";
+import { useToastStore } from "@/stores/toast";
 
+const toastStore = useToastStore();
 const route = useRoute();
 const router = useRouter();
 
@@ -94,7 +96,7 @@ const formSubmitted = (val: string) => {
   walletCurrencies.value = [];
 
   const msg = `${val} Successfully!`;
-  alert(msg);
+  toastStore.SUCCESS_TOAST(msg);
 };
 
 onMounted(() => {
@@ -120,7 +122,7 @@ const getWallet = async () => {
       });
     }
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 

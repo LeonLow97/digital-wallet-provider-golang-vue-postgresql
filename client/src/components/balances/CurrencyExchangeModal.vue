@@ -64,12 +64,13 @@ import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { CURRENCY_EXCHANGE } from "@/api/balances";
 import type { CURRENCY_EXCHANGE_REQUEST } from "@/types/balances";
+import { useToastStore } from "@/stores/toast";
 
 const props = defineProps<{
   openModal: boolean;
   currency: string;
 }>();
-
+const toastStore = useToastStore();
 const isModalOpen = ref<boolean>(false);
 const fromAmount = ref<number | null>(null);
 const toAmount = ref<number | null>(null); // use computed property instead
@@ -107,10 +108,10 @@ const handleSubmit = async () => {
     if (status === 204) {
       emits("formSubmitted");
       emits("closeModal", true);
-      alert("Successfully exchanged currency!");
+      toastStore.SUCCESS_TOAST("Successfully exchanged currency!");
     }
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 

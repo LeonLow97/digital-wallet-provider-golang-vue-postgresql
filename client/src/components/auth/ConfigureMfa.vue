@@ -87,11 +87,12 @@ import ActionButton from "@/components/ActionButton.vue";
 import TextInput from "../TextInput.vue";
 import type { CONFIGURE_MFA_REQUEST } from "@/types/user";
 import { CONFIGURE_MFA } from "@/api/user";
-import { AxiosError } from "axios";
+import { useToastStore } from "@/stores/toast";
 
 const level = ref<Level>("M");
 const renderAs = ref<RenderAs>("svg");
 const mfaCode = ref("");
+const toastStore = useToastStore();
 
 defineProps({
   email: {
@@ -124,7 +125,7 @@ const handleConfigureMFA = async (email: string, secret: string) => {
       emit("mfaConfigured", true);
     }
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message, 2);
   }
 };
 </script>

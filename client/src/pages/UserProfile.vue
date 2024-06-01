@@ -51,8 +51,9 @@ import ActionButton from "@/components/ActionButton.vue";
 import type { User } from "@/types/user";
 import { UPDATE_USER } from "@/api/user";
 import type { UPDATE_USER_REQUEST } from "@/types/user";
-import { AxiosError } from "axios";
+import { useToastStore } from "@/stores/toast";
 
+const toastStore = useToastStore();
 const userStore = useUserStore();
 
 // Data Fields
@@ -90,6 +91,7 @@ const handleSaveChanges = async () => {
         firstName: firstName.value,
         lastName: lastName.value,
         username: username.value,
+        sourceCurrency: userStore.user.sourceCurrency, // TODO: adjust source currency according to mobile country code
         mobileCountryCode: mobileCountryCode.value,
         mobileNumber: mobileNumber.value,
         email: email.value,
@@ -97,16 +99,10 @@ const handleSaveChanges = async () => {
 
       userStore.SAVE_USER(user);
 
-      alert("Changes Saved Successfully!");
+      toastStore.SUCCESS_TOAST("Changes Saved Successfully!");
     }
   } catch (error: any) {
-    if (error instanceof AxiosError) {
-      if (error.response) {
-        alert(error.response?.data?.message);
-      }
-    } else {
-      console.error("Unexpected error", error);
-    }
+    toastStore.ERROR_TOAST(error.response?.data?.message);
   }
 };
 </script>

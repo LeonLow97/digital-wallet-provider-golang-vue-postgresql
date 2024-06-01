@@ -74,8 +74,8 @@ import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import Modal from "@/components/Modal.vue";
 import type { CHANGE_PASSWORD_REQUEST } from "@/types/user";
-import { AxiosError } from "axios";
 import { CHANGE_PASSWORD } from "@/api/user";
+import { useToastStore } from "@/stores/toast";
 
 // Data Fields
 const isModeChecked = ref(false);
@@ -84,8 +84,8 @@ const mode = ref("Light Mode");
 const currentPassword = ref("");
 const newPassword = ref("");
 const confirmPassword = ref("");
-const responseMessage = ref("");
 
+const toastStore = useToastStore();
 onMounted(async () => {
   if (localStorage.getItem("MODE") === "true") {
     isModeChecked.value = true;
@@ -119,7 +119,7 @@ const closeChangePasswordModal = () => {
 const handleSubmit = async () => {
   // check if new password is same as confirm password
   if (newPassword.value !== confirmPassword.value) {
-    alert("new password and confirm password do not match");
+    toastStore.ERROR_TOAST("New password and confirm password do not match. Please try again.");
     return;
   }
 
@@ -137,16 +137,10 @@ const handleSubmit = async () => {
       confirmPassword.value = "";
       isModalOpen.value = false; // close modal
 
-      alert("Password changed successfully!");
+      toastStore.SUCCESS_TOAST("Password changed successfully!");
     }
   } catch (error: any) {
-    if (error instanceof AxiosError) {
-      if (error.response) {
-        alert(error.response?.data?.message);
-      }
-    } else {
-      responseMessage.value = "Unexpected error occurred";
-    }
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 </script>

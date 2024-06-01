@@ -65,6 +65,7 @@ import type {
   WITHDRAW_REQUEST,
 } from "@/types/balances";
 import type { GENERIC_STATUS_RESPONSE } from "@/types/generic";
+import { useToastStore } from "@/stores/toast";
 
 const props = defineProps<{
   actionType: string;
@@ -72,7 +73,7 @@ const props = defineProps<{
   currency: string;
   currentAmount: number;
 }>();
-
+const toastStore = useToastStore();
 const isModalOpen = ref<boolean>(false);
 const amount = ref<number>();
 const currency = ref(props.currency);
@@ -145,12 +146,12 @@ const handleSubmit = async () => {
 
     const { status } = response;
     if (status === 204) {
-      alert("Submitted Successfully!");
+      toastStore.SUCCESS_TOAST("Submitted Successfully!");
       closeModal();
       emits("formSubmitted");
     }
   } catch (error: any) {
-    alert(error?.response.data.message);
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 

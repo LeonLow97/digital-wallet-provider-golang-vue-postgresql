@@ -82,9 +82,9 @@
 import { ref, onMounted } from "vue";
 import { mdiEyeOutline, mdiEyeOffOutline } from "@mdi/js";
 import SvgIcon from "@jamescoyle/vue-icon";
-import { AxiosError } from "axios";
 import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/user";
+import { useToastStore } from "@/stores/toast";
 
 import type { User, LOGIN_REQUEST } from "@/types/user";
 import TextInput from "@/components/TextInput.vue";
@@ -106,12 +106,12 @@ const mfaSecret = ref("");
 const showMFAForm = ref(false);
 const showMFAConfigurationForm = ref(false);
 
-const responseMessage = ref("");
 let user: User;
 
 // Stores
 const router = useRouter();
 const userStore = useUserStore();
+const toastStore = useToastStore();
 
 // Methods
 const togglePasswordVisibility = () => {
@@ -153,13 +153,7 @@ const handleLogin = async () => {
       }
     }
   } catch (error: any) {
-    if (error instanceof AxiosError) {
-      if (error.response) {
-        alert(error.response?.data?.message);
-      }
-    } else {
-      responseMessage.value = "Unexpected error occurred";
-    }
+    toastStore.ERROR_TOAST(error.response?.data?.message, 2);
   }
 };
 
@@ -168,6 +162,7 @@ const onMfaConfigured = (isConfigured: boolean) => {
     showMFAConfigurationForm.value = false;
     // user is authenticated fully by password and mfa code
     userStore.LOGIN_USER(user);
+    toastStore.SUCCESS_TOAST("Logged In Successfully!", 2);
 
     router.push({ name: "Home" });
   } else {
@@ -180,6 +175,7 @@ const onMfaVerified = (isVerified: boolean) => {
     showMFAForm.value = false;
     // user is authenticated fully by password and mfa code
     userStore.LOGIN_USER(user);
+    toastStore.SUCCESS_TOAST("Logged In Successfully!", 2);
 
     router.push({ name: "Home" });
   } else {

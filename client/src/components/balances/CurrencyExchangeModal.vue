@@ -114,6 +114,11 @@ const handleSubmit = async () => {
   }
 };
 
+const clearData = () => {
+  fromAmount.value = null;
+  selectedToCurrency.value = "";
+};
+
 const closeModal = () => {
   isModalOpen.value = false;
   emits("closeModal", true);

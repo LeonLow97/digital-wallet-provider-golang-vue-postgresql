@@ -83,6 +83,10 @@
           </tr>
         </tbody>
       </table>
+
+      <div v-if="!balanceHistory?.balanceHistory" class="p-4 text-center">
+        No Balance History Found!
+      </div>
     </div>
   </div>
 
@@ -91,21 +95,28 @@
     @form-submitted="formSubmitted"
     :open-modal="openModal"
     :action-type="actionType"
-    :balance="balance"
+    :currency="mainBalance.currency"
+    :current-amount="mainBalance.amount"
   />
 </template>
 
 <script lang="ts" setup>
+import { useUserStore } from "@/stores/user";
 import { onMounted, ref } from "vue";
-import { GET_BALANCE, GET_BALANCE_HISTORY, DEPOSIT } from "@/api/balances";
+import { GET_BALANCE, GET_BALANCE_HISTORY, GET_BALANCES } from "@/api/balances";
 import { useRoute, useRouter } from "vue-router";
 import type { Balance, GetBalanceHistoryResponse } from "@/types/balances";
 import { format } from "date-fns";
 import ActionButton from "@/components/ActionButton.vue";
 import BalanceModal from "@/components/balances/BalanceModal.vue";
 
+const userStore = useUserStore();
 const route = useRoute();
 const router = useRouter();
+const mainBalance = ref<{ amount: number; currency: string }>({
+  amount: 0,
+  currency: "",
+});
 const balance = ref<Balance>({
   id: 0,
   balance: 0,
@@ -119,6 +130,7 @@ const openModal = ref(false);
 
 onMounted(() => {
   getBalanceAndBalanceHistory();
+  getBalances();
 });
 
 const formSubmitted = () => {
@@ -147,6 +159,22 @@ const getBalanceAndBalanceHistory = async () => {
     if (balanceHistoryResponse.status === 200) {
       balanceHistory.value = balanceHistoryResponse.data;
     }
+  } catch (error: any) {
+    alert(error?.response.data.message);
+  }
+};
+
+const getBalances = async () => {
+  try {
+    const { data, status } = await GET_BALANCES();
+
+    let filteredMainBalance = data.balances.filter(
+      (item) => item.currency === userStore.user.sourceCurrency,
+    );
+    mainBalance.value = {
+      amount: filteredMainBalance[0].balance,
+      currency: filteredMainBalance[0].currency,
+    };
   } catch (error: any) {
     alert(error?.response.data.message);
   }

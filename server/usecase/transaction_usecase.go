@@ -170,6 +170,7 @@ func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.Cre
 		SourceCurrency:          req.SourceCurrency,
 		DestinationAmount:       finalDestinationAmount,
 		DestinationCurrency:     finalDestinationCurrency,
+		Status: "COMPLETED",
 	}
 
 	// create transaction for sender

@@ -11,7 +11,7 @@ const routes = [
   {
     path: "/login",
     name: "Login",
-    component: () => import("@/pages/Login.vue"),
+    component: () => import("@/pages/user/Login.vue"),
   },
   {
     path: "/home",
@@ -21,22 +21,22 @@ const routes = [
   {
     path: "/signup",
     name: "SignUp",
-    component: () => import("@/pages/SignUp.vue"),
+    component: () => import("@/pages/user/SignUp.vue"),
   },
   {
     path: "/forgot-password",
     name: "ForgotPassword",
-    component: () => import("@/pages/ForgotPassword.vue"),
+    component: () => import("@/pages/user/ForgotPassword.vue"),
   },
   {
     path: "/password-reset/:token",
     name: "PasswordReset",
-    component: () => import("@/pages/PasswordReset.vue"),
+    component: () => import("@/pages/user/PasswordReset.vue"),
   },
   {
     path: "/profile",
     name: "UserProfile",
-    component: () => import("@/pages/UserProfile.vue"),
+    component: () => import("@/pages/user/UserProfile.vue"),
   },
   {
     path: "/settings",
@@ -46,37 +46,32 @@ const routes = [
   {
     path: "/balances",
     name: "Balances",
-    component: () => import("@/pages/Balances.vue"),
+    component: () => import("@/pages/balances/Balances.vue"),
   },
   {
     path: "/balances/:id",
     name: "Balance",
-    component: () => import("@/pages/Balance.vue"),
+    component: () => import("@/pages/balances/Balance.vue"),
   },
   {
     path: "/transactions",
     name: "Transactions",
-    component: () => import("@/pages/Transactions.vue"),
+    component: () => import("@/pages/transactions/Transactions.vue"),
   },
   {
     path: "/beneficiary",
     name: "Beneficiary",
-    component: () => import("@/pages/Beneficiary.vue"),
-  },
-  {
-    path: "/transfer",
-    name: "Transfer",
-    component: () => import("@/pages/Transfer.vue"),
+    component: () => import("@/pages/beneficiary/Beneficiary.vue"),
   },
   {
     path: "/wallets",
     name: "Wallets",
-    component: () => import("@/pages/Wallets.vue"),
+    component: () => import("@/pages/wallets/Wallets.vue"),
   },
   {
     path: "/wallet/:id",
     name: "Wallet",
-    component: () => import("@/pages/Wallet.vue"),
+    component: () => import("@/pages/wallets/Wallet.vue"),
   },
   {
     path: "/error",

@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
 	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
+	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/utils"
 	"github.com/gorilla/mux"
 )
@@ -39,6 +41,13 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 
 	var req dto.CreateTransactionRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		return
+	}
+
+	errMessage, err := infrastructure.ValidateStruct(req)
+	if err != nil {
+		log.Println("error validating req struct in handler", err)
+		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 

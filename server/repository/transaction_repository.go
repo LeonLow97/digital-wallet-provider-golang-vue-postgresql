@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
 	"github.com/LeonLow97/go-clean-architecture/exception"
@@ -19,45 +20,73 @@ func NewTransactionRepository(db *sqlx.DB) domain.TransactionRepository {
 	}
 }
 
-func (r *transactionRepository) CheckLinkageOfSenderAndBeneficiaryByMobileNumber(ctx context.Context, userID int, mobileNumber string) error {
+func (r *transactionRepository) CheckLinkageOfSenderAndBeneficiaryByMobileNumber(ctx context.Context, userID int, mobileCountryCode, mobileNumber string) (int, bool, error) {
 	query := `
-		SELECT 1
+		SELECT ub.beneficiary_id, ub.active
 		FROM user_beneficiary ub
 		JOIN users u
 			ON u.id = ub.beneficiary_id
-		WHERE user_id = $1 AND u.mobile_number = $2;
+		WHERE
+			ub.user_id = $1 AND
+			u.mobile_country_code = $2 AND
+			u.mobile_number = $3;
 	`
 
-	var exists int
-	err := r.db.QueryRowContext(ctx, query, userID, mobileNumber).Scan(&exists)
-
-	if err != nil {
+	var beneficiaryID int
+	var isBeneficiaryActive bool
+	if err := r.db.QueryRowContext(ctx, query, userID, mobileCountryCode, mobileNumber).Scan(&beneficiaryID, &isBeneficiaryActive); err != nil {
 		if err == sql.ErrNoRows {
-			return exception.ErrUserNotLinkedToBeneficiary
+			return 0, false, exception.ErrUserNotLinkedToBeneficiary
 		}
-		return err
+		return 0, false, err
 	}
 
-	return nil
+	return beneficiaryID, isBeneficiaryActive, nil
 }
 
-func (r *transactionRepository) InsertTransaction(ctx context.Context, userID int, senderID int, beneficiaryID int, transaction domain.Transaction) error {
+func (r *transactionRepository) CheckValidityOfSenderIDAndWalletID(ctx context.Context, userID, walletID int) (bool, string, error) {
 	query := `
-		INSERT INTO transactions (user_id, sender_id, beneficiary_id, source_of_transfer, sent_amount,
-			source_currency, received_amount, received_currency, status)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+		SELECT EXISTS (
+			SELECT 1
+			FROM wallets
+			WHERE
+				user_id = $1 AND
+				id = $2
+		),
+		wt.type
+		FROM wallets w
+		JOIN wallet_types wt
+			ON w.wallet_type_id = wt.id
+		WHERE w.user_id = $1 AND w.id = $2;
 	`
 
-	_, err := r.db.ExecContext(ctx, query,
+	var validSenderWallet bool
+	var walletType string
+	if err := r.db.QueryRowContext(ctx, query, userID, walletID).Scan(&validSenderWallet, &walletType); err != nil {
+		return false, "", err
+	}
+	return validSenderWallet, walletType, nil
+}
+
+func (r *transactionRepository) InsertTransaction(ctx context.Context, tx *sql.Tx, userID int, transaction domain.Transaction) error {
+	query := `
+		INSERT INTO transactions 
+			(user_id, sender_id, beneficiary_id, source_of_transfer, source_amount,
+			source_currency, destination_amount, destination_currency, status, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
+	`
+
+	_, err := tx.ExecContext(ctx, query,
 		userID,
-		senderID,
-		beneficiaryID,
+		transaction.SenderID,
+		transaction.BeneficiaryID,
 		transaction.SourceOfTransfer,
-		transaction.SentAmount,
+		transaction.SourceAmount,
 		transaction.SourceCurrency,
-		transaction.ReceivedAmount,
-		transaction.ReceivedCurrency,
+		transaction.DestinationAmount,
+		transaction.DestinationCurrency,
 		transaction.Status,
+		time.Now(),
 	)
 
 	return err

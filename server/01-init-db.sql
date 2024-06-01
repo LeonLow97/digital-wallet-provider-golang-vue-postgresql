@@ -18,19 +18,17 @@ CREATE UNIQUE INDEX ON users(email);
 
 CREATE TABLE IF NOT EXISTS user_totp_secrets (
     id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     totp_encrypted_secret TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS user_beneficiary (
-    user_id INT NOT NULL,
-    beneficiary_id INT NOT NULL,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    beneficiary_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     is_deleted SMALLINT NOT NULL DEFAULT 0,
-    PRIMARY KEY (user_id, beneficiary_id),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (beneficiary_id) REFERENCES users(id) ON DELETE CASCADE
+    PRIMARY KEY (user_id, beneficiary_id)
 );
 
 CREATE UNIQUE INDEX ON user_beneficiary(user_id);
@@ -44,8 +42,8 @@ CREATE TABLE IF NOT EXISTS wallet_types (
 
 CREATE TABLE IF NOT EXISTS wallets (
     id SERIAL PRIMARY KEY,
-    wallet_type_id INT REFERENCES wallet_types(id) ON DELETE CASCADE,
-    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    wallet_type_id INT NOT NULL REFERENCES wallet_types(id),
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -54,8 +52,8 @@ CREATE TABLE IF NOT EXISTS wallet_balances (
     id SERIAL PRIMARY KEY,
     amount DECIMAL(20,2) NOT NULL,
     currency CHAR(3) NOT NULL,
-    wallet_id INT REFERENCES wallets(id) ON DELETE CASCADE,
-    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    wallet_id INT NOT NULL REFERENCES wallets(id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     UNIQUE(currency, wallet_id, user_id)
@@ -65,7 +63,7 @@ CREATE TABLE IF NOT EXISTS balances (
     id SERIAL PRIMARY KEY,
     balance DECIMAL(20,2) NOT NULL,
     currency CHAR(3) NOT NULL,
-    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     UNIQUE(user_id, currency)
@@ -76,21 +74,21 @@ CREATE TABLE IF NOT EXISTS balances_history (
     amount DECIMAL(20,2) NOT NULL,
     currency CHAR(3) NOT NULL,
     type VARCHAR(8) NOT NULL,
-    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     balance_id INT REFERENCES balances(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS transactions (
     id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id) NOT NULL,
-    sender_id INT REFERENCES users(id) NOT NULL,
-    beneficiary_id INT REFERENCES users(id) NOT NULL,
+    user_id INT NOT NULL REFERENCES users(id),
+    sender_id INT NOT NULL REFERENCES users(id),
+    beneficiary_id INT NOT NULL REFERENCES users(id),
     source_of_transfer VARCHAR(255) NOT NULL,
-    sent_amount DECIMAL(20,2) NOT NULL,
+    source_amount DECIMAL(20,2) NOT NULL,
     source_currency CHAR(3) NOT NULL,
-    received_amount DECIMAL(20,2) NOT NULL,
-    received_currency CHAR(3) NOT NULL,
+    destination_amount DECIMAL(20,2) NOT NULL,
+    destination_currency CHAR(3) NOT NULL,
     status VARCHAR(50) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );

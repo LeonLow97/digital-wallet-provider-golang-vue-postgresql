@@ -25,7 +25,7 @@
             class="col-span-1 bg-slate-300 text-center font-bold uppercase"
           />
         </div>
-        <p>Current Balance: {{ props.balance?.balance }}</p>
+        <p>Current Balance: {{ props.currentAmount }}</p>
         <p v-if="amount">
           Final Balance:
           <span
@@ -61,7 +61,6 @@ import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { DEPOSIT, WITHDRAW } from "@/api/balances";
 import type {
-  Balance,
   DEPOSIT_REQUEST,
   WITHDRAW_REQUEST,
 } from "@/types/balances";
@@ -70,13 +69,14 @@ import type { GENERIC_STATUS_RESPONSE } from "@/types/generic";
 const props = defineProps<{
   actionType: string;
   openModal: boolean;
-  balance: Balance | null;
+  currency: string;
+  currentAmount: number;
 }>();
 
 const isModalOpen = ref<boolean>(false);
 const amount = ref<number>();
-const currency = ref(props.balance?.currency);
-const balance = ref<Balance | null>();
+const currency = ref(props.currency);
+const balance = ref<number | null>(null);
 
 const emits = defineEmits(["closeModal", "formSubmitted"]);
 
@@ -90,7 +90,7 @@ watch(
 );
 
 watch(
-  () => props.balance?.currency,
+  () => props.currency,
   (newValue) => {
     if (newValue !== undefined) {
       currency.value = newValue;
@@ -99,7 +99,7 @@ watch(
 );
 
 watch(
-  () => props.balance,
+  () => props.currentAmount,
   (newValue) => {
     if (props) {
       balance.value = newValue;
@@ -110,20 +110,20 @@ watch(
 const finalBalance = computed(() => {
   let finalValue = 0; // Initialize with default value
 
-  if (props.balance?.balance && amount.value) {
+  if (props.currentAmount && amount.value) {
     if (props.actionType?.toLowerCase() === "withdraw") {
-      finalValue = props.balance?.balance - amount.value;
+      finalValue = props.currentAmount - amount.value;
     } else if (props.actionType?.toLowerCase() === "deposit") {
-      finalValue = props.balance?.balance + amount.value;
+      finalValue = props.currentAmount + amount.value;
     }
   }
 
   if (
-    props.balance?.balance === 0 &&
+    props.currentAmount === 0 &&
     props.actionType?.toLowerCase() === "deposit" &&
     amount.value
   ) {
-    finalValue = props.balance?.balance + amount.value;
+    finalValue = props.currentAmount + amount.value;
   }
 
   return finalValue <= 0 ? 0 : finalValue;

@@ -67,7 +67,8 @@ CREATE TABLE IF NOT EXISTS balances (
     currency CHAR(3) NOT NULL,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    UNIQUE(user_id, currency)
 );
 
 CREATE TABLE IF NOT EXISTS balances_history (

@@ -31,6 +31,7 @@ func NewBalanceHandler(router *mux.Router, uc domain.BalanceUsecase) {
 	balanceRouter.HandleFunc("/currencies", handler.GetUserBalanceCurrencies).Methods(http.MethodGet)
 	balanceRouter.HandleFunc("/deposit", handler.Deposit).Methods(http.MethodPost)
 	balanceRouter.HandleFunc("/withdraw", handler.Withdraw).Methods(http.MethodPost)
+	balanceRouter.HandleFunc("/currency-exchange", handler.CurrencyExchange).Methods(http.MethodPatch)
 }
 
 func (h *BalanceHandler) GetBalanceHistory(w http.ResponseWriter, r *http.Request) {
@@ -162,7 +163,13 @@ func (h *BalanceHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 	req.DepositSanitize()
 
 	if err := h.balanceUsecase.Deposit(ctx, req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		switch {
+		case errors.Is(err, exception.ErrDepositCurrencyNotAllowed):
+			utils.ErrorJSON(w, apiErr.ErrDepositCurrencyNotAllowed, http.StatusBadRequest)
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		}
+		return
 	}
 
 	utils.WriteNoContent(w, http.StatusNoContent)
@@ -195,10 +202,49 @@ func (h *BalanceHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.balanceUsecase.Withdraw(ctx, req); err != nil {
 		switch {
+		case errors.Is(err, exception.ErrWithdrawCurrencyNotAllowed):
+			utils.ErrorJSON(w, apiErr.ErrWithdrawCurrencyNotAllowed, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrInsufficientFunds):
 			utils.ErrorJSON(w, apiErr.ErrInsufficientFundsForWithdrawal, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrBalanceNotFound):
 			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
+		default:
+			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	utils.WriteNoContent(w, http.StatusNoContent)
+}
+
+func (h *BalanceHandler) CurrencyExchange(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// retrieve user id from context
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	var req dto.CurrencyExchangeRequest
+	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		return
+	}
+
+	errMessage, err := infrastructure.ValidateStruct(req)
+	if err != nil {
+		log.Println("error validating req struct in withdraw handler", err)
+		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		return
+	}
+
+	req.CurrencyExchangeSanitize()
+
+	if err := h.balanceUsecase.CurrencyExchange(ctx, userID, req); err != nil {
+		switch {
+		case errors.Is(err, exception.ErrInsufficientFundsForCurrencyExchange):
+			utils.ErrorJSON(w, apiErr.ErrInsufficientFundsForCurrencyExchange, http.StatusBadRequest)
 		default:
 			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}

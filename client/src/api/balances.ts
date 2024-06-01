@@ -7,6 +7,7 @@ import type {
   GetUserBalanceCurrenciesResponse,
   DEPOSIT_REQUEST,
   WITHDRAW_REQUEST,
+  CURRENCY_EXCHANGE_REQUEST,
 } from "@/types/balances";
 import type { GENERIC_STATUS_RESPONSE } from "@/types/generic";
 
@@ -17,6 +18,7 @@ const GET_BALANCE_URL = `${API_URL}/balances/`;
 const GET_BALANCE_HISTORY_URL = `${API_URL}/balances/history/`;
 const DEPOSIT_URL = `${API_URL}/balances/deposit`;
 const WITHDRAW_URL = `${API_URL}/balances/withdraw`;
+const CURRENCY_EXCHANGE_URL = `${API_URL}/balances/currency-exchange`;
 const GET_USER_BALANCE_CURRENCIES_URL = `${API_URL}/balances/currencies`;
 
 export const GET_USER_BALANCE_CURRENCIES = async (): Promise<
@@ -85,6 +87,18 @@ export const WITHDRAW = async (
   const { status } = await axios.post(WITHDRAW_URL, JSON.stringify(body), {
     withCredentials: true,
   });
+
+  return { status };
+};
+
+export const CURRENCY_EXCHANGE = async (
+  body: CURRENCY_EXCHANGE_REQUEST,
+): Promise<GENERIC_STATUS_RESPONSE> => {
+  const { status } = await axios.patch(
+    CURRENCY_EXCHANGE_URL,
+    JSON.stringify(body),
+    { withCredentials: true },
+  );
 
   return { status };
 };

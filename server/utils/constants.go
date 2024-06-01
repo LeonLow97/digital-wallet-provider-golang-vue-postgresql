@@ -14,3 +14,14 @@ const (
 	PENDING   = "PENDING"
 	COMPLETED = "COMPLETED"
 )
+
+// Assumption: Depending on the user's mobile country code, the user
+// will be allowed to deposit and withdraw with that currency
+var CountryCodeToCurrencyMap = map[string]string{
+	"+65": "SGD", "+60": "MYR", "+1": "AUD", "+61": "USD",
+}
+
+// Allowed toCurrencies, TODO: store this in database instead
+var ToCurrencies = map[string]struct{}{
+	"SGD": {}, "MYR": {}, "AUD": {}, "USD": {},
+}

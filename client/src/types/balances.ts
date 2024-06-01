@@ -41,3 +41,8 @@ export interface WITHDRAW_REQUEST {
   amount: number;
   currency: string;
 }
+
+export interface CURRENCY_EXCHANGE_REQUEST {
+  from_amount: number;
+  to_currency: string;
+}

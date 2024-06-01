@@ -10,6 +10,7 @@ export const useUserStore = defineStore("user", () => {
     lastName: "",
     email: "",
     username: "",
+    sourceCurrency: "",
     mobileCountryCode: "",
     mobileNumber: "",
   });
@@ -47,6 +48,7 @@ export const useUserStore = defineStore("user", () => {
       lastName: data.lastName,
       email: data.email,
       username: data.username,
+      sourceCurrency: data.sourceCurrency,
       mobileCountryCode: data.mobileCountryCode,
       mobileNumber: data.mobileNumber,
     };
@@ -58,6 +60,7 @@ export const useUserStore = defineStore("user", () => {
       lastName: data.lastName,
       email: data.email,
       username: data.username,
+      sourceCurrency: data.sourceCurrency,
       mobileCountryCode: data.mobileCountryCode,
       mobileNumber: data.mobileNumber,
     };
@@ -71,6 +74,7 @@ export const useUserStore = defineStore("user", () => {
       lastName: "",
       email: "",
       username: "",
+      sourceCurrency: "",
       mobileCountryCode: "",
       mobileNumber: "",
     };

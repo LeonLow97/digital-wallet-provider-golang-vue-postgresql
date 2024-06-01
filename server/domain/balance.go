@@ -23,6 +23,7 @@ type BalanceUsecase interface {
 	GetUserBalanceCurrencies(ctx context.Context, userID int) (*[]dto.GetUserBalanceCurrenciesResponse, error)
 	Deposit(ctx context.Context, req dto.DepositRequest) error
 	Withdraw(ctx context.Context, req dto.WithdrawRequest) error
+	CurrencyExchange(ctx context.Context, userID int, req dto.CurrencyExchangeRequest) error
 }
 
 type BalanceRepository interface {

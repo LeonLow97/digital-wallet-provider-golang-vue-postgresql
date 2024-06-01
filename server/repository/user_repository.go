@@ -25,7 +25,7 @@ func (r *userRepository) GetUserByID(ctx context.Context, userID int) (*domain.U
 	defer cancel()
 
 	query := `
-		SELECT id, first_name, last_name, email, username, password, mobile_number, active, admin
+		SELECT id, first_name, last_name, email, username, password, mobile_country_code, mobile_number, active, admin
 		FROM users 
 		WHERE id = $1;
 	`
@@ -38,6 +38,7 @@ func (r *userRepository) GetUserByID(ctx context.Context, userID int) (*domain.U
 		&user.Email,
 		&user.Username,
 		&user.Password,
+		&user.MobileCountryCode,
 		&user.MobileNumber,
 		&user.Active,
 		&user.Admin,

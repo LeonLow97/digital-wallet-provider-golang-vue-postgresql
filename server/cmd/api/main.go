@@ -57,7 +57,7 @@ func main() {
 	handlers.NewUserHandler(router, userUsecase, redisClient)
 
 	balanceRepo := repository.NewBalanceRepository(dbConn)
-	balanceUsecase := usecase.NewBalanceUsecase(dbConn, balanceRepo)
+	balanceUsecase := usecase.NewBalanceUsecase(dbConn, userRepo, balanceRepo)
 	handlers.NewBalanceHandler(router, balanceUsecase)
 
 	walletRepo := repository.NewWalletRepository(dbConn)

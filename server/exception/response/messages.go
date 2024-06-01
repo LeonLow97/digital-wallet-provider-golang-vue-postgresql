@@ -45,6 +45,11 @@ var (
 	ErrBalanceHistoryNotFound         = "Balance History not found. Please deposit to create a new balance."
 	ErrInsufficientFundsForWithdrawal = "The specified amount for withdrawal is more than the current balance amount. Please lower the withdrawal amount."
 	ErrWalletBalanceNotFound          = "Wallet Balance not found."
+
+	ErrInsufficientFundsForCurrencyExchange = "Insufficient funds for currency exchange. Please deposit."
+
+	ErrDepositCurrencyNotAllowed = "Deposit Currency is not allowed."
+	ErrWithdrawCurrencyNotAllowed = "Withdraw Currency is not allowed."
 )
 
 // Beneficiary

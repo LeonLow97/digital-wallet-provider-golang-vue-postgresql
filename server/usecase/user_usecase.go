@@ -42,8 +42,7 @@ func NewUserUsecase(cfg infrastructure.Config, userRepository domain.UserReposit
 }
 
 var (
-	accessTokenExpiry  = time.Minute * 15
-	refreshTokenExpiry = time.Hour * 24
+	accessTokenExpiry = time.Minute * 15
 )
 
 func (uc *userUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, error) {
@@ -72,6 +71,7 @@ func (uc *userUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.Lo
 		LastName:          user.LastName,
 		Email:             user.Email,
 		Username:          user.Username,
+		SourceCurrency:    utils.CountryCodeToCurrencyMap[user.MobileCountryCode],
 		MobileCountryCode: user.MobileCountryCode,
 		MobileNumber:      user.MobileNumber,
 		IsMFAConfigured:   user.IsMFAConfigured,
@@ -484,12 +484,8 @@ func (uc *userUsecase) GenerateUserSession(ctx context.Context, userID int) (*dt
 	// generate session token with uuid
 	sessionID := uuid.New().String()
 
-	// generate access token and refresh token
+	// generate access token
 	accessToken, err := uc.GenerateJWTAccessToken(userID, accessTokenExpiry, sessionID)
-	if err != nil {
-		return nil, err
-	}
-	refreshToken, err := uc.generateJWTRefreshToken(userID, refreshTokenExpiry, sessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -511,9 +507,8 @@ func (uc *userUsecase) GenerateUserSession(ctx context.Context, userID int) (*dt
 		return nil, err
 	}
 	token := &dto.Token{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-		CSRFToken:    csrfToken,
+		AccessToken: accessToken,
+		CSRFToken:   csrfToken,
 	}
 
 	// storing userID => sessionID mapping in Redis Set to keep track of users with multiple devices logged on
@@ -561,24 +556,6 @@ func (uc *userUsecase) GenerateJWTAccessToken(userID int, ttl time.Duration, ses
 	}
 
 	return signedAccessToken, nil
-}
-
-// generateJWTRefreshToken returns the JWT Refresh Token for retrieving subsequent fresh JWT Access Token
-func (uc *userUsecase) generateJWTRefreshToken(userID int, ttl time.Duration, sessionID string) (string, error) {
-	// generate refresh token (users might not use) - less claims as compared to jwt token
-	refreshToken := jwt.New(jwt.SigningMethodHS256)
-	refreshTokenClaims := refreshToken.Claims.(jwt.MapClaims)
-	refreshTokenClaims["sub"] = userID
-	// set expiry, must be longer than access token
-	refreshTokenClaims["exp"] = time.Now().Add(refreshTokenExpiry).Unix()
-
-	// generate signed refresh token
-	signedRefreshToken, err := refreshToken.SignedString([]byte(uc.cfg.JWT.Secret))
-	if err != nil {
-		return "", err
-	}
-
-	return signedRefreshToken, nil
 }
 
 // generateCSRFToken generates a CSRF token using the provided secret key and session ID,

@@ -207,7 +207,6 @@ func (h *UserHandler) ConfigureMFA(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: utilise refresh token or remove it from user use case
 	w.Header().Set("X-CSRF-Token", token.CSRFToken)
 	utils.IssueCookie(w, token.AccessToken)
 
@@ -244,7 +243,6 @@ func (h *UserHandler) VerifyMFA(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: utilise refresh token or remove it from user use case
 	w.Header().Set("X-CSRF-Token", token.CSRFToken)
 	utils.IssueCookie(w, token.AccessToken)
 

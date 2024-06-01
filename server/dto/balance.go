@@ -51,3 +51,12 @@ func (req *DepositRequest) DepositSanitize() {
 func (req *WithdrawRequest) WithdrawSanitize() {
 	req.Currency = strings.TrimSpace(req.Currency)
 }
+
+type CurrencyExchangeRequest struct {
+	FromAmount float64 `json:"from_amount" validate:"required,gt=0"`
+	ToCurrency string  `json:"to_currency" validate:"required,len=3"`
+}
+
+func (req *CurrencyExchangeRequest) CurrencyExchangeSanitize() {
+	req.ToCurrency = strings.TrimSpace(req.ToCurrency)
+}

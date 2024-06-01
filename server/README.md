@@ -81,7 +81,6 @@ server
 |  GET   | `/api/v1/users/profile`         | Retrieve the user's profile information                                                 |    [ ]    |
 |  PUT   | `/api/v1/users/profile`         | Update the user's profile information                                                   |    [X]    |
 |  PUT   | `/api/v1/users/password`        | Change the user's password                                                              |    [ ]    |
-|  POST  | `/api/v1/token/refresh`         | Request a new access token using a refresh token                                        |    [ ]    |
 |  POST  | `/api/v1/exchange`              | Allow users to exchange one currency for another                                        |    [ ]    |
 |  POST  | `/api/v1/kyc`                   | Implement KYC processes for user verification                                           |    [ ]    |
 | DELETE | `/api/v1/users/close`           | Close a user's account and deactivate the associated wallet                             |    [ ]    |
@@ -130,7 +129,7 @@ server
 
 1. User login with the credentials.
 2. If unsuccessful login, return HTTP Status 401 Unauthorized.
-3. If successful login, generate JWT Access Token and Refresh Token. Generate a session ID (uuid) and store it in the JWT Token.
+3. If successful login, generate JWT Access Token. Generate a session ID (uuid) and store it in the JWT Token.
 4. Store sessionID --> userID mapping in Redis using `SetEx` so we know this sessionID belongs to this userID.
    - When the user logs out, delete this sessionID to invalidate the session.
 5. Store userID --> sessionID mapping in Redis Set using `SAdd` because the user can have multiple sessions on different devices.

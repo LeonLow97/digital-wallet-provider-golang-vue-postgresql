@@ -222,12 +222,13 @@ func (r *balanceRepository) UpdateBalances(ctx context.Context, tx *sql.Tx, user
 
 	for currency, newBalance := range finalBalancesMap {
 		query := `
-			UPDATE balances
-			SET balance = $1
-			WHERE user_id = $2 AND currency = $3;
+			INSERT INTO balances (user_id, currency, balance)
+			VALUES ($1, $2, $3)
+			ON CONFLICT (user_id, currency)
+			DO UPDATE SET balance = EXCLUDED.balance;
 		`
 
-		_, err := tx.ExecContext(ctx, query, newBalance, userID, currency)
+		_, err := tx.ExecContext(ctx, query, userID, currency, newBalance)
 		if err != nil {
 			return err
 		}
@@ -235,37 +236,6 @@ func (r *balanceRepository) UpdateBalances(ctx context.Context, tx *sql.Tx, user
 
 	return nil
 }
-
-// func (r *balanceRepository) UpdateBalances(ctx context.Context, tx *sql.Tx, userID int, finalBalancesMap map[string]float64) error {
-// 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
-// 	defer cancel()
-
-// 	placeholders := []string{}
-// 	args := []interface{}{}
-
-// 	i := 1
-// 	for currency, newBalance := range finalBalancesMap {
-// 		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d)", i, i+1, i+2))
-// 		args = append(args, userID, currency, newBalance)
-// 		i += 3
-// 	}
-
-// 	// Updating multiple rows in PostgreSQL
-// 	// https://www.geeksforgeeks.org/how-to-update-multiple-rows-in-postgresql/
-// 	query := fmt.Sprintf(`
-// 		UPDATE balances
-// 		SET balance = data.new_balance
-// 		FROM (
-// 			VALUES %s
-// 		) AS data (user_id, currency, new_balance)
-// 		WHERE
-// 			balances.user_id = data.user_id AND
-// 			balances.currency = data.currency;
-// 	`, strings.Join(placeholders, ", "))
-
-// 	_, err := tx.ExecContext(ctx, query, args...)
-// 	return err
-// }
 
 func (r *balanceRepository) CreateBalanceHistory(ctx context.Context, tx *sql.Tx, balance *domain.Balance, depositedBalance float64, balanceType string) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)

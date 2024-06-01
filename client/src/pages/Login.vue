@@ -136,6 +136,7 @@ const handleLogin = async () => {
       lastName: data?.lastName,
       email: data?.email,
       username: data?.username,
+      sourceCurrency: data?.sourceCurrency,
       mobileCountryCode: data?.mobileCountryCode,
       mobileNumber: data?.mobileNumber,
     };

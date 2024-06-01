@@ -3,6 +3,7 @@ export interface User {
   lastName: string;
   email: string;
   username: string;
+  sourceCurrency: string;
   mobileCountryCode: string;
   mobileNumber: string;
 }
@@ -22,6 +23,7 @@ interface LOGIN_RESPONSE_DATA {
   lastName: string;
   email: string;
   username: string;
+  sourceCurrency: string;
   mobileCountryCode: string;
   mobileNumber: string;
   isMfaConfigured?: boolean;

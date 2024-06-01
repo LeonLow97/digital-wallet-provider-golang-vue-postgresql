@@ -12,6 +12,7 @@ type LoginResponse struct {
 	LastName          string           `json:"lastName"`
 	Email             string           `json:"email"`
 	Username          string           `json:"username"`
+	SourceCurrency    string           `json:"sourceCurrency"`
 	MobileCountryCode string           `json:"mobileCountryCode"`
 	MobileNumber      string           `json:"mobileNumber"`
 	IsMFAConfigured   bool             `json:"isMfaConfigured"`
@@ -24,9 +25,8 @@ type MFAConfiguration struct {
 }
 
 type Token struct {
-	AccessToken  string
-	RefreshToken string
-	CSRFToken    string
+	AccessToken string
+	CSRFToken   string
 }
 
 type SignUpRequest struct {

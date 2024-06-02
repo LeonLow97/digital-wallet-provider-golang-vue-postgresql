@@ -55,7 +55,7 @@ func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.Cre
 	}()
 
 	// check if sender id is linked to beneficiary id
-	beneficiaryID, isBeneficiaryActive, err := uc.transactionRepository.CheckLinkageOfSenderAndBeneficiaryByMobileNumber(ctx, userID, req.BeneficiaryMobileCountryCode, req.BeneficiaryMobileNumber)
+	beneficiaryID, isBeneficiaryActive, isMFAConfigured, err := uc.transactionRepository.CheckLinkageOfSenderAndBeneficiaryByMobileNumber(ctx, userID, req.BeneficiaryMobileCountryCode, req.BeneficiaryMobileNumber)
 	if err != nil {
 		// if not linked, error will be thrown here
 		log.Println("failed to check linkage of sender and beneficiary", err)
@@ -63,6 +63,9 @@ func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.Cre
 	}
 	if !isBeneficiaryActive {
 		return exception.ErrBeneficiaryIsInactive
+	}
+	if !isMFAConfigured {
+		return exception.ErrBeneficiaryMFANotConfigured
 	}
 
 	// check if sender id is equal to beneficiary id
@@ -170,7 +173,7 @@ func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.Cre
 		SourceCurrency:          req.SourceCurrency,
 		DestinationAmount:       finalDestinationAmount,
 		DestinationCurrency:     finalDestinationCurrency,
-		Status: "COMPLETED",
+		Status:                  "COMPLETED",
 	}
 
 	// create transaction for sender

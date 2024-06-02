@@ -20,9 +20,9 @@ func NewTransactionRepository(db *sqlx.DB) domain.TransactionRepository {
 	}
 }
 
-func (r *transactionRepository) CheckLinkageOfSenderAndBeneficiaryByMobileNumber(ctx context.Context, userID int, mobileCountryCode, mobileNumber string) (int, bool, error) {
+func (r *transactionRepository) CheckLinkageOfSenderAndBeneficiaryByMobileNumber(ctx context.Context, userID int, mobileCountryCode, mobileNumber string) (int, bool, bool, error) {
 	query := `
-		SELECT ub.beneficiary_id, u.active
+		SELECT ub.beneficiary_id, u.active, u.is_mfa_configured
 		FROM user_beneficiary ub
 		JOIN users u
 			ON u.id = ub.beneficiary_id
@@ -33,15 +33,15 @@ func (r *transactionRepository) CheckLinkageOfSenderAndBeneficiaryByMobileNumber
 	`
 
 	var beneficiaryID int
-	var isBeneficiaryActive bool
-	if err := r.db.QueryRowContext(ctx, query, userID, mobileCountryCode, mobileNumber).Scan(&beneficiaryID, &isBeneficiaryActive); err != nil {
+	var isBeneficiaryActive, isMFAConfigured bool
+	if err := r.db.QueryRowContext(ctx, query, userID, mobileCountryCode, mobileNumber).Scan(&beneficiaryID, &isBeneficiaryActive, &isMFAConfigured); err != nil {
 		if err == sql.ErrNoRows {
-			return 0, false, exception.ErrUserNotLinkedToBeneficiary
+			return 0, false, false, exception.ErrUserNotLinkedToBeneficiary
 		}
-		return 0, false, err
+		return 0, false, false, err
 	}
 
-	return beneficiaryID, isBeneficiaryActive, nil
+	return beneficiaryID, isBeneficiaryActive, isMFAConfigured, nil
 }
 
 func (r *transactionRepository) CheckValidityOfSenderIDAndWalletID(ctx context.Context, userID, walletID int) (bool, string, error) {

@@ -6,7 +6,7 @@ export interface Balance {
   updatedAt?: string;
 }
 
-interface BalanceHistory {
+export interface BalanceHistory {
   amount: number;
   currency: string;
   type: string;

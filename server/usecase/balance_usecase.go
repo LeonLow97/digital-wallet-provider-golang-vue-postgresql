@@ -322,8 +322,16 @@ func (uc *balanceUsecase) CurrencyExchange(ctx context.Context, userID int, req 
 
 	// convert slice of user balances into map for faster performance of accessing keys in map
 	allBalancesMap := make(map[string]float64)
+	var fromBalanceID, toBalanceID int
 	for _, b := range allBalances {
 		allBalancesMap[b.Currency] = b.Balance
+
+		if b.Currency == fromCurrency {
+			fromBalanceID = b.ID
+		}
+		if b.Currency == req.ToCurrency {
+			toBalanceID = b.ID
+		}
 	}
 
 	// check if user has sufficient primary balance to perform currency exchange
@@ -346,6 +354,28 @@ func (uc *balanceUsecase) CurrencyExchange(ctx context.Context, userID int, req 
 	// update user balances
 	if err := uc.balanceRepository.UpdateBalances(ctx, tx, userID, finalBalancesMap); err != nil {
 		log.Printf("failed to update balances for user id %d with error: %v\n", userID, err)
+		return err
+	}
+
+	// create balance history for 'from' side
+	transferFromBalanceHistory := &domain.Balance{
+		ID:       fromBalanceID,
+		Currency: fromCurrency,
+		UserID:   userID,
+	}
+	if err := uc.balanceRepository.CreateBalanceHistory(ctx, tx, transferFromBalanceHistory, req.FromAmount, "exchange"); err != nil {
+		log.Printf("failed to create balance history for 'transferFrom' for user id %d with error: %v\n", userID, err)
+		return err
+	}
+
+	// create balance history for 'to' side
+	transferToBalanceHistory := &domain.Balance{
+		ID:       toBalanceID,
+		Currency: req.ToCurrency,
+		UserID:   userID,
+	}
+	if err := uc.balanceRepository.CreateBalanceHistory(ctx, tx, transferToBalanceHistory, convertedAmount, "exchange"); err != nil {
+		log.Printf("failed to create balance history for 'transferTo' for user id %d with error: %v\n", userID, err)
 		return err
 	}
 

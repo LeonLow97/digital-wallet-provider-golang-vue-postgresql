@@ -54,8 +54,9 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 
 	if err = h.transactionUsecase.CreateTransaction(ctx, req, userID); err != nil {
 		switch {
-		case errors.Is(err, exception.ErrBeneficiaryIsInactive):
-			utils.ErrorJSON(w, apiErr.ErrBeneficiaryIsInactive, http.StatusBadRequest)
+		case errors.Is(err, exception.ErrBeneficiaryIsInactive) ||
+			errors.Is(err, exception.ErrBeneficiaryMFANotConfigured):
+			utils.ErrorJSON(w, apiErr.ErrBeneficiaryAccountNotRegistered, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrUserIDEqualBeneficiaryID):
 			utils.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrSenderWalletInvalid):

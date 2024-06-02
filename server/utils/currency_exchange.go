@@ -2,24 +2,24 @@ package utils
 
 var exchangeRates = map[string]map[string]float64{
 	"SGD": {
-		"USD": 0.73,
-		"AUD": 0.98,
-		"MYR": 3.14,
+		"USD": 0.76,
+		"AUD": 1.03,
+		"MYR": 3.29,
 	},
 	"USD": {
-		"SGD": 1.37,
-		"AUD": 1.35,
-		"MYR": 4.27,
+		"SGD": 1.32,
+		"AUD": 1.41,
+		"MYR": 4.43,
 	},
 	"AUD": {
-		"SGD": 1.02,
-		"USD": 0.74,
-		"MYR": 3.21,
+		"SGD": 0.97,
+		"USD": 0.71,
+		"MYR": 3.35,
 	},
 	"MYR": {
-		"SGD": 0.32,
-		"USD": 0.23,
-		"AUD": 0.31,
+		"SGD": 0.30,
+		"USD": 0.22,
+		"AUD": 0.30,
 	},
 }
 

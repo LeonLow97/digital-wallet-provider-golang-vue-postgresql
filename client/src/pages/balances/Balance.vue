@@ -54,28 +54,17 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="history in balanceHistory?.balanceHistory"
-            class="text-center"
-          >
+          <tr v-for="history in balanceHistory!" class="text-center">
             <td
               class="px-4 py-2"
-              :class="
-                history.type.trim().toLowerCase() === 'deposit'
-                  ? 'text-green-600'
-                  : 'text-red-600'
-              "
+              :class="dynamicCssTransferType(history.type.trim())"
             >
               {{ history.amount }}
             </td>
             <td class="px-4 py-2">{{ history.currency }}</td>
             <td
               class="px-4 py-2 font-bold uppercase"
-              :class="
-                history.type.trim().toLowerCase() === 'deposit'
-                  ? 'text-green-600'
-                  : 'text-red-600'
-              "
+              :class="dynamicCssTransferType(history.type.trim())"
             >
               {{ history.type }}
             </td>
@@ -84,7 +73,7 @@
         </tbody>
       </table>
 
-      <div v-if="!balanceHistory?.balanceHistory" class="p-4 text-center">
+      <div v-if="!balanceHistory" class="p-4 text-center">
         No Balance History Found!
       </div>
     </div>
@@ -105,7 +94,7 @@ import { useUserStore } from "@/stores/user";
 import { onMounted, ref } from "vue";
 import { GET_BALANCE, GET_BALANCE_HISTORY, GET_BALANCES } from "@/api/balances";
 import { useRoute, useRouter } from "vue-router";
-import type { Balance, GetBalanceHistoryResponse } from "@/types/balances";
+import type { Balance, BalanceHistory } from "@/types/balances";
 import { format } from "date-fns";
 import ActionButton from "@/components/ActionButton.vue";
 import BalanceModal from "@/components/balances/BalanceModal.vue";
@@ -126,7 +115,7 @@ const balance = ref<Balance>({
   createdAt: "",
   updatedAt: "",
 });
-const balanceHistory = ref<GetBalanceHistoryResponse | null>(null);
+const balanceHistory = ref<BalanceHistory[]>([]);
 let actionType = ref("");
 const openModal = ref(false);
 
@@ -159,7 +148,17 @@ const getBalanceAndBalanceHistory = async () => {
     }
 
     if (balanceHistoryResponse.status === 200) {
-      balanceHistory.value = balanceHistoryResponse.data;
+      console.log(balanceHistoryResponse.data);
+
+      // Parse date strings into Date objects for sorting
+      let sortedBalanceHistoryResponse =
+        balanceHistoryResponse.data.balanceHistory.sort((a, b) => {
+          return (
+            new Date(b.createdAt).valueOf() - new Date(a.createdAt).valueOf()
+          );
+        });
+
+      balanceHistory.value = sortedBalanceHistoryResponse;
     }
   } catch (error: any) {
     toastStore.ERROR_TOAST(error?.response.data.message);
@@ -202,5 +201,25 @@ const handleWithdraw = () => {
 
 const closeModal = () => {
   openModal.value = false;
+};
+
+const dynamicCssTransferType = (transferType: string) => {
+  let dynamicCss: string;
+
+  switch (transferType?.toLowerCase()) {
+    case "deposit":
+      dynamicCss = "text-green-600";
+      break;
+    case "withdraw":
+      dynamicCss = "text-red-600";
+      break;
+    case "exchange":
+      dynamicCss = "text-blue-600";
+      break;
+    default:
+      dynamicCss = "text-black";
+  }
+
+  return dynamicCss;
 };
 </script>

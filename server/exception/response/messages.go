@@ -66,8 +66,8 @@ var (
 	ErrUserAndWalletAssociationNotFound = "User is not associated with the specified wallet."
 	ErrNoTransactionsFound              = "No transactions found."
 
-	ErrBeneficiaryIsInactive     = "Beneficiary is inactive. Please contact the system administrator."
-	ErrInsufficientFundsInWallet = "Insufficient funds in the specified wallet. Please top up."
+	ErrBeneficiaryAccountNotRegistered = "Beneficiary is currently not a registered user. Please try again later or contact the System Administrator."
+	ErrInsufficientFundsInWallet       = "Insufficient funds in the specified wallet. Please top up."
 
 	ErrSenderWalletInvalid = "No wallet found with the specified Wallet ID. Please try again."
 )

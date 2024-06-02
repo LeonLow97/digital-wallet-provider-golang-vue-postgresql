@@ -4,34 +4,52 @@
     role="alert"
     :class="dynamicCss('bg')"
   >
-    <div class="flex p-4">
-      <div>
-        <p
-          class="text-sm capitalize tracking-wider dark:text-neutral-400"
-          :class="dynamicCss('text')"
-        >
-          {{ props.message }}
-        </p>
-      </div>
+    <div class="flex items-center justify-center gap-2 p-4">
+      <svg-icon
+        type="mdi"
+        :path="getIconPath(props.toastType)"
+        :class="dynamicCss('icon')"
+      />
+      <p
+        class="text-sm capitalize tracking-wider dark:text-neutral-400"
+        :class="dynamicCss('text')"
+      >
+        {{ props.message }}
+      </p>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { mdiCheckCircleOutline, mdiCloseCircleOutline } from "@mdi/js";
+import SvgIcon from "@jamescoyle/vue-icon";
+
 const props = defineProps<{
   message: string;
   toastType: string;
 }>();
 
-const dynamicCss = (property: "bg" | "text") => {
-  const typeClassMapping: Record<string, Record<"bg" | "text", string>> = {
+function getIconPath(toastType: string): string {
+  if (toastType?.toLowerCase() === "success") {
+    return mdiCheckCircleOutline;
+  }
+  return mdiCloseCircleOutline;
+}
+
+const dynamicCss = (property: "bg" | "text" | "icon") => {
+  const typeClassMapping: Record<
+    string,
+    Record<"bg" | "text" | "icon", string>
+  > = {
     success: {
       bg: "bg-green-100",
       text: "text-green-800",
+      icon: "text-green-800",
     },
     error: {
       bg: "bg-red-100",
       text: "text-red-800",
+      icon: "text-red-800",
     },
   };
 

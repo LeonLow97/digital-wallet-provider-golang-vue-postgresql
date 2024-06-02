@@ -31,9 +31,6 @@ CREATE TABLE IF NOT EXISTS user_beneficiary (
     PRIMARY KEY (user_id, beneficiary_id)
 );
 
-CREATE UNIQUE INDEX ON user_beneficiary(user_id);
-CREATE UNIQUE INDEX ON user_beneficiary(beneficiary_id);
-
 CREATE TABLE IF NOT EXISTS wallet_types (
     id SERIAL PRIMARY KEY,
     type VARCHAR(255) NOT NULL UNIQUE,

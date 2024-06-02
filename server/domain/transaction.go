@@ -29,7 +29,7 @@ type TransactionUsecase interface {
 }
 
 type TransactionRepository interface {
-	CheckLinkageOfSenderAndBeneficiaryByMobileNumber(ctx context.Context, userID int, mobileCountryCode, mobileNumber string) (int, bool, error)
+	CheckLinkageOfSenderAndBeneficiaryByMobileNumber(ctx context.Context, userID int, mobileCountryCode, mobileNumber string) (int, bool, bool, error)
 	CheckValidityOfSenderIDAndWalletID(ctx context.Context, userID, walletID int) (bool, string, error) // TODO: move to wallet repository?
 
 	InsertTransaction(ctx context.Context, tx *sql.Tx, userID int, transaction Transaction) error

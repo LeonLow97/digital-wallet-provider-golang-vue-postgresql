@@ -3,9 +3,10 @@ package exception
 import "errors"
 
 var (
-	ErrUserIsInactive        = errors.New("user is inactive")
-	ErrBeneficiaryIsInactive = errors.New("beneficiary is inactive")
-	ErrSenderWalletInvalid   = errors.New("sender wallet invalid")
+	ErrUserIsInactive              = errors.New("user is inactive")
+	ErrBeneficiaryIsInactive       = errors.New("beneficiary is inactive")
+	ErrBeneficiaryMFANotConfigured = errors.New("beneficiary MFA not configured")
+	ErrSenderWalletInvalid         = errors.New("sender wallet invalid")
 
 	// transaction by wallet
 	ErrUserAndWalletAssociationNotFound        = errors.New("user and wallet association not found")

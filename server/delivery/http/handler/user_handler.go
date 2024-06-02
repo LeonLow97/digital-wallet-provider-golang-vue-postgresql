@@ -48,14 +48,14 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.LoginRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		utils.ErrorJSON(w, apiErr.ErrInvalidCredentials, http.StatusUnauthorized)
 		return
 	}
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
-		log.Println("error validating req struct in login handler", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		log.Println("error validating req struct in login handler", err, errMessage)
+		utils.ErrorJSON(w, apiErr.ErrInvalidCredentials, http.StatusUnauthorized)
 		return
 	}
 

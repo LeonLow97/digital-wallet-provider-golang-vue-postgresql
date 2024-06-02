@@ -1,5 +1,5 @@
 <template>
-  <div class="flex justify-between bg-blue-950 text-white">
+  <div class="flex justify-between bg-slate-800 text-white">
     <div class="flex items-center gap-8 pl-12">
       <svg-icon
         type="mdi"

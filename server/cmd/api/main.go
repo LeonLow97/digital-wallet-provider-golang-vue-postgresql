@@ -93,7 +93,6 @@ func main() {
 	// Create CORS options
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins: []string{
-			cfg.Env.BackendURL,
 			cfg.Env.FrontendURL,
 		},
 		AllowCredentials: true,
@@ -106,10 +105,10 @@ func main() {
 			http.MethodOptions,
 		},
 		// AllowedHeaders specifies which headers are allowed to be sent in requests from client (browser) to server
-		AllowedHeaders: []string{"Accept", "Origin", "Content-Type", "Authorization", "X-CSRF-Token"},
+		AllowedHeaders: []string{"Accept", "Origin", "Content-Type", "X-CSRF-Token"},
 		// ExposedHeaders specifies which response headers are exposed to client (browser) and can be accessed by JavaScript
 		ExposedHeaders:     []string{"X-CSRF-Token", "Content-Security-Policy"},
-		MaxAge:             86400, // cache for 1 day (86400 seconds)
+		MaxAge:             86400, // cache HTTP headers set by CORS for 1 day (86400 seconds)
 		OptionsPassthrough: false,
 		Debug:              false,
 	})

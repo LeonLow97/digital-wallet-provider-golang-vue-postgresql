@@ -148,8 +148,6 @@ const getBalanceAndBalanceHistory = async () => {
     }
 
     if (balanceHistoryResponse.status === 200) {
-      console.log(balanceHistoryResponse.data);
-
       // Parse date strings into Date objects for sorting
       let sortedBalanceHistoryResponse =
         balanceHistoryResponse.data.balanceHistory.sort((a, b) => {

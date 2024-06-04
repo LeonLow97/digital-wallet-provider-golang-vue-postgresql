@@ -2,6 +2,7 @@ import axios, { AxiosError } from "axios";
 import type { AxiosRequestConfig, AxiosResponse } from "axios";
 import type { App } from "vue";
 import { useUserStore } from "@/stores/user";
+import { useToastStore } from "@/stores/toast";
 
 const baseURL = import.meta.env.VITE_APP_BASE_URL;
 
@@ -36,6 +37,7 @@ export default {
         const loginUrl = `${baseURL}/login`;
         window.location.replace(loginUrl);
       }
+
       return Promise.reject(err);
     };
 

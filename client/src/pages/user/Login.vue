@@ -153,6 +153,10 @@ const handleLogin = async () => {
       }
     }
   } catch (error: any) {
+    if (error.code === "ERR_NETWORK") {
+      toastStore.ERROR_TOAST("Network Error. Please try again later.");
+      return;
+    }
     toastStore.ERROR_TOAST(error.response?.data?.message, 2);
   }
 };

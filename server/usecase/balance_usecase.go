@@ -381,3 +381,26 @@ func (uc *balanceUsecase) CurrencyExchange(ctx context.Context, userID int, req 
 
 	return nil
 }
+
+func (uc *balanceUsecase) PreviewExchange(ctx context.Context, req dto.PreviewExchangeRequest) dto.PreviewExchangeResponse {
+	resp := dto.PreviewExchangeResponse{
+		ActionType:   req.ActionType,
+		FromCurrency: req.FromCurrency,
+		ToCurrency:   req.ToCurrency,
+	}
+
+	// action type is "Amount to Send"
+	if req.ActionType == "amountToSend" {
+		_, receivedAmount := utils.CalculateConversionDetails(req.FromAmount, req.FromCurrency, req.ToCurrency)
+		resp.FromAmount = req.FromAmount
+		resp.ToAmount = receivedAmount
+	}
+
+	if req.ActionType == "amountToReceive" {
+		sendAmount := utils.CalculateFromAmount(req.ToAmount, req.ToCurrency, req.FromCurrency)
+		resp.ToAmount = req.ToAmount
+		resp.FromAmount = sendAmount
+	}
+
+	return resp
+}

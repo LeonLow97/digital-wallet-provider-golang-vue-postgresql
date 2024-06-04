@@ -32,6 +32,7 @@ func NewBalanceHandler(router *mux.Router, uc domain.BalanceUsecase) {
 	balanceRouter.HandleFunc("/deposit", handler.Deposit).Methods(http.MethodPost)
 	balanceRouter.HandleFunc("/withdraw", handler.Withdraw).Methods(http.MethodPost)
 	balanceRouter.HandleFunc("/currency-exchange", handler.CurrencyExchange).Methods(http.MethodPatch)
+	balanceRouter.HandleFunc("/preview-exchange", handler.PreviewExchange).Methods(http.MethodPost)
 }
 
 func (h *BalanceHandler) GetBalanceHistory(w http.ResponseWriter, r *http.Request) {
@@ -255,4 +256,27 @@ func (h *BalanceHandler) CurrencyExchange(w http.ResponseWriter, r *http.Request
 	}
 
 	utils.WriteNoContent(w, http.StatusNoContent)
+}
+
+// PreviewExchange allows users to preview the exchange rate, no data manipulation
+func (h *BalanceHandler) PreviewExchange(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var req dto.PreviewExchangeRequest
+	if err := utils.ReadJSONBody(w, r, &req); err != nil {
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		return
+	}
+
+	errMessage, err := infrastructure.ValidateStruct(req)
+	if err != nil {
+		log.Println("error validating req struct in withdraw handler", err)
+		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		return
+	}
+
+	req.PreviewExchangeSanitize()
+
+	resp := h.balanceUsecase.PreviewExchange(ctx, req)
+	utils.WriteJSON(w, http.StatusOK, resp)
 }

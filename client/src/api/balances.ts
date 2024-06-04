@@ -8,6 +8,8 @@ import type {
   DEPOSIT_REQUEST,
   WITHDRAW_REQUEST,
   CURRENCY_EXCHANGE_REQUEST,
+  PreviewExchangeRequest,
+  PreviewExchangeResponse,
 } from "@/types/balances";
 import type { GENERIC_STATUS_RESPONSE } from "@/types/generic";
 
@@ -18,8 +20,9 @@ const GET_BALANCE_URL = `${API_URL}/balances/`;
 const GET_BALANCE_HISTORY_URL = `${API_URL}/balances/history/`;
 const DEPOSIT_URL = `${API_URL}/balances/deposit`;
 const WITHDRAW_URL = `${API_URL}/balances/withdraw`;
-const CURRENCY_EXCHANGE_URL = `${API_URL}/balances/currency-exchange`;
 const GET_USER_BALANCE_CURRENCIES_URL = `${API_URL}/balances/currencies`;
+const CURRENCY_EXCHANGE_URL = `${API_URL}/balances/currency-exchange`;
+const PREVIEW_EXCHANGE_URL = `${API_URL}/balances/preview-exchange`;
 
 export const GET_USER_BALANCE_CURRENCIES = async (): Promise<
   APIResponse<GetUserBalanceCurrenciesResponse[]>
@@ -101,4 +104,18 @@ export const CURRENCY_EXCHANGE = async (
   );
 
   return { status };
+};
+
+export const PREVIEW_EXCHANGE = async (
+  body: PreviewExchangeRequest,
+): Promise<APIResponse<PreviewExchangeResponse>> => {
+  const { data, status } = await axios.post<PreviewExchangeResponse>(
+    PREVIEW_EXCHANGE_URL,
+    body,
+    {
+      withCredentials: true,
+    },
+  );
+
+  return { data, status };
 };

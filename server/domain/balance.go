@@ -24,6 +24,7 @@ type BalanceUsecase interface {
 	Deposit(ctx context.Context, req dto.DepositRequest) error
 	Withdraw(ctx context.Context, req dto.WithdrawRequest) error
 	CurrencyExchange(ctx context.Context, userID int, req dto.CurrencyExchangeRequest) error
+	PreviewExchange(ctx context.Context, req dto.PreviewExchangeRequest) dto.PreviewExchangeResponse
 }
 
 type BalanceRepository interface {

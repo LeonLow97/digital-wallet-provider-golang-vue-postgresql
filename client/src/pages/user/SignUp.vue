@@ -119,6 +119,10 @@ const handleSubmit = async () => {
       toastStore.SUCCESS_TOAST("Signed up successfully!");
     }
   } catch (error: any) {
+    if (error.code === "ERR_NETWORK") {
+      toastStore.ERROR_TOAST("Network Error. Please try again later.");
+      return;
+    }
     toastStore.ERROR_TOAST(error.response?.data?.message);
   }
 };

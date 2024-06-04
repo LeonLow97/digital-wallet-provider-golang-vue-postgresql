@@ -54,8 +54,8 @@ import { useToastStore } from "@/stores/toast";
 const toastStore = useToastStore();
 const userStore = useUserStore();
 const currentAmount = ref(0);
-let balances = ref([] as Balance[]);
-let actionType = ref("");
+const balances = ref([] as Balance[]);
+const actionType = ref("");
 
 const openModal = ref(false);
 const openCurrencyExchangeModal = ref(false);

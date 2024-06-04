@@ -60,3 +60,24 @@ type CurrencyExchangeRequest struct {
 func (req *CurrencyExchangeRequest) CurrencyExchangeSanitize() {
 	req.ToCurrency = strings.TrimSpace(req.ToCurrency)
 }
+
+type PreviewExchangeRequest struct {
+	ActionType   string  `json:"action_type" validate:"oneof=amountToSend amountToReceive"`
+	FromAmount   float64 `json:"from_amount" validate:"omitempty,gt=0"`
+	FromCurrency string  `json:"from_currency" validate:"omitempty,len=3"`
+	ToAmount     float64 `json:"to_amount" validate:"omitempty,gt=0"`
+	ToCurrency   string  `json:"to_currency" validate:"omitempty,len=3"`
+}
+
+type PreviewExchangeResponse struct {
+	ActionType   string  `json:"actionType"`
+	FromAmount   float64 `json:"fromAmount"`
+	FromCurrency string  `json:"fromCurrency"`
+	ToAmount     float64 `json:"toAmount"`
+	ToCurrency   string  `json:"toCurrency"`
+}
+
+func (req *PreviewExchangeRequest) PreviewExchangeSanitize() {
+	req.FromCurrency = strings.TrimSpace(req.FromCurrency)
+	req.ToCurrency = strings.TrimSpace(req.ToCurrency)
+}

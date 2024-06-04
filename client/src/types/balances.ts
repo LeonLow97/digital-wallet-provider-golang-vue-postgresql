@@ -46,3 +46,19 @@ export interface CURRENCY_EXCHANGE_REQUEST {
   from_amount: number;
   to_currency: string;
 }
+
+export interface PreviewExchangeRequest {
+  action_type: "amountToSend" | "amountToReceive" | null;
+  from_amount: number;
+  from_currency: string;
+  to_amount: number;
+  to_currency: string;
+}
+
+export interface PreviewExchangeResponse {
+  actionType: string;
+  fromAmount: number;
+  fromCurrency: string;
+  toAmount: number;
+  toCurrency: string;
+}

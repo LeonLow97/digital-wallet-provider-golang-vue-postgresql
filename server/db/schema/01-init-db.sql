@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS balances_history (
     currency CHAR(3) NOT NULL,
     type VARCHAR(8) NOT NULL,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    balance_id INT REFERENCES balances(id) ON DELETE CASCADE,
+    balance_id INT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 

@@ -9,7 +9,7 @@ export const useToastStore = defineStore("toast", () => {
     timer: ref<ReturnType<typeof setTimeout> | null>(null),
   });
 
-  const SUCCESS_TOAST = (message: string, timeoutInSeconds: number = 2) => {
+  const SUCCESS_TOAST = (message: string, timeoutInSeconds: number = 3) => {
     SHOW_TOAST(message);
 
     toast.value.toastType = "success";
@@ -19,7 +19,7 @@ export const useToastStore = defineStore("toast", () => {
     }, timeoutInSeconds * 1000);
   };
 
-  const ERROR_TOAST = (message: string, timeoutInSeconds: number = 2) => {
+  const ERROR_TOAST = (message: string, timeoutInSeconds: number = 3) => {
     SHOW_TOAST(message);
 
     toast.value.toastType = "error";

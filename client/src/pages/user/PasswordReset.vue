@@ -66,6 +66,10 @@ const handleSubmit = async () => {
       toastStore.SUCCESS_TOAST("Successfully Reset Password!");
     }
   } catch (error: any) {
+    if (error.code === "ERR_NETWORK") {
+      toastStore.ERROR_TOAST("Network Error. Please try again later.");
+      return;
+    }
     toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };

@@ -50,7 +50,11 @@ const handleSubmit = async () => {
       );
     }
   } catch (error: any) {
-    toastStore.ERROR_TOAST(error?.response.data.message)
+    if (error.code === "ERR_NETWORK") {
+      toastStore.ERROR_TOAST("Network Error. Please try again later.");
+      return;
+    }
+    toastStore.ERROR_TOAST(error?.response.data.message);
   }
 };
 </script>

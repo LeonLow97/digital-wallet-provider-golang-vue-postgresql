@@ -173,8 +173,6 @@ func (h *WalletHandler) TopUpWallet(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, exception.ErrNoWalletFound):
 			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
-		case errors.Is(err, exception.ErrWalletTypeInvalid):
-			utils.ErrorJSON(w, apiErr.ErrWalletTypeInvalid, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrBalanceNotFound):
 			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrInsufficientFunds):
@@ -220,8 +218,6 @@ func (h *WalletHandler) CashOutWallet(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, exception.ErrNoWalletFound):
 			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
-		case errors.Is(err, exception.ErrWalletTypeInvalid):
-			utils.ErrorJSON(w, apiErr.ErrWalletTypeInvalid, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrWalletBalanceNotFound):
 			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrInsufficientFundsForWithdrawal):

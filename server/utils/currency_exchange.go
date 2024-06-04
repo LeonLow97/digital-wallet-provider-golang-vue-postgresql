@@ -62,15 +62,15 @@ func CalculateConversionDetails(transferAmount float64, fromCurrency, toCurrency
 	return profit, beneficiaryAmount
 }
 
-func CalculateFromAmount(toAmount float64, toCurrency, fromCurrency string) float64 {
-	// Calculate pegged rate (because exchange rates are hardcoded)
-	peggedRate := exchangeRates[fromCurrency][toCurrency]
+func CalculateFromAmount(beneficiaryAmount float64, toCurrency, fromCurrency string) float64 {
+	// Calculate the conversion amount
+	conversionAmount := beneficiaryAmount / (1 - spreads[fromCurrency][toCurrency])
 
-	// Calculate the spread
-	spread := spreads[fromCurrency][toCurrency]
+	// Calculate the transfer amount
+	transferAmount := conversionAmount / exchangeRates[fromCurrency][toCurrency]
 
-	// Calculate the transfer amount (fromAmount) using the pegged rate and spread
-	fromAmount := (toAmount / peggedRate) / (1 + spread)
+	// Calculate the profit
+	// profit := conversionAmount - beneficiaryAmount
 
-	return fromAmount
+	return transferAmount
 }

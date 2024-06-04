@@ -230,9 +230,6 @@ func (uc *walletUsecase) TopUpWallet(ctx context.Context, userID, walletID int, 
 	if !walletValidation.WalletExists {
 		return exception.ErrNoWalletFound
 	}
-	if !walletValidation.IsValidWalletType {
-		return exception.ErrWalletTypeInvalid
-	}
 
 	// retrieve main balance and check if sufficient funds
 	allBalances, err := uc.balanceRepository.GetBalances(ctx, tx, userID)
@@ -337,9 +334,6 @@ func (uc *walletUsecase) CashOutWallet(ctx context.Context, userID, walletID int
 	}
 	if !walletValidation.WalletExists {
 		return exception.ErrNoWalletFound
-	}
-	if !walletValidation.IsValidWalletType {
-		return exception.ErrWalletTypeInvalid
 	}
 
 	// retrieve main balance and check if sufficient funds

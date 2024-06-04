@@ -231,7 +231,7 @@ func (r *walletRepository) GetWalletTypes(ctx context.Context) (*[]dto.GetWallet
 	return &walletTypes, nil
 }
 
-func (r *walletRepository) PerformWalletValidationByUserID(ctx context.Context, userID, walletTypeID int) (*dto.WalletValidation, error) {
+func (r *walletRepository) PerformWalletValidationByUserID(ctx context.Context, userID, walletID int) (*dto.WalletValidation, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
@@ -240,22 +240,15 @@ func (r *walletRepository) PerformWalletValidationByUserID(ctx context.Context, 
 		  (SELECT EXISTS (
 			SELECT 1
 			FROM wallets w
-			JOIN wallet_types wt
-			  ON w.wallet_type_id = wt.id
 			WHERE w.user_id = $1 AND 
-				wt.id = $2
-		  )) AS wallet_exists,
-		  (SELECT EXISTS (
-			SELECT 1
-			FROM wallet_types
-			WHERE id = $3
-		  )) AS is_valid_wallet_type
+				w.id = $2
+		  )) AS wallet_exists
 	`
 
-	args := []interface{}{userID, walletTypeID, walletTypeID}
+	args := []interface{}{userID, walletID}
 
 	var walletValidation dto.WalletValidation
-	if err := r.db.GetContext(ctx, &walletValidation, query, args...); err != nil { // Pass the third argument "valid_wallet_type"
+	if err := r.db.GetContext(ctx, &walletValidation, query, args...); err != nil {
 		return nil, err
 	}
 	return &walletValidation, nil

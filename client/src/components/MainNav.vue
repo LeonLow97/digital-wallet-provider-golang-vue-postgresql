@@ -64,6 +64,10 @@ const toastStore = useToastStore();
 const handleLogout = async () => {
   try {
     const { status } = await LOGOUT();
+
+    if (status === 200) {
+      toastStore.SUCCESS_TOAST("Logged Out! We hope to see you again!");
+    }
   } catch (error: any) {
     toastStore.ERROR_TOAST("Internal Server Error", 2);
   } finally {

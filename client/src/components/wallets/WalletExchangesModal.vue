@@ -9,15 +9,15 @@
         <div
           v-for="(currency, index) in props.walletCurrencies"
           :key="index"
-          class="flex gap-4"
+          class="grid grid-cols-3 gap-4"
         >
           <text-input
-            class="w-3/4 text-center"
+            class="col-span-2 text-center"
             v-model.number="topUpAmounts[index]"
             placeholder="Amount"
           />
           <text-input
-            class="w-1/4 rounded-md bg-slate-300 px-4 py-2 text-center text-sm font-bold text-gray-700 shadow-sm"
+            class="col-span-1 rounded-md bg-slate-300 px-4 py-2 text-center text-sm font-bold text-gray-700 shadow-sm"
             v-model.trim="props.walletCurrencies[index]"
             disabled
           >

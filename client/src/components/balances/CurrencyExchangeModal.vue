@@ -89,14 +89,14 @@
           <div class="mb-1 flex gap-6">
             <p>You Send:</p>
             <div class="flex gap-3">
-              <span>{{ previewExchangeResponse?.fromAmount }}</span>
+              <span>{{ previewExchangeResponse?.fromAmount?.toFixed(2) }}</span>
               <span>{{ previewExchangeResponse?.fromCurrency }}</span>
             </div>
           </div>
           <div class="flex gap-6">
             <p>They Get:</p>
             <div class="flex gap-3">
-              <span>{{ previewExchangeResponse?.toAmount }}</span>
+              <span>{{ previewExchangeResponse?.toAmount?.toFixed(2) }}</span>
               <span>{{ previewExchangeResponse?.toCurrency }}</span>
             </div>
           </div>

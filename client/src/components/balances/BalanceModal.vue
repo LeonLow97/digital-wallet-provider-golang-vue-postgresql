@@ -22,7 +22,7 @@
             v-model="currency!"
             placeholder="Currency"
             disabled
-            class="col-span-1 bg-slate-300 text-center font-bold uppercase"
+            class="col-span-1 bg-slate-200 text-slate-500 text-center font-bold uppercase"
           />
         </div>
         <p>Current Balance: {{ props.currentAmount }}</p>

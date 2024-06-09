@@ -114,15 +114,22 @@ func (uc *walletUsecase) CreateWallet(ctx context.Context, userID int, req dto.C
 	}()
 
 	// check if user has already created these wallets
-	walletValidation, err := uc.walletRepository.PerformWalletValidationByUserID(ctx, userID, req.WalletTypeID)
+	walletExists, err := uc.walletRepository.CheckWalletExistsByWalletTypeID(ctx, userID, req.WalletTypeID)
 	if err != nil {
-		log.Printf("failed to check wallet exists by user id %d with error: %v\n", userID, err)
+		log.Printf("failed to check wallet exists by user id %d; wallet type id %d; with error: %v\n", userID, req.WalletTypeID, err)
 		return err
 	}
-	if walletValidation.WalletExists {
+	if walletExists {
 		return exception.ErrWalletAlreadyExists
 	}
-	if !walletValidation.IsValidWalletType {
+
+	// check if wallet type id is valid
+	walletTypeExists, err := uc.walletRepository.CheckWalletTypeExists(ctx, req.WalletTypeID)
+	if err != nil {
+		log.Printf("failed to check wallet type exists with wallet type id %d; with error: %v\n", req.WalletTypeID, err)
+		return err
+	}
+	if !walletTypeExists {
 		return exception.ErrWalletTypeInvalid
 	}
 
@@ -214,21 +221,11 @@ func (uc *walletUsecase) TopUpWallet(ctx context.Context, userID, walletID int, 
 		}
 	}()
 
-	// get wallet type id
-	wallet, err := uc.walletRepository.GetWalletByWalletID(ctx, userID, walletID)
+	// get wallet by walletID
+	_, err = uc.walletRepository.GetWalletByWalletID(ctx, userID, walletID)
 	if err != nil {
 		log.Printf("failed to get wallet by wallet ID for user id %d with error: %v\n", userID, err)
 		return err
-	}
-
-	// check if user has already created these wallets
-	walletValidation, err := uc.walletRepository.PerformWalletValidationByUserID(ctx, userID, wallet.WalletTypeID)
-	if err != nil {
-		log.Printf("failed to check wallet exists by user id %d with error: %v\n", userID, err)
-		return err
-	}
-	if !walletValidation.WalletExists {
-		return exception.ErrNoWalletFound
 	}
 
 	// retrieve main balance and check if sufficient funds
@@ -326,14 +323,11 @@ func (uc *walletUsecase) CashOutWallet(ctx context.Context, userID, walletID int
 		}
 	}()
 
-	// check if user has already created these wallets
-	walletValidation, err := uc.walletRepository.PerformWalletValidationByUserID(ctx, userID, walletID)
+	// get wallet by walletID
+	_, err = uc.walletRepository.GetWalletByWalletID(ctx, userID, walletID)
 	if err != nil {
-		log.Printf("failed to check wallet exists by user id %d with error: %v\n", userID, err)
+		log.Printf("failed to get wallet by wallet ID for user id %d with error: %v\n", userID, err)
 		return err
-	}
-	if !walletValidation.WalletExists {
-		return exception.ErrNoWalletFound
 	}
 
 	// retrieve main balance and check if sufficient funds

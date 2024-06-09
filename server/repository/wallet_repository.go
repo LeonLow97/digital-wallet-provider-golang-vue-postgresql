@@ -245,13 +245,76 @@ func (r *walletRepository) PerformWalletValidationByUserID(ctx context.Context, 
 		  )) AS wallet_exists
 	`
 
-	args := []interface{}{userID, walletID}
-
 	var walletValidation dto.WalletValidation
-	if err := r.db.GetContext(ctx, &walletValidation, query, args...); err != nil {
+	if err := r.db.QueryRowContext(ctx, query, userID, walletID).Scan(&walletValidation.WalletExists); err != nil {
 		return nil, err
 	}
+
 	return &walletValidation, nil
+}
+
+func (r *walletRepository) CheckWalletExistsByWalletTypeID(ctx context.Context, userID, walletTypeID int) (bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
+	query := `
+		SELECT EXISTS (
+			SELECT 1
+			FROM wallets
+			WHERE 
+				user_id = $1 AND
+				wallet_type_id = $2
+		)
+	`
+
+	var walletExists bool
+	if err := r.db.QueryRowContext(ctx, query, userID, walletTypeID).Scan(&walletExists); err != nil {
+		return false, err
+	}
+
+	return walletExists, nil
+}
+
+func (r *walletRepository) CheckWalletExistsByWalletID(ctx context.Context, userID, walletID int) (bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
+	query := `
+		SELECT EXISTS (
+			SELECT 1
+			FROM wallets
+			WHERE 
+				user_id = $1 AND
+				id = $2
+		)
+	`
+
+	var walletExists bool
+	if err := r.db.QueryRowContext(ctx, query, userID, walletID).Scan(&walletExists); err != nil {
+		return false, err
+	}
+
+	return walletExists, nil
+}
+
+func (r *walletRepository) CheckWalletTypeExists(ctx context.Context, walletTypeID int) (bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
+	query := `
+		SELECT EXISTS (
+			SELECT 1
+			FROM wallet_types
+			WHERE id = $1
+		)
+	`
+
+	var walletTypeExists bool
+	if err := r.db.QueryRowContext(ctx, query, walletTypeID).Scan(&walletTypeExists); err != nil {
+		return false, err
+	}
+
+	return walletTypeExists, nil
 }
 
 func (r *walletRepository) GetAllBalancesByUserID(ctx context.Context, tx *sql.Tx, userID int) ([]domain.Balance, error) {

@@ -11,7 +11,7 @@
         :class="dynamicCss('icon')"
       />
       <p
-        class="text-sm capitalize tracking-wider dark:text-neutral-400"
+        class="text-sm tracking-wider dark:text-neutral-400"
         :class="dynamicCss('text')"
       >
         {{ props.message }}

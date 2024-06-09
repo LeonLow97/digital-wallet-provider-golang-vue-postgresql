@@ -13,7 +13,7 @@
         <div class="mb-4 flex">
           <div
             @click="handleClickedAmountToSend"
-            class="cursor-pointer px-4 py-4 uppercase hover:bg-gray-100"
+            class="cursor-pointer px-4 py-4 uppercase hover:bg-gray-100 tracking-wide"
             :class="
               showAmountToSend ? 'border-b-2 border-blue-500 text-blue-500' : ''
             "
@@ -21,7 +21,7 @@
             <span>Amount to Send</span>
           </div>
           <div
-            class="cursor-pointer px-4 py-4 uppercase hover:bg-gray-100"
+            class="cursor-pointer px-4 py-4 uppercase hover:bg-gray-100 tracking-wide"
             @click="handleClickedAmountToReceive"
             :class="
               showAmountToReceive
@@ -37,7 +37,7 @@
           class="grid grid-cols-5 items-center gap-4"
           v-if="showAmountToSend"
         >
-          You Send:
+          From:
           <text-input
             v-model.number="fromAmount!"
             placeholder="Amount"
@@ -46,12 +46,12 @@
           <text-input
             v-model="props.currency"
             disabled
-            class="col-span-1 bg-slate-300 text-center font-bold uppercase"
+            class="col-span-1 bg-slate-200 text-center font-bold uppercase text-slate-500"
           />
         </div>
 
         <div class="mt-4 grid grid-cols-5 items-center gap-4">
-          They Get:
+          To:
           <text-input
             v-if="showAmountToReceive"
             v-model.number="toAmount!"
@@ -59,10 +59,10 @@
             class="col-span-3"
           />
           <select
-            class="cols-span-1 text-md rounded-md border border-gray-300 px-4 py-3 text-center font-bold shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+            class="cols-span-1 text-md rounded-md border border-gray-300 px-4 py-3 text-center shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50"
             v-model.trim="selectedToCurrency"
           >
-            <option disabled value="">To Currency</option>
+            <option disabled value="">Select Currency</option>
             <option
               v-for="toCurrency in allowableToCurrencies"
               :key="toCurrency"
@@ -77,7 +77,7 @@
           <action-button
             type="button"
             @click="handleExchangeCalculation"
-            class="mb-4 inline-block rounded-lg border bg-green-500 px-4 py-2 text-center text-white transition hover:bg-green-400"
+            class="mb-8 inline-block rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
             text="Calculate Exchange"
           />
         </div>
@@ -87,14 +87,14 @@
             Indicative Exchange:
           </div>
           <div class="mb-1 flex gap-6">
-            <p>You Send:</p>
+            <p>From:</p>
             <div class="flex gap-3">
               <span>{{ previewExchangeResponse?.fromAmount?.toFixed(2) }}</span>
               <span>{{ previewExchangeResponse?.fromCurrency }}</span>
             </div>
           </div>
           <div class="flex gap-6">
-            <p>They Get:</p>
+            <p>To:</p>
             <div class="flex gap-3">
               <span>{{ previewExchangeResponse?.toAmount?.toFixed(2) }}</span>
               <span>{{ previewExchangeResponse?.toCurrency }}</span>
@@ -102,7 +102,7 @@
           </div>
         </div>
 
-        <div class="mt-4 flex justify-end gap-4">
+        <div class="mt-8 flex justify-end gap-4">
           <action-button
             @click="closeModal"
             class="mb-4 inline-block rounded-lg border border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300"

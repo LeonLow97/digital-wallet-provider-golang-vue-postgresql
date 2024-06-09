@@ -17,7 +17,7 @@
             placeholder="Amount"
           />
           <text-input
-            class="col-span-1 rounded-md bg-slate-300 px-4 py-2 text-center text-sm font-bold text-gray-700 shadow-sm"
+            class="col-span-1 rounded-md bg-slate-200 px-4 py-2 text-center text-sm font-bold text-slate-500 shadow-sm"
             v-model.trim="props.walletCurrencies[index]"
             disabled
           >

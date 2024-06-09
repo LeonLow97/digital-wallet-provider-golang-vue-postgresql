@@ -8,7 +8,7 @@
               ? 'text-green-500'
               : 'text-red-500'
           "
-          class="text-xl font-bold capitalize dark:text-white"
+          class="text-center text-xl font-bold capitalize tracking-wider dark:text-white"
         >
           {{ props.actionType }}
         </h1>
@@ -22,7 +22,7 @@
             v-model="currency!"
             placeholder="Currency"
             disabled
-            class="col-span-1 bg-slate-200 text-slate-500 text-center font-bold uppercase"
+            class="col-span-1 bg-slate-200 text-center font-bold uppercase text-slate-500"
           />
         </div>
         <p>Current Balance: {{ props.currentAmount }}</p>
@@ -45,7 +45,7 @@
             text="Close"
           />
           <action-button
-            class="mb-4 inline-block rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
+            class="mb-4 inline-block rounded-lg bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
             text="Submit"
           />
         </div>
@@ -60,10 +60,7 @@ import { computed, ref, watch } from "vue";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { DEPOSIT, WITHDRAW } from "@/api/balances";
-import type {
-  DEPOSIT_REQUEST,
-  WITHDRAW_REQUEST,
-} from "@/types/balances";
+import type { DEPOSIT_REQUEST, WITHDRAW_REQUEST } from "@/types/balances";
 import type { GENERIC_STATUS_RESPONSE } from "@/types/generic";
 import { useToastStore } from "@/stores/toast";
 

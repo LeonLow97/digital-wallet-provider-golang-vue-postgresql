@@ -8,7 +8,7 @@
   />
   <action-button
     text="Submit"
-    class="mt-4 w-full rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
+    class="mt-4 w-full rounded-lg bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
     @click="handleVerifyMFA(email)"
   />
 </template>

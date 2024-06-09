@@ -2,19 +2,23 @@
   <modal @close-overlay="closeModal" modal-width="1/3" v-if="isModalOpen">
     <form @submit.prevent="handleCreateWallet">
       <div class="flex flex-col gap-4">
-        <h1 class="text-xl font-bold capitalize dark:text-white">
+        <h1
+          class="text-center text-xl font-bold capitalize tracking-wider dark:text-white"
+        >
           Create Wallet
         </h1>
 
         <div class="mb-4">
-          <label class="mb-2 block text-gray-700" for="wallet-type"
-            >Wallet Type</label
+          <label
+            class="mb-2 block text-gray-700 dark:text-gray-300"
+            for="wallet-type"
+            >Wallet Type:</label
           >
           <select
-            class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+            class="w-full rounded-md bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:bg-gray-800 dark:text-gray-300"
             v-model.trim="selectedWalletTypeId"
           >
-            <option disabled value="">Select Wallet Type</option>
+            <option disabled value="0">Select Wallet Type</option>
             <option
               v-for="walletType in walletTypes"
               :key="walletType.id"
@@ -32,7 +36,7 @@
         >
           <text-input v-model.number="item.amount!" placeholder="Amount" />
           <select
-            class="w-1/3 rounded-md border border-gray-300 bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+            class="w-1/3 rounded-md bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:bg-gray-800 dark:text-gray-300"
             v-model.trim="item.currency"
           >
             <option disabled value="">Select Currency</option>
@@ -47,7 +51,7 @@
         </div>
         <button
           @click.prevent="addCurrency"
-          class="text-blue-800 underline underline-offset-8 hover:text-blue-400"
+          class="text-blue-800 underline underline-offset-8 transition hover:text-blue-400 dark:text-blue-300 dark:hover:text-blue-500"
           v-if="currencyAmountInputs.length !== userBalanceCurrencies.length"
         >
           Add more currencies
@@ -60,7 +64,7 @@
             text="Close"
           />
           <action-button
-            class="mb-4 inline-block rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
+            class="mb-4 inline-block rounded-lg bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
             text="Submit"
           />
         </div>

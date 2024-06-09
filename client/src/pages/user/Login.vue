@@ -44,7 +44,7 @@
         >
 
         <action-button
-          class="mb-4 mt-4 w-full rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
+          class="mb-4 mt-4 w-full rounded-lg bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
           text="Login"
         />
 

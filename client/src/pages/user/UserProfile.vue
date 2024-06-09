@@ -19,7 +19,7 @@
       <label for="mobileNumber">Mobile Number:</label>
       <div class="flex gap-4">
         <select
-          class="rounded-md border border-gray-300 bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+          class="rounded-md dark:bg-gray-800 dark:text-gray-300 bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50"
           v-model.trim="mobileCountryCode"
         >
           <option value="+65">+ 65</option>
@@ -36,7 +36,7 @@
       <text-input v-model.trim="email" placeholder="Email" />
     </div>
     <action-button
-      class="mb-4 w-full rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
+      class="mb-4 w-full rounded-lg bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
       text="Save Changes"
       @click="handleSaveChanges"
     />

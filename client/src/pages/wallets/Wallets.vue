@@ -2,7 +2,7 @@
   <h1 class="text-xl font-bold tracking-wider">Wallets</h1>
   <div class="mb-4">
     <action-button
-      class="rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
+      class="rounded-lg bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
       text="Create Wallet"
       @click="handleCreateWallet"
     />

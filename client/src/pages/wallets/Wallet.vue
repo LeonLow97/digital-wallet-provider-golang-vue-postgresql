@@ -2,7 +2,7 @@
   <div class="mt-2 flex items-center justify-between">
     <router-link
       :to="{ name: 'Wallets' }"
-      class="tracking-wider text-blue-600 underline underline-offset-8 hover:text-blue-300"
+      class="tracking-wider text-blue-600 underline underline-offset-8 hover:text-blue-300 dark:text-blue-300 dark:hover:text-blue-600"
       >&larr; Back to Wallets</router-link
     >
     <div>
@@ -25,19 +25,25 @@
   </div>
 
   <!-- Wallet Card -->
-  <div class="w-full rounded-lg border border-gray-200 bg-white p-6 shadow-md">
-    <h2 class="mb-4 text-lg font-bold capitalize text-blue-800">
+  <div
+    class="w-full rounded-lg border border-gray-200 bg-white p-6 shadow-md dark:border-none dark:bg-gray-700"
+  >
+    <h2
+      class="mb-4 text-lg font-bold capitalize text-blue-800 dark:text-blue-300"
+    >
       {{ wallet?.walletType }}
     </h2>
-    <h3 class="text-md mb-2 font-bold capitalize text-gray-500">
+    <h3
+      class="text-md mb-2 font-bold capitalize text-gray-500 dark:text-gray-300"
+    >
       {{ wallet?.currencyAmount?.length }} Available Currencies:
     </h3>
     <div
       class="grid w-1/6 grid-cols-2 gap-4"
       v-for="item in wallet?.currencyAmount"
     >
-      <p class="text-gray-600">{{ item.amount }}</p>
-      <p class="text-blue-600">{{ item.currency }}</p>
+      <p class="text-gray-600 dark:text-gray-200">{{ item.amount }}</p>
+      <p class="text-blue-600 dark:text-blue-300">{{ item.currency }}</p>
     </div>
   </div>
 

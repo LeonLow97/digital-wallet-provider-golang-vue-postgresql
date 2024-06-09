@@ -1,7 +1,9 @@
 <template>
   <h1 class="text-xl font-bold tracking-wider">Beneficiary</h1>
   <div class="flex items-center justify-between">
-    <div class="p-4 text-center tracking-wider text-blue-600 shadow-md">
+    <div
+      class="p-4 text-center tracking-wider text-blue-600 shadow-md dark:bg-gray-800 dark:text-blue-400"
+    >
       You have
       <span
         class="font-bold uppercase"
@@ -30,9 +32,9 @@
 
   <h2 class="mt-4 text-lg font-bold">My Beneficiaries</h2>
   <div class="overflow-x-auto shadow-md">
-    <table class="w-full text-center">
+    <table class="w-full text-center dark:border dark:border-gray-500">
       <thead>
-        <tr class="bg-gray-100">
+        <tr class="bg-gray-100 dark:bg-gray-700">
           <th class="px-4 py-2 text-lg font-bold">First Name</th>
           <th class="px-4 py-2 text-lg font-bold">Last Name</th>
           <th class="px-4 py-2 font-bold">Email</th>
@@ -46,7 +48,7 @@
         <tr
           v-for="beneficiary in filterBeneficiaries"
           :key="beneficiary.beneficiaryID"
-          class="bg-white hover:bg-gray-50"
+          class="bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-600"
         >
           <td class="px-4 py-2">
             {{ beneficiary.beneficiaryFirstName }}

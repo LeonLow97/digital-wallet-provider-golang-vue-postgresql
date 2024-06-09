@@ -1,6 +1,6 @@
 <template>
   <div
-    class="absolute left-1/2 top-5 max-w-md -translate-x-1/2 rounded-xl border border-none shadow-lg drop-shadow-md dark:border-neutral-700 dark:bg-neutral-800"
+    class="absolute left-1/2 top-5 max-w-md -translate-x-1/2 rounded-xl border border-none shadow-lg drop-shadow-md"
     role="alert"
     :class="dynamicCss('bg')"
   >
@@ -10,10 +10,7 @@
         :path="getIconPath(props.toastType)"
         :class="dynamicCss('icon')"
       />
-      <p
-        class="text-sm tracking-wider dark:text-neutral-400"
-        :class="dynamicCss('text')"
-      >
+      <p class="text-sm tracking-wider" :class="dynamicCss('text')">
         {{ props.message }}
       </p>
     </div>

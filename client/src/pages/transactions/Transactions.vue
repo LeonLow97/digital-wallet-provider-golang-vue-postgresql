@@ -2,9 +2,11 @@
   <div>
     <h1 class="mb-4 text-xl font-bold tracking-wider">Transactions</h1>
     <div class="overflow-x-auto">
-      <table class="border border-gray-200 bg-white">
+      <table
+        class="border border-gray-200 bg-white dark:border-gray-500 dark:bg-gray-800"
+      >
         <thead>
-          <tr class="bg-gray-200 text-sm leading-normal">
+          <tr class="bg-gray-200 text-sm leading-normal dark:bg-gray-700">
             <th class="px-6 py-3 text-center">Sender Username</th>
             <th class="px-6 py-3 text-center">Sender Mobile</th>
             <th class="px-6 py-3 text-center">Beneficiary Username</th>
@@ -22,7 +24,7 @@
           <tr
             v-for="transaction in transactions"
             :key="transaction.created_at"
-            class="border-b border-gray-200 hover:bg-gray-100"
+            class="border-b border-gray-200 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-600"
           >
             <td class="px-6 py-3 text-center">
               {{ transaction.sender_username }}
@@ -49,7 +51,9 @@
               {{ transaction.destination_currency }}
             </td>
             <td class="px-6 py-3 text-center">
-              {{ transaction.source_of_transfer }}
+              <span class="rounded-2xl border border-blue-500 px-4 py-1">{{
+                transaction.source_of_transfer
+              }}</span>
             </td>
             <td
               class="px-6 py-3 text-center"

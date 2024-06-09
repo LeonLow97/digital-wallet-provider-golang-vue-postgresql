@@ -2,7 +2,9 @@
   <h1 class="text-xl font-bold tracking-wider">Settings</h1>
 
   <div>
-    <div class="mb-4 text-sm text-slate-600">Toggle Mode</div>
+    <div class="mb-4 text-sm text-slate-600 dark:text-slate-300">
+      Toggle Mode
+    </div>
     <label class="flex cursor-pointer items-center">
       <input
         type="checkbox"
@@ -20,7 +22,7 @@
   </div>
 
   <div class="mt-5">
-    <div class="mb-2 text-sm text-slate-600">Security</div>
+    <div class="mb-2 text-sm text-slate-600 dark:text-slate-300">Security</div>
     <action-button
       @click="openChangePasswordModal"
       class="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
@@ -34,35 +36,45 @@
     v-if="isModalOpen"
   >
     <form @submit.prevent="handleSubmit">
-      <div class="flex flex-col gap-6">
-        <!-- Modal content -->
-        <h1 class="text-xl font-bold dark:text-white">Change Password</h1>
+      <!-- Modal content -->
+      <h1 class="text-center text-xl font-bold tracking-wider dark:text-white">
+        Change Password
+      </h1>
+      <div class="mt-4">
+        <label>Current Password:</label>
         <text-input
           v-model.trim="currentPassword"
           placeholder="Current Password"
           type="password"
+          class="mb-4 mt-2"
         />
+
+        <label>New Password:</label>
         <text-input
           v-model.trim="newPassword"
           placeholder="New Password"
           type="password"
+          class="mb-4 mt-2"
         />
+
+        <label>Confirm Password:</label>
         <text-input
           v-model.trim="confirmPassword"
           placeholder="Confirm Password"
           type="password"
+          class="mb-4 mt-2"
         />
-        <div class="flex justify-end gap-4">
-          <action-button
-            @click="closeChangePasswordModal"
-            class="mb-4 inline-block rounded-lg border border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300"
-            text="Close"
-          />
-          <action-button
-            class="mb-4 inline-block rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
-            text="Submit"
-          />
-        </div>
+      </div>
+      <div class="flex justify-end gap-4">
+        <action-button
+          @click="closeChangePasswordModal"
+          class="mb-4 inline-block rounded-lg border border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300 dark:border-blue-300 dark:text-blue-300 dark:hover:border-blue-500 dark:hover:text-blue-500"
+          text="Close"
+        />
+        <action-button
+          class="mb-4 inline-block rounded-lg bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
+          text="Submit"
+        />
       </div>
     </form>
   </modal>
@@ -119,7 +131,9 @@ const closeChangePasswordModal = () => {
 const handleSubmit = async () => {
   // check if new password is same as confirm password
   if (newPassword.value !== confirmPassword.value) {
-    toastStore.ERROR_TOAST("New password and confirm password do not match. Please try again.");
+    toastStore.ERROR_TOAST(
+      "New password and confirm password do not match. Please try again.",
+    );
     return;
   }
 

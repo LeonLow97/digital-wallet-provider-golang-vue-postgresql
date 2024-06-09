@@ -2,9 +2,9 @@
   <modal @close-overlay="closeModal" modal-width="1/3" v-if="isModalOpen">
     <form @submit.prevent="handleSubmit">
       <div class="flex flex-col gap-6">
-        <h1 class="text-xl font-bold dark:text-white">
+        <h1 class="text-xl font-bold tracking-wide dark:text-white">
           Are you sure you want to
-          <span class="uppercase text-blue-500">{{
+          <span class="uppercase text-blue-500 dark:text-blue-400">{{
             props.actionDelete ? "delete" : "reactivate"
           }}</span>
           this beneficiary?
@@ -12,11 +12,11 @@
         <div class="flex justify-end gap-4">
           <action-button
             @click="closeModal"
-            class="mb-4 inline-block rounded-lg border border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300"
+            class="mb-4 inline-block rounded-lg dark:hover:text-blue-500 dark:hover:border-blue-500 dark:text-blue-300 dark:border-blue-300 border border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300"
             text="No"
           />
           <action-button
-            class="mb-4 inline-block rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
+            class="mb-4 inline-block rounded-lg bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
             text="Yes"
           />
         </div>

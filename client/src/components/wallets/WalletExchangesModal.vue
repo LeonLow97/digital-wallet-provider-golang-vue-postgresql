@@ -1,41 +1,41 @@
 <template>
   <modal @close-overlay="closeModal" modal-width="1/3" v-if="isModalOpen">
     <form @submit.prevent="handleTopUpWallet">
-      <div class="flex flex-col gap-4">
-        <h1 class="text-xl font-bold capitalize dark:text-white">
-          {{ props.actionType }} Wallet
-        </h1>
+      <h1
+        class="mb-6 text-center text-xl font-bold capitalize tracking-wider dark:text-white"
+      >
+        {{ props.actionType }} Wallet
+      </h1>
 
-        <div
-          v-for="(currency, index) in props.walletCurrencies"
-          :key="index"
-          class="grid grid-cols-3 gap-4"
+      <div
+        v-for="(currency, index) in props.walletCurrencies"
+        :key="index"
+        class="mb-4 grid grid-cols-3 gap-4"
+      >
+        <text-input
+          class="col-span-2 text-center"
+          v-model.number="topUpAmounts[index]"
+          placeholder="Amount"
+        />
+        <text-input
+          class="col-span-1 rounded-md bg-slate-200 px-4 py-2 text-center text-sm font-bold text-slate-500 shadow-sm"
+          v-model.trim="props.walletCurrencies[index]"
+          disabled
         >
-          <text-input
-            class="col-span-2 text-center"
-            v-model.number="topUpAmounts[index]"
-            placeholder="Amount"
-          />
-          <text-input
-            class="col-span-1 rounded-md bg-slate-200 px-4 py-2 text-center text-sm font-bold text-slate-500 shadow-sm"
-            v-model.trim="props.walletCurrencies[index]"
-            disabled
-          >
-            {{ currency }}
-          </text-input>
-        </div>
+          {{ currency }}
+        </text-input>
+      </div>
 
-        <div class="mt-4 flex justify-end gap-4">
-          <action-button
-            @click="closeModal"
-            class="mb-4 inline-block rounded-lg border border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300"
-            text="Close"
-          />
-          <action-button
-            class="mb-4 inline-block rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
-            text="Submit"
-          />
-        </div>
+      <div class="mt-8 flex justify-end gap-4">
+        <action-button
+          @click="closeModal"
+          class="mb-4 inline-block rounded-lg border border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300 dark:border-blue-300 dark:text-blue-300 dark:hover:border-blue-500 dark:hover:text-blue-500"
+          text="Close"
+        />
+        <action-button
+          class="mb-4 inline-block rounded-lg bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
+          text="Submit"
+        />
       </div>
     </form>
   </modal>

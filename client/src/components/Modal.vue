@@ -18,7 +18,6 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import ActionButton from "./ActionButton.vue";
 
 const props = defineProps({
   modalWidth: {
@@ -29,7 +28,7 @@ const props = defineProps({
 });
 
 const modalCss = computed(() => {
-  return `w-${props.modalWidth} rounded-lg bg-white p-8 dark:bg-slate-500`;
+  return `w-${props.modalWidth} rounded-lg bg-white p-8 dark:bg-slate-700`;
 });
 
 const emit = defineEmits(["closeOverlay"]);

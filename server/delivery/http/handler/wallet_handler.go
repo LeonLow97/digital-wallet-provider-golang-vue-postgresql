@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -38,7 +37,6 @@ func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {
 
 	// retrieve wallet id from url params
 	walletID, err := utils.ReadParamsInt(w, r, "id")
-	fmt.Println("Wallet ID", walletID)
 	if err != nil {
 		return
 	}

@@ -3,7 +3,7 @@
     <div class="mt-2 flex items-center justify-between">
       <router-link
         :to="{ name: 'Balances' }"
-        class="tracking-wider text-blue-600 underline underline-offset-8 hover:text-blue-300"
+        class="tracking-wider text-blue-600 underline underline-offset-8 transition hover:text-blue-300 dark:text-blue-300 dark:hover:text-blue-500"
         >&larr; Back to Balances</router-link
       >
       <div>
@@ -23,18 +23,22 @@
     <!-- Balance Card -->
     <div class="mt-8 flex items-start justify-start gap-4">
       <div
-        class="w-full rounded-lg border border-gray-200 bg-white p-6 shadow-md"
+        class="w-full rounded-lg border border-gray-200 bg-white p-6 shadow-md dark:border-gray-700 dark:bg-gray-800"
       >
-        <h2 class="mb-4 text-lg font-bold text-gray-800">Balance</h2>
+        <h2 class="mb-4 text-lg font-bold text-gray-800 dark:text-gray-300">
+          Balance
+        </h2>
         <div class="grid w-2/5 grid-cols-2 gap-4">
-          <p class="text-gray-600">Balance:</p>
-          <p class="text-blue-600">{{ balance?.balance }}</p>
+          <p class="text-gray-600 dark:text-gray-300">Balance:</p>
+          <p class="text-blue-600 dark:text-blue-300">{{ balance?.balance }}</p>
 
-          <p class="text-gray-600">Currency:</p>
-          <p class="text-blue-600">{{ balance?.currency }}</p>
+          <p class="text-gray-600 dark:text-gray-300">Currency:</p>
+          <p class="text-blue-600 dark:text-blue-300">
+            {{ balance?.currency }}
+          </p>
 
-          <p class="text-gray-600">Created At:</p>
-          <p class="italic text-gray-600">
+          <p class="text-gray-600 dark:text-gray-300">Created At:</p>
+          <p class="italic text-gray-600 dark:text-blue-300">
             {{ formatDate(balance?.createdAt) }}
           </p>
         </div>
@@ -44,9 +48,11 @@
     <!-- Balance History Table -->
     <h2 class="mb-4 mt-8 text-lg font-bold">Balance History</h2>
     <div class="mb-14 shadow-md">
-      <table class="w-full table-fixed text-sm">
-        <thead>
-          <tr class="bg-gray-100">
+      <table
+        class="w-full table-fixed text-sm dark:border dark:border-gray-500"
+      >
+        <thead class="bg-gray-100 dark:bg-gray-700">
+          <tr>
             <th class="px-4 py-2">Amount</th>
             <th class="px-4 py-2">Currency</th>
             <th class="px-4 py-2">Type</th>
@@ -54,7 +60,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="history in balanceHistory!" class="text-center">
+          <tr
+            v-for="history in balanceHistory!"
+            class="text-center hover:bg-gray-50 dark:hover:bg-gray-600"
+          >
             <td
               class="px-4 py-2"
               :class="dynamicCssTransferType(history.type.trim())"
@@ -206,13 +215,13 @@ const dynamicCssTransferType = (transferType: string) => {
 
   switch (transferType?.toLowerCase()) {
     case "deposit":
-      dynamicCss = "text-green-600";
+      dynamicCss = "text-green-600 dark:text-green-400";
       break;
     case "withdraw":
-      dynamicCss = "text-red-600";
+      dynamicCss = "text-red-600 dark:text-red-400";
       break;
     case "exchange":
-      dynamicCss = "text-blue-600";
+      dynamicCss = "text-blue-600 dark:text-blue-400";
       break;
     default:
       dynamicCss = "text-black";

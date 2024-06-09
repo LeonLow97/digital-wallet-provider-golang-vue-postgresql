@@ -1,22 +1,15 @@
 package testdata
 
 import (
-	"net/http"
+	"context"
 
 	"github.com/LeonLow97/go-clean-architecture/utils"
-	"github.com/gorilla/mux"
 )
 
-func RegularUserIDInjector(userID int) mux.MiddlewareFunc {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if userID == 0 {
-				next.ServeHTTP(w, r)
-				return
-			}
-
-			ctx := utils.UserIDWithContext(r.Context(), userID)
-			next.ServeHTTP(w, r.WithContext(ctx))
-		})
+func InjectUserIDIntoContext(ctx context.Context, userID int) context.Context {
+	if userID == 0 {
+		return context.Background()
 	}
+	ctx = context.WithValue(ctx, utils.UserIDKey, userID)
+	return ctx
 }

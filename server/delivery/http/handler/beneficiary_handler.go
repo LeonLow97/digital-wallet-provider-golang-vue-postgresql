@@ -11,14 +11,13 @@ import (
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/utils"
-	"github.com/gorilla/mux"
 )
 
 type BeneficiaryHandler struct {
 	beneficiaryUsecase domain.BeneficiaryUsecase
 }
 
-func NewBeneficiaryHandler(router *mux.Router, uc domain.BeneficiaryUsecase) *BeneficiaryHandler {
+func NewBeneficiaryHandler(uc domain.BeneficiaryUsecase) *BeneficiaryHandler {
 	handler := &BeneficiaryHandler{
 		beneficiaryUsecase: uc,
 	}

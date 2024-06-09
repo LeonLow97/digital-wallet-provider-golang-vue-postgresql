@@ -8,3 +8,6 @@ coverage
 
 .env.development.local
 .env.production.local
+
+## ignore nested coverage.out files
+**/coverage.out

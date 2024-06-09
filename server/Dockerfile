@@ -5,7 +5,6 @@ WORKDIR /app
 # Set the working directory and print it
 RUN pwd
 
-
 COPY go.mod ./
 COPY go.sum ./
 

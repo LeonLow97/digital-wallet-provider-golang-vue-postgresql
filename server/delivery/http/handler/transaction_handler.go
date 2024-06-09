@@ -10,14 +10,13 @@ import (
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/utils"
-	"github.com/gorilla/mux"
 )
 
 type TransactionHandler struct {
 	transactionUsecase domain.TransactionUsecase
 }
 
-func NewTransactionHandler(router *mux.Router, uc domain.TransactionUsecase) *TransactionHandler {
+func NewTransactionHandler(uc domain.TransactionUsecase) *TransactionHandler {
 	handler := &TransactionHandler{
 		transactionUsecase: uc,
 	}

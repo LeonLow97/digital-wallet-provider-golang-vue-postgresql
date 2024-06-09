@@ -28,11 +28,11 @@ func (app Application) CreateRouter() (*mux.Router, error) {
 	router := baseRouter.PathPrefix("/").Subrouter()
 
 	// Handlers
-	userHandler := handlers.NewUserHandler(router, app.UserUsecase)
-	balanceHandler := handlers.NewBalanceHandler(router, app.BalanceUsecase)
-	beneficiaryHandler := handlers.NewBeneficiaryHandler(router, app.BeneficiaryUsecase)
-	walletHandler := handlers.NewWalletHandler(router, app.WalletUsecase)
-	transactionHandler := handlers.NewTransactionHandler(router, app.TransactionUsecase)
+	userHandler := handlers.NewUserHandler(app.UserUsecase)
+	balanceHandler := handlers.NewBalanceHandler(app.BalanceUsecase)
+	beneficiaryHandler := handlers.NewBeneficiaryHandler(app.BeneficiaryUsecase)
+	walletHandler := handlers.NewWalletHandler(app.WalletUsecase)
+	transactionHandler := handlers.NewTransactionHandler(app.TransactionUsecase)
 
 	// authentication routes
 	router.HandleFunc("/login", userHandler.Login).Methods(http.MethodPost)

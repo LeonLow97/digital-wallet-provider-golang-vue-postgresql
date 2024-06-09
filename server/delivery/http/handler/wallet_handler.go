@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -11,14 +12,13 @@ import (
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/utils"
-	"github.com/gorilla/mux"
 )
 
 type WalletHandler struct {
 	walletUseCase domain.WalletUsecase
 }
 
-func NewWalletHandler(router *mux.Router, uc domain.WalletUsecase) *WalletHandler {
+func NewWalletHandler(uc domain.WalletUsecase) *WalletHandler {
 	handler := &WalletHandler{
 		walletUseCase: uc,
 	}
@@ -38,6 +38,7 @@ func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {
 
 	// retrieve wallet id from url params
 	walletID, err := utils.ReadParamsInt(w, r, "id")
+	fmt.Println("Wallet ID", walletID)
 	if err != nil {
 		return
 	}

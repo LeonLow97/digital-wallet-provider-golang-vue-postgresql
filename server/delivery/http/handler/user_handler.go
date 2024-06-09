@@ -11,14 +11,13 @@ import (
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/utils"
-	"github.com/gorilla/mux"
 )
 
 type UserHandler struct {
 	userUsecase domain.UserUsecase
 }
 
-func NewUserHandler(router *mux.Router, uc domain.UserUsecase) *UserHandler {
+func NewUserHandler(uc domain.UserUsecase) *UserHandler {
 	handler := &UserHandler{
 		userUsecase: uc,
 	}

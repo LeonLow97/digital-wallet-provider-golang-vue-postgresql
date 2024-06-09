@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	handlers "github.com/LeonLow97/go-clean-architecture/delivery/http/handler"
+	"github.com/LeonLow97/go-clean-architecture/domain"
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	mocks "github.com/LeonLow97/go-clean-architecture/mocks/usecase"
 	"github.com/LeonLow97/go-clean-architecture/testdata"
@@ -98,6 +99,72 @@ func TestWalletHandler_GetWallet(t *testing.T) {
 
 			require.Equal(t, tc.ExpectedStatus, rr.Code)
 
+		})
+	}
+}
+
+func TestWalletHandler_GetWallets(t *testing.T) {
+	wallets := []domain.Wallet{*testdata.Wallet()}
+
+	type testCase struct {
+		Title                     string
+		GivenUserIDWithContext    int
+		WalletUsecaseReturnValues mocks.WalletUsecaseReturnValues
+		ExpectedStatus            int
+	}
+
+	testCases := []testCase{
+		{
+			Title:                  "ReturnsSuccessfully",
+			GivenUserIDWithContext: 1,
+			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
+				GetWallets: []interface{}{&wallets, nil},
+			},
+			ExpectedStatus: http.StatusOK,
+		},
+		{
+			Title:                  "ReturnsError_NoWalletsFound",
+			GivenUserIDWithContext: 1,
+			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
+				GetWallets: []interface{}{nil, exception.ErrNoWalletsFound},
+			},
+			ExpectedStatus: http.StatusNotFound,
+		},
+		{
+			Title:                  "ReturnsError_InternalServerError",
+			GivenUserIDWithContext: 1,
+			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
+				GetWallets: []interface{}{nil, errors.New("internal server error")},
+			},
+			ExpectedStatus: http.StatusInternalServerError,
+		},
+		{
+			Title:                  "ReturnsError_MissingUserIDFromContext",
+			GivenUserIDWithContext: 0,
+			ExpectedStatus:         http.StatusUnauthorized,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Title, func(t *testing.T) {
+			walletUsecase := &mocks.WalletUsecase{}
+
+			walletUsecase.On("GetWallets", mock.Anything, mock.Anything).
+				Return(tc.WalletUsecaseReturnValues.GetWallets...)
+
+			walletHandler := handlers.NewWalletHandler(walletUsecase)
+
+			req, err := http.NewRequest(http.MethodGet, "/api/v1/wallet/all", nil)
+			require.NoError(t, err)
+
+			ctx := testdata.InjectUserIDIntoContext(req.Context(), tc.GivenUserIDWithContext)
+			req = req.WithContext(ctx)
+
+			rr := httptest.NewRecorder()
+
+			walletHandler.GetWallets(rr, req)
+
+			require.Equal(t, tc.ExpectedStatus, rr.Code)
 		})
 	}
 }

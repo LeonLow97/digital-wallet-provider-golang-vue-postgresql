@@ -11,7 +11,7 @@
         <label
           class="mb-2 block text-gray-700 dark:text-gray-300"
           for="wallet-type"
-          >Select Currency for Transfer:</label
+          >Select Amount and Currency:</label
         >
         <div class="flex gap-4">
           <text-input

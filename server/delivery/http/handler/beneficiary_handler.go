@@ -18,17 +18,12 @@ type BeneficiaryHandler struct {
 	beneficiaryUsecase domain.BeneficiaryUsecase
 }
 
-func NewBeneficiaryHandler(router *mux.Router, uc domain.BeneficiaryUsecase) {
+func NewBeneficiaryHandler(router *mux.Router, uc domain.BeneficiaryUsecase) *BeneficiaryHandler {
 	handler := &BeneficiaryHandler{
 		beneficiaryUsecase: uc,
 	}
 
-	beneficiaryRouter := router.PathPrefix("/beneficiary").Subrouter()
-
-	beneficiaryRouter.HandleFunc("", handler.CreateBeneficiary).Methods(http.MethodPost)
-	beneficiaryRouter.HandleFunc("", handler.UpdateBeneficiary).Methods(http.MethodPut)
-	beneficiaryRouter.HandleFunc("/{id:[0-9]+}", handler.GetBeneficiary).Methods(http.MethodGet)
-	beneficiaryRouter.HandleFunc("", handler.GetBeneficiaries).Methods(http.MethodGet)
+	return handler
 }
 
 func (h *BeneficiaryHandler) CreateBeneficiary(w http.ResponseWriter, r *http.Request) {

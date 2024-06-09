@@ -18,19 +18,12 @@ type WalletHandler struct {
 	walletUseCase domain.WalletUsecase
 }
 
-func NewWalletHandler(router *mux.Router, uc domain.WalletUsecase) {
+func NewWalletHandler(router *mux.Router, uc domain.WalletUsecase) *WalletHandler {
 	handler := &WalletHandler{
 		walletUseCase: uc,
 	}
 
-	walletRouter := router.PathPrefix("/wallet").Subrouter()
-
-	walletRouter.HandleFunc("/{id:[0-9]+}", handler.GetWallet).Methods(http.MethodGet)
-	walletRouter.HandleFunc("/all", handler.GetWallets).Methods(http.MethodGet)
-	walletRouter.HandleFunc("/types", handler.GetWalletTypes).Methods(http.MethodGet)
-	walletRouter.HandleFunc("", handler.CreateWallet).Methods(http.MethodPost)
-	walletRouter.HandleFunc("/topup/{id:[0-9]+}", handler.TopUpWallet).Methods(http.MethodPut)
-	walletRouter.HandleFunc("/cashout/{id:[0-9]+}", handler.CashOutWallet).Methods(http.MethodPut)
+	return handler
 }
 
 func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {

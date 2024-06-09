@@ -6,12 +6,11 @@ import (
 	"net/http"
 	"os"
 
-	handlers "github.com/LeonLow97/go-clean-architecture/delivery/http/handler"
+	"github.com/LeonLow97/go-clean-architecture/delivery/http/app"
 	"github.com/LeonLow97/go-clean-architecture/delivery/http/middleware"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/repository"
 	"github.com/LeonLow97/go-clean-architecture/usecase"
-	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
 
@@ -38,13 +37,6 @@ func main() {
 		log.Fatalln("error loading config file", err)
 	}
 
-	router := mux.NewRouter()
-	router = router.PathPrefix("/api/v1").Subrouter() // api versioning v1
-
-	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Healthy!"))
-	}).Methods(http.MethodGet)
-
 	// setting up SMTP instance
 	smtpClient := infrastructure.NewSMTPInstance(cfg)
 
@@ -54,23 +46,31 @@ func main() {
 	// Initiating handlers, service, and repository
 	userRepo := repository.NewUserRepository(dbConn)
 	userUsecase := usecase.NewUserUsecase(*cfg, userRepo, redisClient, *smtpClient, totpInstance)
-	handlers.NewUserHandler(router, userUsecase, redisClient)
 
 	balanceRepo := repository.NewBalanceRepository(dbConn)
 	balanceUsecase := usecase.NewBalanceUsecase(dbConn, userRepo, balanceRepo)
-	handlers.NewBalanceHandler(router, balanceUsecase)
-
-	walletRepo := repository.NewWalletRepository(dbConn)
-	walletUsecase := usecase.NewWalletUsecase(dbConn, walletRepo, balanceRepo)
-	handlers.NewWalletHandler(router, walletUsecase)
-
-	transactionRepo := repository.NewTransactionRepository(dbConn)
-	transactionUsecase := usecase.NewTransactionUsecase(dbConn, transactionRepo, walletRepo, balanceRepo, userRepo)
-	handlers.NewTransactionHandler(router, transactionUsecase)
 
 	beneficiaryRepo := repository.NewBeneficiaryRepository(dbConn)
 	beneficiaryUsecase := usecase.NewBeneficiaryUsecase(beneficiaryRepo)
-	handlers.NewBeneficiaryHandler(router, beneficiaryUsecase)
+
+	walletRepo := repository.NewWalletRepository(dbConn)
+	walletUsecase := usecase.NewWalletUsecase(dbConn, walletRepo, balanceRepo)
+
+	transactionRepo := repository.NewTransactionRepository(dbConn)
+	transactionUsecase := usecase.NewTransactionUsecase(dbConn, transactionRepo, walletRepo, balanceRepo, userRepo)
+
+	application := &app.Application{
+		UserUsecase:        userUsecase,
+		BalanceUsecase:     balanceUsecase,
+		BeneficiaryUsecase: beneficiaryUsecase,
+		WalletUsecase:      walletUsecase,
+		TransactionUsecase: transactionUsecase,
+	}
+
+	router, err := application.CreateRouter()
+	if err != nil {
+		log.Fatalf("failed to create router with error: %v\n", err)
+	}
 
 	// skipping endpoints
 	skipperFunc := middleware.NewSkipperFunc(

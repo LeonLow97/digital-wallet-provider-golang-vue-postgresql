@@ -17,15 +17,12 @@ type TransactionHandler struct {
 	transactionUsecase domain.TransactionUsecase
 }
 
-func NewTransactionHandler(router *mux.Router, uc domain.TransactionUsecase) {
+func NewTransactionHandler(router *mux.Router, uc domain.TransactionUsecase) *TransactionHandler {
 	handler := &TransactionHandler{
 		transactionUsecase: uc,
 	}
 
-	transactionRouter := router.PathPrefix("/transaction").Subrouter()
-
-	transactionRouter.HandleFunc("", handler.CreateTransaction).Methods(http.MethodPost)
-	transactionRouter.HandleFunc("/all", handler.GetTransactions).Methods(http.MethodGet)
+	return handler
 }
 
 func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Request) {

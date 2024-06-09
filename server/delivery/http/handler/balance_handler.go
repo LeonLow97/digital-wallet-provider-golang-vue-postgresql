@@ -18,21 +18,12 @@ type BalanceHandler struct {
 	balanceUsecase domain.BalanceUsecase
 }
 
-func NewBalanceHandler(router *mux.Router, uc domain.BalanceUsecase) {
+func NewBalanceHandler(router *mux.Router, uc domain.BalanceUsecase) *BalanceHandler {
 	handler := &BalanceHandler{
 		balanceUsecase: uc,
 	}
 
-	balanceRouter := router.PathPrefix("/balances").Subrouter()
-
-	balanceRouter.HandleFunc("", handler.GetBalances).Methods(http.MethodGet)
-	balanceRouter.HandleFunc("/{id:[0-9]+}", handler.GetBalance).Methods(http.MethodGet)
-	balanceRouter.HandleFunc("/history/{id:[0-9]+}", handler.GetBalanceHistory).Methods(http.MethodGet)
-	balanceRouter.HandleFunc("/currencies", handler.GetUserBalanceCurrencies).Methods(http.MethodGet)
-	balanceRouter.HandleFunc("/deposit", handler.Deposit).Methods(http.MethodPost)
-	balanceRouter.HandleFunc("/withdraw", handler.Withdraw).Methods(http.MethodPost)
-	balanceRouter.HandleFunc("/currency-exchange", handler.CurrencyExchange).Methods(http.MethodPatch)
-	balanceRouter.HandleFunc("/preview-exchange", handler.PreviewExchange).Methods(http.MethodPost)
+	return handler
 }
 
 func (h *BalanceHandler) GetBalanceHistory(w http.ResponseWriter, r *http.Request) {

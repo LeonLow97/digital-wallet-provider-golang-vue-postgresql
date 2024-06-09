@@ -16,31 +16,14 @@ import (
 
 type UserHandler struct {
 	userUsecase domain.UserUsecase
-	redisClient infrastructure.RedisClient
 }
 
-func NewUserHandler(router *mux.Router, uc domain.UserUsecase, redisClient infrastructure.RedisClient) {
+func NewUserHandler(router *mux.Router, uc domain.UserUsecase) *UserHandler {
 	handler := &UserHandler{
 		userUsecase: uc,
-		redisClient: redisClient,
 	}
 
-	// authentication routes
-	router.HandleFunc("/login", handler.Login).Methods(http.MethodPost)
-	router.HandleFunc("/signup", handler.SignUp).Methods(http.MethodPost)
-	router.HandleFunc("/logout", handler.Logout).Methods(http.MethodPost)
-	router.HandleFunc("/change-password", handler.ChangePassword).Methods(http.MethodPatch)
-	router.HandleFunc("/configure-mfa", handler.ConfigureMFA).Methods(http.MethodPost)
-	router.HandleFunc("/verify-mfa", handler.VerifyMFA).Methods(http.MethodPost)
-
-	// password reset
-	router.HandleFunc("/password-reset/send", handler.SendPasswordResetEmail).Methods(http.MethodPost)
-	router.HandleFunc("/password-reset/reset", handler.PasswordReset).Methods(http.MethodPatch)
-
-	// user routes
-	userRouter := router.PathPrefix("/users").Subrouter()
-	userRouter.HandleFunc("/profile", handler.UpdateUser).Methods(http.MethodPut)
-	userRouter.HandleFunc("/me", handler.GetUserDetail).Methods(http.MethodGet)
+	return handler
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {

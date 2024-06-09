@@ -35,7 +35,6 @@ func ReadParamsInt(w http.ResponseWriter, r *http.Request, paramName string) (in
 func ReadJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) error {
 	if err := json.NewDecoder(r.Body).Decode(dst); err != nil {
 		log.Println("error decoding request body:", err)
-		ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return err
 	}
 

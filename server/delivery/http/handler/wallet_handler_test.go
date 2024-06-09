@@ -216,3 +216,127 @@ func TestWalletHandler_GetWalletTypes(t *testing.T) {
 		})
 	}
 }
+
+func TestWalletHandler_CreateWallet(t *testing.T) {
+	type testCase struct {
+		Title                     string
+		GivenUserIDWithContext    int
+		GivenCreateWalletRequest  string
+		WalletUsecaseReturnValues mocks.WalletUsecaseReturnValues
+		ExpectedStatus            int
+		ExpectedResponseJSON      string
+	}
+
+	testCases := []testCase{
+		{
+			Title:                    "ReturnsSuccessfully",
+			GivenUserIDWithContext:   1,
+			GivenCreateWalletRequest: `{"wallet_type_id":1,"currency_amount":[{"amount":100.0,"currency":"USD"},{"amount":200.0,"currency":"EUR"}]}`,
+			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
+				CreateWallet: []interface{}{nil},
+			},
+			ExpectedStatus: http.StatusCreated,
+		},
+		{
+			Title:                  "ReturnsError_MissingUserIDFromContext",
+			GivenUserIDWithContext: 0,
+			ExpectedStatus:         http.StatusUnauthorized,
+			ExpectedResponseJSON:   `{"status":401,"message":"Unauthorized"}`,
+		},
+		{
+			Title:                    "ReturnsError_ReadJSONBody",
+			GivenUserIDWithContext:   1,
+			GivenCreateWalletRequest: ``,
+			ExpectedStatus:           http.StatusBadRequest,
+			ExpectedResponseJSON:     `{"status":400,"message":"Bad Request"}`,
+		},
+		{
+			Title:                    "ReturnsError_WalletTypeID=0",
+			GivenUserIDWithContext:   1,
+			GivenCreateWalletRequest: `{"wallet_type_id":0,"currency_amount":[{"amount":100.0,"currency":"USD"},{"amount":200.0,"currency":"EUR"}]}`,
+			ExpectedStatus:           http.StatusBadRequest,
+			ExpectedResponseJSON:     `{"status":400,"message":"Key: 'CreateWalletRequest.WalletTypeID' Error:Field validation for 'WalletTypeID' failed on the 'required' tag"}`,
+		},
+		{
+			Title:                    "ReturnsError_MissingCurrencyAmount",
+			GivenUserIDWithContext:   1,
+			GivenCreateWalletRequest: `{"wallet_type_id":0}`,
+			ExpectedStatus:           http.StatusBadRequest,
+			ExpectedResponseJSON:     `{"status":400,"message":"Key: 'CreateWalletRequest.WalletTypeID' Error:Field validation for 'WalletTypeID' failed on the 'required' tag Key: 'CreateWalletRequest.CurrencyAmount' Error:Field validation for 'CurrencyAmount' failed on the 'required' tag"}`,
+		},
+		{
+			Title:                    "ReturnsError_BalanceNotFound",
+			GivenUserIDWithContext:   1,
+			GivenCreateWalletRequest: `{"wallet_type_id":1,"currency_amount":[{"amount":100.0,"currency":"USD"},{"amount":200.0,"currency":"EUR"}]}`,
+			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
+				CreateWallet: []interface{}{exception.ErrBalanceNotFound},
+			},
+			ExpectedStatus:       http.StatusNotFound,
+			ExpectedResponseJSON: `{"status":404,"message":"Balance not found. Please deposit to create a new balance."}`,
+		},
+		{
+			Title:                    "ReturnsError_WalletTypeInvalid",
+			GivenUserIDWithContext:   1,
+			GivenCreateWalletRequest: `{"wallet_type_id":1,"currency_amount":[{"amount":100.0,"currency":"USD"},{"amount":200.0,"currency":"EUR"}]}`,
+			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
+				CreateWallet: []interface{}{exception.ErrWalletTypeInvalid},
+			},
+			ExpectedStatus:       http.StatusBadRequest,
+			ExpectedResponseJSON: `{"status":400,"message":"Wallet type is invalid. Please try another wallet type."}`,
+		},
+		{
+			Title:                    "ReturnsError_WalletAlreadyExists",
+			GivenUserIDWithContext:   1,
+			GivenCreateWalletRequest: `{"wallet_type_id":1,"currency_amount":[{"amount":100.0,"currency":"USD"},{"amount":200.0,"currency":"EUR"}]}`,
+			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
+				CreateWallet: []interface{}{exception.ErrWalletAlreadyExists},
+			},
+			ExpectedStatus:       http.StatusBadRequest,
+			ExpectedResponseJSON: `{"status":400,"message":"The wallet you are trying to create already exist. Please try again."}`,
+		},
+		{
+			Title:                    "ReturnsError_InsufficientFunds",
+			GivenUserIDWithContext:   1,
+			GivenCreateWalletRequest: `{"wallet_type_id":1,"currency_amount":[{"amount":100.0,"currency":"USD"},{"amount":200.0,"currency":"EUR"}]}`,
+			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
+				CreateWallet: []interface{}{exception.ErrInsufficientFunds},
+			},
+			ExpectedStatus:       http.StatusBadRequest,
+			ExpectedResponseJSON: `{"status":400,"message":"Insufficient funds in account. Please top up."}`,
+		},
+		{
+			Title:                    "ReturnsError_InternalServerError",
+			GivenUserIDWithContext:   1,
+			GivenCreateWalletRequest: `{"wallet_type_id":1,"currency_amount":[{"amount":100.0,"currency":"USD"},{"amount":200.0,"currency":"EUR"}]}`,
+			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
+				CreateWallet: []interface{}{errors.New("internal server error")},
+			},
+			ExpectedStatus:       http.StatusInternalServerError,
+			ExpectedResponseJSON: `{"status":500,"message":"Internal Server Error"}`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Title, func(t *testing.T) {
+			walletUsecase := &mocks.WalletUsecase{}
+
+			walletUsecase.On("CreateWallet", mock.Anything, mock.Anything, mock.Anything).
+				Return(tc.WalletUsecaseReturnValues.CreateWallet...)
+
+			walletHandler := handlers.NewWalletHandler(walletUsecase)
+
+			req, err := http.NewRequest(http.MethodPost, "/api/v1/wallet", strings.NewReader(tc.GivenCreateWalletRequest))
+			require.NoError(t, err)
+
+			ctx := testdata.InjectUserIDIntoContext(req.Context(), tc.GivenUserIDWithContext)
+			req = req.WithContext(ctx)
+
+			rr := httptest.NewRecorder()
+
+			walletHandler.CreateWallet(rr, req)
+
+			require.Equal(t, tc.ExpectedStatus, rr.Code)
+			require.Equal(t, tc.ExpectedResponseJSON, rr.Body.String())
+		})
+	}
+}

@@ -9,6 +9,7 @@ import (
 
 	handlers "github.com/LeonLow97/go-clean-architecture/delivery/http/handler"
 	"github.com/LeonLow97/go-clean-architecture/domain"
+	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	mocks "github.com/LeonLow97/go-clean-architecture/mocks/usecase"
 	"github.com/LeonLow97/go-clean-architecture/testdata"
@@ -163,6 +164,53 @@ func TestWalletHandler_GetWallets(t *testing.T) {
 			rr := httptest.NewRecorder()
 
 			walletHandler.GetWallets(rr, req)
+
+			require.Equal(t, tc.ExpectedStatus, rr.Code)
+		})
+	}
+}
+
+func TestWalletHandler_GetWalletTypes(t *testing.T) {
+	type testCase struct {
+		Title                     string
+		WalletUsecaseReturnValues mocks.WalletUsecaseReturnValues
+		ExpectedStatus            int
+	}
+
+	testCases := []testCase{
+		{
+			Title: "ReturnsSuccessfully",
+			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
+				GetWalletTypes: []interface{}{
+					&[]dto.GetWalletTypesResponse{{ID: 1, WalletType: "personal"}}, nil,
+				},
+			},
+			ExpectedStatus: http.StatusOK,
+		},
+		{
+			Title: "ReturnsError_InternalServerError",
+			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
+				GetWalletTypes: []interface{}{nil, errors.New("internal server error")},
+			},
+			ExpectedStatus: http.StatusInternalServerError,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Title, func(t *testing.T) {
+			walletUsecase := &mocks.WalletUsecase{}
+
+			walletUsecase.On("GetWalletTypes", mock.Anything).
+				Return(tc.WalletUsecaseReturnValues.GetWalletTypes...)
+
+			walletHandler := handlers.NewWalletHandler(walletUsecase)
+
+			req, err := http.NewRequest(http.MethodGet, "/api/v1/wallet/types", nil)
+			require.NoError(t, err)
+
+			rr := httptest.NewRecorder()
+
+			walletHandler.GetWalletTypes(rr, req)
 
 			require.Equal(t, tc.ExpectedStatus, rr.Code)
 		})

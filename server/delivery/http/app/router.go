@@ -75,8 +75,7 @@ func (app Application) CreateRouter() (*mux.Router, error) {
 	walletRouter.HandleFunc("/all", walletHandler.GetWallets).Methods(http.MethodGet)
 	walletRouter.HandleFunc("/types", walletHandler.GetWalletTypes).Methods(http.MethodGet)
 	walletRouter.HandleFunc("", walletHandler.CreateWallet).Methods(http.MethodPost)
-	walletRouter.HandleFunc("/topup/{id:[0-9]+}", walletHandler.TopUpWallet).Methods(http.MethodPut)
-	walletRouter.HandleFunc("/cashout/{id:[0-9]+}", walletHandler.CashOutWallet).Methods(http.MethodPut)
+	walletRouter.HandleFunc("/update/{id:[0-9]+}/{operation}", walletHandler.UpdateWallet).Methods(http.MethodPut)
 
 	// transaction routes
 	transactionRouter := router.PathPrefix("/transaction").Subrouter()

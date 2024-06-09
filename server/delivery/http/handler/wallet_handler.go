@@ -133,7 +133,7 @@ func (h *WalletHandler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	utils.WriteNoContent(w, http.StatusCreated)
 }
 
-func (h *WalletHandler) TopUpWallet(w http.ResponseWriter, r *http.Request) {
+func (h *WalletHandler) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
@@ -148,6 +148,11 @@ func (h *WalletHandler) TopUpWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	operation, err := utils.ReadParamsString(w, r, "operation")
+	if err != nil {
+		return
+	}
+
 	var req dto.UpdateWalletRequest
 	if err := utils.ReadJSONBody(w, r, &req); err != nil {
 		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
@@ -156,12 +161,23 @@ func (h *WalletHandler) TopUpWallet(w http.ResponseWriter, r *http.Request) {
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
-		log.Println("error validating req struct in withdraw handler", err)
+		log.Println("error validating req struct in update wallet handler", err)
 		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 
-	if err := h.walletUseCase.TopUpWallet(ctx, userID, walletID, req); err != nil {
+	// to determine topup or withdrawal
+	switch operation {
+	case "topup":
+		err = h.walletUseCase.TopUpWallet(ctx, userID, walletID, req)
+	case "withdraw":
+		err = h.walletUseCase.CashOutWallet(ctx, userID, walletID, req)
+	default:
+		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		return
+	}
+
+	if err != nil {
 		switch {
 		case errors.Is(err, exception.ErrNoWalletFound):
 			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
@@ -169,49 +185,6 @@ func (h *WalletHandler) TopUpWallet(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrInsufficientFunds):
 			utils.ErrorJSON(w, apiErr.ErrInsufficientFundsInAccount, http.StatusBadRequest)
-		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
-		}
-		return
-	}
-
-	utils.WriteNoContent(w, http.StatusNoContent)
-}
-
-func (h *WalletHandler) CashOutWallet(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	// retrieve user id from context
-	userID, err := utils.UserIDFromContext(ctx)
-	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
-		return
-	}
-
-	walletID, err := utils.ReadParamsInt(w, r, "id")
-	if err != nil {
-		return
-	}
-
-	var req dto.UpdateWalletRequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
-		return
-	}
-
-	errMessage, err := infrastructure.ValidateStruct(req)
-	if err != nil {
-		log.Println("error validating req struct in withdraw handler", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
-		return
-	}
-
-	if err := h.walletUseCase.CashOutWallet(ctx, userID, walletID, req); err != nil {
-		switch {
-		case errors.Is(err, exception.ErrNoWalletFound):
-			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
-		case errors.Is(err, exception.ErrWalletBalanceNotFound):
-			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrInsufficientFundsForWithdrawal):
 			utils.ErrorJSON(w, apiErr.ErrInsufficientFundsForWithdrawal, http.StatusBadRequest)
 		default:

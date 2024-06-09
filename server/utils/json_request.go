@@ -31,6 +31,18 @@ func ReadParamsInt(w http.ResponseWriter, r *http.Request, paramName string) (in
 	return paramValue, nil
 }
 
+// ReadParamsString extracts a string parameter from the URL.
+func ReadParamsString(w http.ResponseWriter, r *http.Request, paramName string) (string, error) {
+	vars := mux.Vars(r)
+	paramValue, ok := vars[paramName]
+	if !ok {
+		log.Printf("missing required param: %s\n", paramName)
+		ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		return "", errors.New("missing required param")
+	}
+	return paramValue, nil
+}
+
 // ReadJSONBody decodes the JSON body from an HTTP request into the provided struct.
 func ReadJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) error {
 	if err := json.NewDecoder(r.Body).Decode(dst); err != nil {

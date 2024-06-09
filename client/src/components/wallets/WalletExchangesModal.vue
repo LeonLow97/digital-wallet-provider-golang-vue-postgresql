@@ -47,7 +47,7 @@ import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { onMounted, ref, watch } from "vue";
 import type { CurrencyAmount, WalletExchangesRequest } from "@/types/wallet";
-import { TOP_UP_WALLET, CASH_OUT_WALLET } from "@/api/wallet";
+import { UPDATE_WALLET } from "@/api/wallet";
 import type { GetUserBalanceCurrenciesResponse } from "@/types/balances";
 import { GET_USER_BALANCE_CURRENCIES } from "@/api/balances";
 import { useToastStore } from "@/stores/toast";
@@ -95,17 +95,20 @@ const handleTopUpWallet = async () => {
       currency_amount: finalCurrencyAmount,
     };
 
-    let responseStatus: number = 0;
+    let operation: string = "";
 
     if (props.actionType === "Top Up") {
-      const { status } = await TOP_UP_WALLET(props.walletId!, body);
-      responseStatus = status;
+      operation = "topup";
     } else if (props.actionType === "Cash Out") {
-      const { status } = await CASH_OUT_WALLET(props.walletId!, body);
-      responseStatus = status;
+      operation = "withdraw";
+    } else {
+      toastStore.ERROR_TOAST("Invalid Operation.");
+      return;
     }
 
-    if (responseStatus === 204) {
+    const { status } = await UPDATE_WALLET(props.walletId!, operation, body);
+
+    if (status === 204) {
       closeModal();
       emits("formSubmitted", props.actionType);
     }

@@ -13,8 +13,7 @@ const GET_WALLETS_URL = `${API_URL}/wallet/all`;
 const GET_WALLET_URL = `${API_URL}/wallet/`;
 const GET_WALLET_TYPES_URL = `${API_URL}/wallet/types`;
 const CREATE_WALLET_URL = `${API_URL}/wallet`;
-const TOP_UP_WALLET_URL = `${API_URL}/wallet/topup/`;
-const CASH_OUT_WALLET_URL = `${API_URL}/wallet/cashout/`;
+const UPDATE_WALLET_URL = `${API_URL}/wallet/update/`;
 
 export const GET_WALLETS = async (): Promise<APIResponse<Wallet[]>> => {
   const { data, status } = await axios.get<Wallet[]>(GET_WALLETS_URL, {
@@ -57,25 +56,13 @@ export const CREATE_WALLET = async (
   return { status };
 };
 
-export const TOP_UP_WALLET = async (
+export const UPDATE_WALLET = async (
   walletId: number,
+  operation: string,
   body: WalletExchangesRequest,
 ): Promise<GENERIC_STATUS_RESPONSE> => {
   const { status } = await axios.put<GENERIC_STATUS_RESPONSE>(
-    TOP_UP_WALLET_URL + walletId,
-    body,
-    { withCredentials: true },
-  );
-
-  return { status };
-};
-
-export const CASH_OUT_WALLET = async (
-  walletId: number,
-  body: WalletExchangesRequest,
-): Promise<GENERIC_STATUS_RESPONSE> => {
-  const { status } = await axios.put<GENERIC_STATUS_RESPONSE>(
-    CASH_OUT_WALLET_URL + walletId,
+    `${UPDATE_WALLET_URL}/${walletId}/${operation}`,
     body,
     { withCredentials: true },
   );

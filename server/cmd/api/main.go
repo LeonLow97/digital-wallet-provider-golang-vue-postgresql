@@ -11,6 +11,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/repository"
 	"github.com/LeonLow97/go-clean-architecture/usecase"
+	"github.com/LeonLow97/go-clean-architecture/utils/constants/headers"
 	"github.com/rs/cors"
 )
 
@@ -87,7 +88,7 @@ func main() {
 		// TODO: Add SessionMiddleware to inject user object and session details into context
 		middleware.NewAuthenticationMiddleware(*cfg, skipperFunc, redisClient, userUsecase).Middleware,
 		middleware.NewCSRFMiddleware(*cfg, skipperFunc, redisClient).Middleware,
-		middleware.NewCSPMiddleware(),
+		middleware.NewHeadersMiddleware().Middleware,
 	)
 
 	// Create CORS options
@@ -105,9 +106,25 @@ func main() {
 			http.MethodOptions,
 		},
 		// AllowedHeaders specifies which headers are allowed to be sent in requests from client (browser) to server
-		AllowedHeaders: []string{"Accept", "Origin", "Content-Type", "X-CSRF-Token"},
+		AllowedHeaders: []string{
+			headers.Accept,
+			headers.CacheControl,
+			headers.ContentType,
+			headers.Origin,
+			headers.XCSRFToken,
+		},
 		// ExposedHeaders specifies which response headers are exposed to client (browser) and can be accessed by JavaScript
-		ExposedHeaders:     []string{"X-CSRF-Token", "Content-Security-Policy"},
+		ExposedHeaders: []string{
+			headers.CacheControl,
+			headers.ContentType,
+			headers.ContentSecurityPolicy,
+			headers.Pragma,
+			headers.ReferrerPolicy,
+			headers.StrictTransportSecurity,
+			headers.XContentTypeOptions,
+			headers.XCSRFToken,
+			headers.XFrameOptions,
+		},
 		MaxAge:             86400, // cache HTTP headers set by CORS for 1 day (86400 seconds)
 		OptionsPassthrough: false,
 		Debug:              false,

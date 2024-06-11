@@ -25,3 +25,9 @@ var CountryCodeToCurrencyMap = map[string]string{
 var ToCurrencies = map[string]struct{}{
 	"SGD": {}, "MYR": {}, "AUD": {}, "USD": {},
 }
+
+// Pagination limits
+const (
+	DEFAULT_PAGE_SIZE = 10
+	MAX_PAGE_SIZE     = 100
+)

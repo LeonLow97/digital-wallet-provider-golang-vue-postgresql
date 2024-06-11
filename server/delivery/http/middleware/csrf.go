@@ -6,7 +6,7 @@ import (
 
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
-	"github.com/LeonLow97/go-clean-architecture/utils/context"
+	"github.com/LeonLow97/go-clean-architecture/utils/contextstore"
 	"github.com/LeonLow97/go-clean-architecture/utils/jsonutil"
 )
 
@@ -44,7 +44,7 @@ func (m CSRFMiddleware) Middleware(next http.Handler) http.Handler {
 		}
 
 		// retrieve sessionID from context
-		sessionID, _ := context.SessionIDFromContext(ctx)
+		sessionID, _ := contextstore.SessionIDFromContext(ctx)
 
 		// retrieve csrfToken from redis client
 		serverCsrfToken, err := m.redisClient.HGet(ctx, sessionID, "csrfToken")

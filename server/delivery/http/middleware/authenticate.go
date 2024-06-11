@@ -11,7 +11,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/utils"
 	"github.com/LeonLow97/go-clean-architecture/utils/constants"
-	"github.com/LeonLow97/go-clean-architecture/utils/context"
+	"github.com/LeonLow97/go-clean-architecture/utils/contextstore"
 	"github.com/LeonLow97/go-clean-architecture/utils/jsonutil"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/redis/go-redis/v9"
@@ -82,7 +82,7 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 		userID := int(userIDFloat)
 
 		// set user id in context
-		ctx = context.UserIDWithContext(ctx, userID)
+		ctx = contextstore.UserIDWithContext(ctx, userID)
 
 		// Retrieve sessionID from claims
 		sessionID, ok := claims["sessionID"].(string)
@@ -91,7 +91,7 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 			jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 			return
 		}
-		ctx = context.SessionIDWithContext(ctx, sessionID)
+		ctx = contextstore.SessionIDWithContext(ctx, sessionID)
 
 		// check if session exists in redis string and redis set.
 		// If session exist, extend the session in redis. If session does not exist, unauthorized

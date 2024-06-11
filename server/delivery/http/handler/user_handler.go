@@ -12,7 +12,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/utils"
 	"github.com/LeonLow97/go-clean-architecture/utils/constants"
-	"github.com/LeonLow97/go-clean-architecture/utils/context"
+	"github.com/LeonLow97/go-clean-architecture/utils/contextstore"
 	"github.com/LeonLow97/go-clean-architecture/utils/jsonutil"
 )
 
@@ -98,7 +98,7 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	sessionID, err := context.SessionIDFromContext(ctx)
+	sessionID, err := contextstore.SessionIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 	}
@@ -125,7 +125,7 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := context.UserIDFromContext(ctx)
+	userID, err := contextstore.UserIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
@@ -307,7 +307,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := context.UserIDFromContext(ctx)
+	userID, err := contextstore.UserIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
@@ -339,7 +339,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) GetUserDetail(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	sessionID, err := context.SessionIDFromContext(ctx)
+	sessionID, err := contextstore.SessionIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return

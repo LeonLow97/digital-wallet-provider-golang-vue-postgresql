@@ -10,7 +10,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
-	"github.com/LeonLow97/go-clean-architecture/utils/context"
+	"github.com/LeonLow97/go-clean-architecture/utils/contextstore"
 	"github.com/LeonLow97/go-clean-architecture/utils/jsonutil"
 )
 
@@ -30,7 +30,7 @@ func (h *BalanceHandler) GetBalanceHistory(w http.ResponseWriter, r *http.Reques
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := context.UserIDFromContext(ctx)
+	userID, err := contextstore.UserIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
@@ -60,7 +60,7 @@ func (h *BalanceHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := context.UserIDFromContext(ctx)
+	userID, err := contextstore.UserIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
@@ -90,7 +90,7 @@ func (h *BalanceHandler) GetBalances(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := context.UserIDFromContext(ctx)
+	userID, err := contextstore.UserIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
@@ -114,7 +114,7 @@ func (h *BalanceHandler) GetUserBalanceCurrencies(w http.ResponseWriter, r *http
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := context.UserIDFromContext(ctx)
+	userID, err := contextstore.UserIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
@@ -133,7 +133,7 @@ func (h *BalanceHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := context.UserIDFromContext(ctx)
+	userID, err := contextstore.UserIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
@@ -172,7 +172,7 @@ func (h *BalanceHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := context.UserIDFromContext(ctx)
+	userID, err := contextstore.UserIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
@@ -215,7 +215,7 @@ func (h *BalanceHandler) CurrencyExchange(w http.ResponseWriter, r *http.Request
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := context.UserIDFromContext(ctx)
+	userID, err := contextstore.UserIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return

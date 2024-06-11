@@ -10,7 +10,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
-	"github.com/LeonLow97/go-clean-architecture/utils/context"
+	"github.com/LeonLow97/go-clean-architecture/utils/contextstore"
 	"github.com/LeonLow97/go-clean-architecture/utils/jsonutil"
 )
 
@@ -30,7 +30,7 @@ func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := context.UserIDFromContext(ctx)
+	userID, err := contextstore.UserIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
@@ -60,7 +60,7 @@ func (h *WalletHandler) GetWallets(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := context.UserIDFromContext(ctx)
+	userID, err := contextstore.UserIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
@@ -95,7 +95,7 @@ func (h *WalletHandler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := context.UserIDFromContext(ctx)
+	userID, err := contextstore.UserIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
@@ -138,7 +138,7 @@ func (h *WalletHandler) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := context.UserIDFromContext(ctx)
+	userID, err := contextstore.UserIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return

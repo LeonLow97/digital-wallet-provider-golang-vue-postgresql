@@ -9,7 +9,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
-	"github.com/LeonLow97/go-clean-architecture/utils/context"
+	"github.com/LeonLow97/go-clean-architecture/utils/contextstore"
 	"github.com/LeonLow97/go-clean-architecture/utils/jsonutil"
 )
 
@@ -29,7 +29,7 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := context.UserIDFromContext(ctx)
+	userID, err := contextstore.UserIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
@@ -73,7 +73,7 @@ func (h *TransactionHandler) GetTransactions(w http.ResponseWriter, r *http.Requ
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := context.UserIDFromContext(ctx)
+	userID, err := contextstore.UserIDFromContext(ctx)
 	if err != nil {
 		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return

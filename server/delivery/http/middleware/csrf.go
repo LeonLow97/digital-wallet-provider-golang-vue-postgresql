@@ -6,7 +6,8 @@ import (
 
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
-	"github.com/LeonLow97/go-clean-architecture/utils"
+	"github.com/LeonLow97/go-clean-architecture/utils/context"
+	"github.com/LeonLow97/go-clean-architecture/utils/jsonutil"
 )
 
 type CSRFMiddleware struct {
@@ -38,31 +39,31 @@ func (m CSRFMiddleware) Middleware(next http.Handler) http.Handler {
 
 		if len(reqCsrfToken) == 0 {
 			log.Println("client csrf token is empty")
-			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 			return
 		}
 
 		// retrieve sessionID from context
-		sessionID, _ := utils.SessionIDFromContext(ctx)
+		sessionID, _ := context.SessionIDFromContext(ctx)
 
 		// retrieve csrfToken from redis client
 		serverCsrfToken, err := m.redisClient.HGet(ctx, sessionID, "csrfToken")
 		if err != nil {
 			log.Println("failed to retrieve server csrf token with HGet redis client", err)
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 			return
 		}
 
 		if len(serverCsrfToken) == 0 {
 			log.Println("server csrf token is empty")
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 			return
 		}
 
 		// compare server csrf token with client csrf token
 		if reqCsrfToken != serverCsrfToken {
 			log.Println("client csrf token is different from server csrf token")
-			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 			return
 		}
 

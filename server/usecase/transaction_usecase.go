@@ -9,6 +9,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	"github.com/LeonLow97/go-clean-architecture/utils"
+	"github.com/LeonLow97/go-clean-architecture/utils/constants"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -132,7 +133,7 @@ func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.Cre
 		finalDestinationAmount = req.SourceAmount
 		finalDestinationCurrency = req.SourceCurrency
 	} else {
-		mainDestinationCurrency := utils.CountryCodeToCurrencyMap[req.BeneficiaryMobileCountryCode]
+		mainDestinationCurrency := constants.CountryCodeToCurrencyMap[req.BeneficiaryMobileCountryCode]
 		profit, transferAmount := utils.CalculateConversionDetails(req.SourceAmount, req.SourceCurrency, mainDestinationCurrency)
 
 		// TODO: Capture profit and add to creator's account

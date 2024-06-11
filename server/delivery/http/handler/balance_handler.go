@@ -10,7 +10,8 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
-	"github.com/LeonLow97/go-clean-architecture/utils"
+	"github.com/LeonLow97/go-clean-architecture/utils/context"
+	"github.com/LeonLow97/go-clean-architecture/utils/jsonutil"
 )
 
 type BalanceHandler struct {
@@ -29,14 +30,14 @@ func (h *BalanceHandler) GetBalanceHistory(w http.ResponseWriter, r *http.Reques
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context.UserIDFromContext(ctx)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	// retrieve balance id from url params
-	balanceID, err := utils.ReadParamsInt(w, r, "id")
+	balanceID, err := jsonutil.ReadParamsInt(w, r, "id")
 	if err != nil {
 		return
 	}
@@ -45,28 +46,28 @@ func (h *BalanceHandler) GetBalanceHistory(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		switch {
 		case errors.Is(err, exception.ErrBalanceHistoryNotFound):
-			utils.ErrorJSON(w, apiErr.ErrBalanceHistoryNotFound, http.StatusNotFound)
+			jsonutil.ErrorJSON(w, apiErr.ErrBalanceHistoryNotFound, http.StatusNotFound)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, resp)
+	jsonutil.WriteJSON(w, http.StatusOK, resp)
 }
 
 func (h *BalanceHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context.UserIDFromContext(ctx)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	// retrieve balance id from url params
-	balanceID, err := utils.ReadParamsInt(w, r, "id")
+	balanceID, err := jsonutil.ReadParamsInt(w, r, "id")
 	if err != nil {
 		return
 	}
@@ -75,23 +76,23 @@ func (h *BalanceHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, exception.ErrBalanceNotFound):
-			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
+			jsonutil.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, resp)
+	jsonutil.WriteJSON(w, http.StatusOK, resp)
 }
 
 func (h *BalanceHandler) GetBalances(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context.UserIDFromContext(ctx)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -99,55 +100,55 @@ func (h *BalanceHandler) GetBalances(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, exception.ErrBalanceNotFound):
-			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
+			jsonutil.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, balances)
+	jsonutil.WriteJSON(w, http.StatusOK, balances)
 }
 
 func (h *BalanceHandler) GetUserBalanceCurrencies(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context.UserIDFromContext(ctx)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	resp, err := h.balanceUsecase.GetUserBalanceCurrencies(ctx, userID)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, resp)
+	jsonutil.WriteJSON(w, http.StatusOK, resp)
 }
 
 func (h *BalanceHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context.UserIDFromContext(ctx)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	var req dto.DepositRequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := jsonutil.ReadJSONBody(w, r, &req); err != nil {
+		jsonutil.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
 		log.Println("error validating req struct in deposit handler", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		jsonutil.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 
@@ -157,36 +158,36 @@ func (h *BalanceHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 	if err := h.balanceUsecase.Deposit(ctx, req); err != nil {
 		switch {
 		case errors.Is(err, exception.ErrDepositCurrencyNotAllowed):
-			utils.ErrorJSON(w, apiErr.ErrDepositCurrencyNotAllowed, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrDepositCurrencyNotAllowed, http.StatusBadRequest)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
 
-	utils.WriteNoContent(w, http.StatusNoContent)
+	jsonutil.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *BalanceHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context.UserIDFromContext(ctx)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	var req dto.WithdrawRequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := jsonutil.ReadJSONBody(w, r, &req); err != nil {
+		jsonutil.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
 		log.Println("error validating req struct in withdraw handler", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		jsonutil.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 
@@ -196,40 +197,40 @@ func (h *BalanceHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	if err := h.balanceUsecase.Withdraw(ctx, req); err != nil {
 		switch {
 		case errors.Is(err, exception.ErrWithdrawCurrencyNotAllowed):
-			utils.ErrorJSON(w, apiErr.ErrWithdrawCurrencyNotAllowed, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrWithdrawCurrencyNotAllowed, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrInsufficientFunds):
-			utils.ErrorJSON(w, apiErr.ErrInsufficientFundsForWithdrawal, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrInsufficientFundsForWithdrawal, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrBalanceNotFound):
-			utils.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
+			jsonutil.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
 
-	utils.WriteNoContent(w, http.StatusNoContent)
+	jsonutil.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *BalanceHandler) CurrencyExchange(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context.UserIDFromContext(ctx)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	var req dto.CurrencyExchangeRequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := jsonutil.ReadJSONBody(w, r, &req); err != nil {
+		jsonutil.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
 		log.Println("error validating req struct in withdraw handler", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		jsonutil.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 
@@ -238,14 +239,14 @@ func (h *BalanceHandler) CurrencyExchange(w http.ResponseWriter, r *http.Request
 	if err := h.balanceUsecase.CurrencyExchange(ctx, userID, req); err != nil {
 		switch {
 		case errors.Is(err, exception.ErrInsufficientFundsForCurrencyExchange):
-			utils.ErrorJSON(w, apiErr.ErrInsufficientFundsForCurrencyExchange, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrInsufficientFundsForCurrencyExchange, http.StatusBadRequest)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
 
-	utils.WriteNoContent(w, http.StatusNoContent)
+	jsonutil.WriteNoContent(w, http.StatusNoContent)
 }
 
 // PreviewExchange allows users to preview the exchange rate, no data manipulation
@@ -253,20 +254,20 @@ func (h *BalanceHandler) PreviewExchange(w http.ResponseWriter, r *http.Request)
 	ctx := r.Context()
 
 	var req dto.PreviewExchangeRequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := jsonutil.ReadJSONBody(w, r, &req); err != nil {
+		jsonutil.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
 		log.Println("error validating req struct in withdraw handler", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		jsonutil.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 
 	req.PreviewExchangeSanitize()
 
 	resp := h.balanceUsecase.PreviewExchange(ctx, req)
-	utils.WriteJSON(w, http.StatusOK, resp)
+	jsonutil.WriteJSON(w, http.StatusOK, resp)
 }

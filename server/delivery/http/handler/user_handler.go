@@ -11,6 +11,9 @@ import (
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/utils"
+	"github.com/LeonLow97/go-clean-architecture/utils/constants"
+	"github.com/LeonLow97/go-clean-architecture/utils/context"
+	"github.com/LeonLow97/go-clean-architecture/utils/jsonutil"
 )
 
 type UserHandler struct {
@@ -29,15 +32,15 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var req dto.LoginRequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrInvalidCredentials, http.StatusUnauthorized)
+	if err := jsonutil.ReadJSONBody(w, r, &req); err != nil {
+		jsonutil.ErrorJSON(w, apiErr.ErrInvalidCredentials, http.StatusUnauthorized)
 		return
 	}
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
 		log.Println("error validating req struct in login handler", err, errMessage)
-		utils.ErrorJSON(w, apiErr.ErrInvalidCredentials, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrInvalidCredentials, http.StatusUnauthorized)
 		return
 	}
 
@@ -47,24 +50,24 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, exception.ErrUserNotFound) || errors.Is(err, exception.ErrInvalidCredentials):
-			utils.ErrorJSON(w, apiErr.ErrInvalidCredentials, http.StatusUnauthorized)
+			jsonutil.ErrorJSON(w, apiErr.ErrInvalidCredentials, http.StatusUnauthorized)
 		case errors.Is(err, exception.ErrInactiveUser):
-			utils.ErrorJSON(w, apiErr.ErrInactiveUser, http.StatusUnauthorized)
+			jsonutil.ErrorJSON(w, apiErr.ErrInactiveUser, http.StatusUnauthorized)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, resp)
+	jsonutil.WriteJSON(w, http.StatusOK, resp)
 }
 
 func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var req dto.SignUpRequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := jsonutil.ReadJSONBody(w, r, &req); err != nil {
+		jsonutil.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -73,31 +76,31 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
 		log.Println("error validating req struct in sign up handler", errMessage)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		jsonutil.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 
 	if err = h.userUsecase.SignUp(ctx, req); err != nil {
 		switch {
 		case errors.Is(err, exception.ErrUserFound):
-			utils.ErrorJSON(w, apiErr.ErrUserFound, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrUserFound, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrInvalidPassword):
-			utils.ErrorJSON(w, apiErr.ErrInvalidPassword, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrInvalidPassword, http.StatusBadRequest)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
 
-	utils.WriteNoContent(w, http.StatusNoContent)
+	jsonutil.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	sessionID, err := utils.SessionIDFromContext(ctx)
+	sessionID, err := context.SessionIDFromContext(ctx)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 	}
 
 	// remove sessionID from Redis
@@ -105,7 +108,7 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	// override cookie in browser
 	cookie := &http.Cookie{
-		Name:     utils.JWT_COOKIE,
+		Name:     constants.JWT_COOKIE,
 		Value:    "",
 		MaxAge:   0,
 		Path:     "/",
@@ -115,29 +118,29 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, cookie)
 
-	utils.WriteNoContent(w, http.StatusOK)
+	jsonutil.WriteNoContent(w, http.StatusOK)
 }
 
 func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context.UserIDFromContext(ctx)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	var req dto.ChangePasswordRequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := jsonutil.ReadJSONBody(w, r, &req); err != nil {
+		jsonutil.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
 		log.Println("error validating req struct", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		jsonutil.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 
@@ -146,33 +149,33 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	if err := h.userUsecase.ChangePassword(ctx, userID, req); err != nil {
 		switch {
 		case errors.Is(err, exception.ErrUserNotFound):
-			utils.ErrorJSON(w, apiErr.ErrUserNotFound, http.StatusNotFound)
+			jsonutil.ErrorJSON(w, apiErr.ErrUserNotFound, http.StatusNotFound)
 		case errors.Is(err, exception.ErrInvalidCredentials):
-			utils.ErrorJSON(w, apiErr.ErrCurrentPasswordIncorrect, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrCurrentPasswordIncorrect, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrSamePassword):
-			utils.ErrorJSON(w, apiErr.ErrSamePassword, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrSamePassword, http.StatusBadRequest)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		}
 		return
 	}
 
-	utils.WriteNoContent(w, http.StatusNoContent)
+	jsonutil.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *UserHandler) ConfigureMFA(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var req dto.ConfigureMFARequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := jsonutil.ReadJSONBody(w, r, &req); err != nil {
+		jsonutil.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
 		log.Println("error validating req struct", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		jsonutil.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 
@@ -182,13 +185,13 @@ func (h *UserHandler) ConfigureMFA(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, exception.ErrInvalidMFACode):
-			utils.ErrorJSON(w, apiErr.ErrInvalidMFACode, http.StatusUnauthorized)
+			jsonutil.ErrorJSON(w, apiErr.ErrInvalidMFACode, http.StatusUnauthorized)
 		case errors.Is(err, exception.ErrUserNotFound):
-			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		case errors.Is(err, exception.ErrTOTPSecretExists):
-			utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
@@ -196,22 +199,22 @@ func (h *UserHandler) ConfigureMFA(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-CSRF-Token", token.CSRFToken)
 	utils.IssueCookie(w, token.AccessToken)
 
-	utils.WriteNoContent(w, http.StatusNoContent)
+	jsonutil.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *UserHandler) VerifyMFA(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var req dto.VerifyMFARequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := jsonutil.ReadJSONBody(w, r, &req); err != nil {
+		jsonutil.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
 		log.Println("error validating req struct", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		jsonutil.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 
@@ -221,11 +224,11 @@ func (h *UserHandler) VerifyMFA(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, exception.ErrUserNotFound):
-			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		case errors.Is(err, exception.ErrInvalidMFACode):
-			utils.ErrorJSON(w, apiErr.ErrInvalidMFACode, http.StatusUnauthorized)
+			jsonutil.ErrorJSON(w, apiErr.ErrInvalidMFACode, http.StatusUnauthorized)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
@@ -233,22 +236,22 @@ func (h *UserHandler) VerifyMFA(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-CSRF-Token", token.CSRFToken)
 	utils.IssueCookie(w, token.AccessToken)
 
-	utils.WriteNoContent(w, http.StatusNoContent)
+	jsonutil.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *UserHandler) PasswordReset(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var req dto.PasswordResetRequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := jsonutil.ReadJSONBody(w, r, &req); err != nil {
+		jsonutil.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
 		log.Println("error validating req struct", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		jsonutil.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 
@@ -257,29 +260,29 @@ func (h *UserHandler) PasswordReset(w http.ResponseWriter, r *http.Request) {
 	if err := h.userUsecase.PasswordReset(ctx, req); err != nil {
 		switch {
 		case errors.Is(err, exception.ErrSamePassword):
-			utils.ErrorJSON(w, apiErr.ErrSamePassword, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrSamePassword, http.StatusBadRequest)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
 
-	utils.WriteNoContent(w, http.StatusNoContent)
+	jsonutil.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *UserHandler) SendPasswordResetEmail(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var req dto.SendPasswordResetEmailRequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := jsonutil.ReadJSONBody(w, r, &req); err != nil {
+		jsonutil.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
 		log.Println("error validating req struct", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		jsonutil.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 
@@ -290,61 +293,61 @@ func (h *UserHandler) SendPasswordResetEmail(w http.ResponseWriter, r *http.Requ
 		case errors.Is(err, exception.ErrUserNotFound):
 			// return the same status when email is not found, prevent
 			// cyber attacks from brute forcing and retrieving valid emails
-			utils.WriteNoContent(w, http.StatusNoContent)
+			jsonutil.WriteNoContent(w, http.StatusNoContent)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
 
-	utils.WriteNoContent(w, http.StatusNoContent)
+	jsonutil.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context.UserIDFromContext(ctx)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	var req dto.UpdateUserRequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := jsonutil.ReadJSONBody(w, r, &req); err != nil {
+		jsonutil.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
 		log.Println("error validating req struct", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		jsonutil.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 
 	req.UpdateUserSanitize()
 
 	if err := h.userUsecase.UpdateUser(ctx, userID, req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		return
 	}
 
-	utils.WriteNoContent(w, http.StatusNoContent)
+	jsonutil.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *UserHandler) GetUserDetail(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	sessionID, err := utils.SessionIDFromContext(ctx)
+	sessionID, err := context.SessionIDFromContext(ctx)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
-	csrfToken, err := h.userUsecase.ExtendUserSessionInRedis(ctx, sessionID, utils.SESSION_EXPIRY)
+	csrfToken, err := h.userUsecase.ExtendUserSessionInRedis(ctx, sessionID, constants.SESSION_EXPIRY)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -353,5 +356,5 @@ func (h *UserHandler) GetUserDetail(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-CSRF-Token", csrfToken)
 
 	// TODO: UPDATE TO get user details
-	utils.WriteNoContent(w, http.StatusOK)
+	jsonutil.WriteNoContent(w, http.StatusOK)
 }

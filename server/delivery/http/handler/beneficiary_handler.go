@@ -10,7 +10,8 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
-	"github.com/LeonLow97/go-clean-architecture/utils"
+	"github.com/LeonLow97/go-clean-architecture/utils/context"
+	"github.com/LeonLow97/go-clean-architecture/utils/jsonutil"
 )
 
 type BeneficiaryHandler struct {
@@ -29,22 +30,22 @@ func (h *BeneficiaryHandler) CreateBeneficiary(w http.ResponseWriter, r *http.Re
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context.UserIDFromContext(ctx)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	var req dto.CreateBeneficiaryRequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := jsonutil.ReadJSONBody(w, r, &req); err != nil {
+		jsonutil.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
 		log.Println("error validating req struct in create beneficiary handler", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		jsonutil.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 
@@ -54,71 +55,71 @@ func (h *BeneficiaryHandler) CreateBeneficiary(w http.ResponseWriter, r *http.Re
 	if err = h.beneficiaryUsecase.CreateBeneficiary(ctx, userID, req); err != nil {
 		switch {
 		case errors.Is(err, exception.ErrUserNotFound):
-			utils.ErrorJSON(w, apiErr.ErrUserNotFound, http.StatusNotFound)
+			jsonutil.ErrorJSON(w, apiErr.ErrUserNotFound, http.StatusNotFound)
 		case errors.Is(err, exception.ErrUserIDEqualBeneficiaryID):
-			utils.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrBeneficiaryAlreadyExists):
-			utils.ErrorJSON(w, apiErr.ErrBeneficiaryAlreadyExists, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrBeneficiaryAlreadyExists, http.StatusBadRequest)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
 
-	utils.WriteNoContent(w, http.StatusCreated)
+	jsonutil.WriteNoContent(w, http.StatusCreated)
 }
 
 func (h *BeneficiaryHandler) UpdateBeneficiary(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context.UserIDFromContext(ctx)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	var req dto.UpdateBeneficiaryRequest
-	if err := utils.ReadJSONBody(w, r, &req); err != nil {
-		utils.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+	if err := jsonutil.ReadJSONBody(w, r, &req); err != nil {
+		jsonutil.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
 
 	errMessage, err := infrastructure.ValidateStruct(req)
 	if err != nil {
 		log.Println("error validating req struct in create beneficiary handler", err)
-		utils.ErrorJSON(w, errMessage, http.StatusBadRequest)
+		jsonutil.ErrorJSON(w, errMessage, http.StatusBadRequest)
 		return
 	}
 
 	if err = h.beneficiaryUsecase.UpdateBeneficiary(ctx, userID, req); err != nil {
 		switch {
 		case errors.Is(err, exception.ErrUserIDEqualBeneficiaryID):
-			utils.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrUserNotLinkedToBeneficiary):
-			utils.ErrorJSON(w, apiErr.ErrUserNotLinkedToBeneficiary, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrUserNotLinkedToBeneficiary, http.StatusBadRequest)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
 
-	utils.WriteNoContent(w, http.StatusNoContent)
+	jsonutil.WriteNoContent(w, http.StatusNoContent)
 }
 
 func (h *BeneficiaryHandler) GetBeneficiary(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve beneficiary id from url params
-	beneficiaryID, err := utils.ReadParamsInt(w, r, "id")
+	beneficiaryID, err := jsonutil.ReadParamsInt(w, r, "id")
 	if err != nil {
 		return
 	}
 
 	// retrieve user id from context
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context.UserIDFromContext(ctx)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -127,25 +128,25 @@ func (h *BeneficiaryHandler) GetBeneficiary(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		switch {
 		case errors.Is(err, exception.ErrUserIDEqualBeneficiaryID):
-			utils.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrUserIDEqualBeneficiaryID, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrUserNotLinkedToBeneficiary):
-			utils.ErrorJSON(w, apiErr.ErrUserNotLinkedToBeneficiary, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrUserNotLinkedToBeneficiary, http.StatusBadRequest)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, resp)
+	jsonutil.WriteJSON(w, http.StatusOK, resp)
 }
 
 func (h *BeneficiaryHandler) GetBeneficiaries(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// retrieve user id from context
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context.UserIDFromContext(ctx)
 	if err != nil {
-		utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -154,12 +155,12 @@ func (h *BeneficiaryHandler) GetBeneficiaries(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		switch {
 		case errors.Is(err, exception.ErrUserHasNoBeneficiary):
-			utils.ErrorJSON(w, apiErr.ErrUserNotLinkedToAnyBeneficiary, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrUserNotLinkedToAnyBeneficiary, http.StatusBadRequest)
 		default:
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, resp)
+	jsonutil.WriteJSON(w, http.StatusOK, resp)
 }

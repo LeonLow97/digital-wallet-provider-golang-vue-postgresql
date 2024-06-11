@@ -2,11 +2,13 @@ package utils
 
 import (
 	"net/http"
+
+	"github.com/LeonLow97/go-clean-architecture/utils/constants"
 )
 
 func IssueCookie(writer http.ResponseWriter, token string) {
 	cookie := &http.Cookie{
-		Name:     JWT_COOKIE,
+		Name:     constants.JWT_COOKIE,
 		Value:    token,
 		MaxAge:   3600,
 		Path:     "/",

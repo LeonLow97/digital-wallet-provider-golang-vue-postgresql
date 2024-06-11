@@ -9,6 +9,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	"github.com/LeonLow97/go-clean-architecture/utils"
+	"github.com/LeonLow97/go-clean-architecture/utils/constants"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -147,7 +148,7 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) e
 		log.Printf("failed to get user with error: %v\n", err)
 		return err
 	}
-	if utils.CountryCodeToCurrencyMap[user.MobileCountryCode] != req.Currency {
+	if constants.CountryCodeToCurrencyMap[user.MobileCountryCode] != req.Currency {
 		return exception.ErrDepositCurrencyNotAllowed
 	}
 
@@ -228,7 +229,7 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 		log.Printf("failed to get user with error: %v\n", err)
 		return err
 	}
-	if utils.CountryCodeToCurrencyMap[user.MobileCountryCode] != req.Currency {
+	if constants.CountryCodeToCurrencyMap[user.MobileCountryCode] != req.Currency {
 		return exception.ErrWithdrawCurrencyNotAllowed
 	}
 
@@ -293,10 +294,10 @@ func (uc *balanceUsecase) CurrencyExchange(ctx context.Context, userID int, req 
 		return err
 	}
 
-	fromCurrency := utils.CountryCodeToCurrencyMap[user.MobileCountryCode]
+	fromCurrency := constants.CountryCodeToCurrencyMap[user.MobileCountryCode]
 
 	// TODO: check if toCurrencies is allowed with a list of currencies stored in the database, for now use a map
-	if _, found := utils.ToCurrencies[req.ToCurrency]; !found {
+	if _, found := constants.ToCurrencies[req.ToCurrency]; !found {
 		log.Printf("toCurrency %s is not under the list of allowable currencies for exchange\n", req.ToCurrency)
 		return exception.ErrToCurrencyNotAllowed
 	}

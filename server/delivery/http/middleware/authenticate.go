@@ -10,6 +10,9 @@ import (
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/utils"
+	"github.com/LeonLow97/go-clean-architecture/utils/constants"
+	"github.com/LeonLow97/go-clean-architecture/utils/context"
+	"github.com/LeonLow97/go-clean-architecture/utils/jsonutil"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/redis/go-redis/v9"
 )
@@ -39,10 +42,10 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 
 		ctx := r.Context()
 
-		cookie, err := r.Cookie(utils.JWT_COOKIE)
+		cookie, err := r.Cookie(constants.JWT_COOKIE)
 		if err != nil {
 			log.Println("Missing token cookie:", err)
-			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 			return
 		}
 		jwtTokenString := cookie.Value
@@ -57,7 +60,7 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 
 		if err != nil || !token.Valid {
 			log.Println("JWT Token is invalid", err)
-			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 			return
 		}
 
@@ -65,7 +68,7 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
 			log.Println("Unable to retrieve token claims")
-			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 			return
 		}
 
@@ -73,22 +76,22 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 		userIDFloat, ok := claims["sub"].(float64)
 		if !ok {
 			log.Println("Unable to retrieve user id from token claims")
-			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 			return
 		}
 		userID := int(userIDFloat)
 
 		// set user id in context
-		ctx = utils.UserIDWithContext(ctx, userID)
+		ctx = context.UserIDWithContext(ctx, userID)
 
 		// Retrieve sessionID from claims
 		sessionID, ok := claims["sessionID"].(string)
 		if !ok {
 			log.Println("Unable to retrieve session id from token claims")
-			utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+			jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 			return
 		}
-		ctx = utils.SessionIDWithContext(ctx, sessionID)
+		ctx = context.SessionIDWithContext(ctx, sessionID)
 
 		// check if session exists in redis string and redis set.
 		// If session exist, extend the session in redis. If session does not exist, unauthorized
@@ -101,27 +104,27 @@ func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 
 				// sessionID missing, user is unauthorized (session expired or invalid sessionID provided)
 				log.Printf("failed to get key from redis for sessionID: %s and userID: %d\n", sessionID, userID)
-				utils.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+				jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
 				return
 			} else {
 				log.Println("failed to get key from redis in authentication middleware", err)
-				utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+				jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 				return
 			}
 		}
 
 		// Extend the user session in redis
-		if err := m.redisClient.Expire(ctx, sessionID, utils.SESSION_EXPIRY); err != nil {
+		if err := m.redisClient.Expire(ctx, sessionID, constants.SESSION_EXPIRY); err != nil {
 			log.Println("failed to extend user session in redis in authentication middleware with error:", err)
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 			return
 		}
 
 		// issue new JWT Token with the same session id
-		jwtToken, err := m.authUsecase.GenerateJWTAccessToken(userID, utils.SESSION_EXPIRY, sessionID)
+		jwtToken, err := m.authUsecase.GenerateJWTAccessToken(userID, constants.SESSION_EXPIRY, sessionID)
 		if err != nil {
 			log.Println("failed to reissue jwt access token", err)
-			utils.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 			return
 		}
 

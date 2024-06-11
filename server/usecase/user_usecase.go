@@ -3,7 +3,9 @@ package usecase
 import (
 	"context"
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -17,6 +19,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/utils"
+	"github.com/LeonLow97/go-clean-architecture/utils/constants"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"github.com/pquerna/otp/totp"
@@ -71,7 +74,7 @@ func (uc *userUsecase) Login(ctx context.Context, req dto.LoginRequest) (*dto.Lo
 		LastName:          user.LastName,
 		Email:             user.Email,
 		Username:          user.Username,
-		SourceCurrency:    utils.CountryCodeToCurrencyMap[user.MobileCountryCode],
+		SourceCurrency:    constants.CountryCodeToCurrencyMap[user.MobileCountryCode],
 		MobileCountryCode: user.MobileCountryCode,
 		MobileNumber:      user.MobileNumber,
 		IsMFAConfigured:   user.IsMFAConfigured,
@@ -279,7 +282,7 @@ func (uc *userUsecase) SendPasswordResetEmail(ctx context.Context, req dto.SendP
 	}
 
 	// generate authentication token
-	authToken, err := utils.GenerateAuthenticationToken(32)
+	authToken, err := generateAuthenticationToken(32)
 	if err != nil {
 		log.Println("error generating authentication token")
 		return err
@@ -337,7 +340,7 @@ func (uc *userUsecase) SendPasswordResetEmail(ctx context.Context, req dto.SendP
 		}
 
 		// set expiration time for the hash table
-		if err := uc.redisClient.Expire(ctx, redisTokenKey, utils.PASSWORD_RESET_AUTH_TOKEN_EXPIRY); err != nil {
+		if err := uc.redisClient.Expire(ctx, redisTokenKey, constants.PASSWORD_RESET_AUTH_TOKEN_EXPIRY); err != nil {
 			redisErrChan <- err
 			return
 		}
@@ -502,7 +505,7 @@ func (uc *userUsecase) GenerateUserSession(ctx context.Context, userID int) (*dt
 	}
 
 	// set expiration time for the hash table (user details and csrf token)
-	if err := uc.redisClient.Expire(ctx, sessionID, utils.SESSION_EXPIRY); err != nil {
+	if err := uc.redisClient.Expire(ctx, sessionID, constants.SESSION_EXPIRY); err != nil {
 		log.Println("failed to extend sessionID hash table in redis client", err)
 		return nil, err
 	}
@@ -569,4 +572,14 @@ func (uc *userUsecase) generateCSRFToken(secret, sessionID string) string {
 	mac.Write([]byte(message))
 	token := hex.EncodeToString(mac.Sum(nil))
 	return token
+}
+
+// generateAuthenticationToken generates a random token of specified length
+func generateAuthenticationToken(length int) (string, error) {
+	bytes := make([]byte, length)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(bytes), nil
 }

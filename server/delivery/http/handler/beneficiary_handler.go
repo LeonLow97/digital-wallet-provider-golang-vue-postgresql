@@ -111,7 +111,7 @@ func (h *BeneficiaryHandler) GetBeneficiary(w http.ResponseWriter, r *http.Reque
 	ctx := r.Context()
 
 	// retrieve beneficiary id from url params
-	beneficiaryID, err := jsonutil.ReadParamsInt(w, r, "id")
+	beneficiaryID, err := jsonutil.ReadURLParamsInt(w, r, "id")
 	if err != nil {
 		return
 	}

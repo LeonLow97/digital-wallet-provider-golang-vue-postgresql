@@ -10,6 +10,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/exception"
 	"github.com/LeonLow97/go-clean-architecture/utils"
 	"github.com/LeonLow97/go-clean-architecture/utils/constants"
+	"github.com/LeonLow97/go-clean-architecture/utils/pagination"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -194,8 +195,13 @@ func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.Cre
 	return nil
 }
 
-func (uc *transactionUsecase) GetTransactions(ctx context.Context, userID int) (*[]domain.Transaction, error) {
-	transactions, err := uc.transactionRepository.GetTransactions(ctx, userID)
+func (uc *transactionUsecase) GetTransactions(ctx context.Context, userID int, paginator *pagination.Paginator) (*[]domain.Transaction, error) {
+	if err := uc.transactionRepository.GetTotalTransactionsCount(ctx, userID, paginator); err != nil {
+		log.Printf("failed to get total transaction count for user id %d with error: %v\n", userID, err)
+		return nil, err
+	}
+
+	transactions, err := uc.transactionRepository.GetTransactions(ctx, userID, paginator)
 	if err != nil {
 		log.Printf("failed to get transactions for user id %d with error: %v\n", userID, err)
 		return nil, err

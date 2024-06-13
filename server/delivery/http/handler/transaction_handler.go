@@ -11,6 +11,7 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/LeonLow97/go-clean-architecture/utils/contextstore"
 	"github.com/LeonLow97/go-clean-architecture/utils/jsonutil"
+	"github.com/LeonLow97/go-clean-architecture/utils/pagination"
 )
 
 type TransactionHandler struct {
@@ -79,7 +80,17 @@ func (h *TransactionHandler) GetTransactions(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	transactions, err := h.transactionUsecase.GetTransactions(ctx, userID)
+	// retrieve pagination values from query params
+	var paginator pagination.Paginator
+	if err := jsonutil.ReadQueryParams(&paginator, r); err != nil {
+		jsonutil.ErrorJSON(w, apiErr.ErrBadRequest, http.StatusBadRequest)
+		return
+	}
+
+	// SanitizePaginator sanitizes pagination data
+	paginator.SanitizePaginator()
+
+	transactions, err := h.transactionUsecase.GetTransactions(ctx, userID, &paginator)
 	if err != nil {
 		switch {
 		case errors.Is(err, exception.ErrNoTransactionsFound):
@@ -90,5 +101,6 @@ func (h *TransactionHandler) GetTransactions(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	jsonutil.SetPaginatorHeaders(w, &paginator)
 	jsonutil.WriteJSON(w, http.StatusOK, transactions)
 }

@@ -124,6 +124,12 @@ func main() {
 			headers.XContentTypeOptions,
 			headers.XCSRFToken,
 			headers.XFrameOptions,
+			headers.XHasNextPage,
+			headers.XHasPreviousPage,
+			headers.XPage,
+			headers.XPageSize,
+			headers.XTotal,
+			headers.XTotalPages,
 		},
 		MaxAge:             86400, // cache HTTP headers set by CORS for 1 day (86400 seconds)
 		OptionsPassthrough: false,

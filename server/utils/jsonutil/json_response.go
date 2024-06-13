@@ -6,7 +6,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"github.com/LeonLow97/go-clean-architecture/utils/constants/headers"
+	"github.com/LeonLow97/go-clean-architecture/utils/pagination"
 )
 
 // errorResponse is the type used for sending error json response
@@ -109,4 +113,14 @@ func ErrorJSON(w http.ResponseWriter, errMessage string, status ...int) error {
 	payload.Message = errMessage
 
 	return WriteJSON(w, statusCode, payload)
+}
+
+// SetPaginatorHeaders sets the paginator details in the response headers
+func SetPaginatorHeaders(w http.ResponseWriter, paginator *pagination.Paginator) {
+	w.Header().Set(headers.XTotal, strconv.FormatInt(paginator.TotalRecords, 10))
+	w.Header().Set(headers.XTotalPages, strconv.FormatInt(paginator.TotalPages(), 10))
+	w.Header().Set(headers.XPage, strconv.FormatInt(paginator.Page, 10))
+	w.Header().Set(headers.XPageSize, strconv.FormatInt(paginator.PageSize, 10))
+	w.Header().Set(headers.XHasNextPage, strconv.FormatBool(paginator.HasNextPage()))
+	w.Header().Set(headers.XHasPreviousPage, strconv.FormatBool(paginator.HasPreviousPage()))
 }

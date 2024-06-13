@@ -37,7 +37,7 @@ func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// retrieve wallet id from url params
-	walletID, err := jsonutil.ReadParamsInt(w, r, "id")
+	walletID, err := jsonutil.ReadURLParamsInt(w, r, "id")
 	if err != nil {
 		return
 	}
@@ -144,12 +144,12 @@ func (h *WalletHandler) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	walletID, err := jsonutil.ReadParamsInt(w, r, "id")
+	walletID, err := jsonutil.ReadURLParamsInt(w, r, "id")
 	if err != nil {
 		return
 	}
 
-	operation, err := jsonutil.ReadParamsString(w, r, "operation")
+	operation, err := jsonutil.ReadURLParamsString(w, r, "operation")
 	if err != nil {
 		return
 	}

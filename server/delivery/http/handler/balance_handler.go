@@ -37,7 +37,7 @@ func (h *BalanceHandler) GetBalanceHistory(w http.ResponseWriter, r *http.Reques
 	}
 
 	// retrieve balance id from url params
-	balanceID, err := jsonutil.ReadParamsInt(w, r, "id")
+	balanceID, err := jsonutil.ReadURLParamsInt(w, r, "id")
 	if err != nil {
 		return
 	}
@@ -67,7 +67,7 @@ func (h *BalanceHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// retrieve balance id from url params
-	balanceID, err := jsonutil.ReadParamsInt(w, r, "id")
+	balanceID, err := jsonutil.ReadURLParamsInt(w, r, "id")
 	if err != nil {
 		return
 	}

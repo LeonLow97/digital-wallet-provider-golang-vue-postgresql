@@ -8,11 +8,22 @@ import (
 	"strconv"
 
 	apiErr "github.com/LeonLow97/go-clean-architecture/exception/response"
+	"github.com/go-playground/form"
 	"github.com/gorilla/mux"
 )
 
-// ReadParamsInt extracts an integer parameter from the URL.
-func ReadParamsInt(w http.ResponseWriter, r *http.Request, paramName string) (int, error) {
+// ReadJSONBody decodes the JSON body from an HTTP request into the provided struct.
+func ReadJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) error {
+	if err := json.NewDecoder(r.Body).Decode(dst); err != nil {
+		log.Println("error decoding request body:", err)
+		return err
+	}
+
+	return nil
+}
+
+// ReadURLParamsInt extracts an integer parameter from the URL.
+func ReadURLParamsInt(w http.ResponseWriter, r *http.Request, paramName string) (int, error) {
 	vars := mux.Vars(r)
 	paramValueString, ok := vars[paramName]
 	if !ok {
@@ -31,8 +42,8 @@ func ReadParamsInt(w http.ResponseWriter, r *http.Request, paramName string) (in
 	return paramValue, nil
 }
 
-// ReadParamsString extracts a string parameter from the URL.
-func ReadParamsString(w http.ResponseWriter, r *http.Request, paramName string) (string, error) {
+// ReadURLParamsString extracts a string parameter from the URL.
+func ReadURLParamsString(w http.ResponseWriter, r *http.Request, paramName string) (string, error) {
 	vars := mux.Vars(r)
 	paramValue, ok := vars[paramName]
 	if !ok {
@@ -43,12 +54,11 @@ func ReadParamsString(w http.ResponseWriter, r *http.Request, paramName string) 
 	return paramValue, nil
 }
 
-// ReadJSONBody decodes the JSON body from an HTTP request into the provided struct.
-func ReadJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) error {
-	if err := json.NewDecoder(r.Body).Decode(dst); err != nil {
-		log.Println("error decoding request body:", err)
+// ReadQueryParams decodes query parameters into a struct
+func ReadQueryParams(dest interface{}, r *http.Request) error {
+	if err := form.NewDecoder().Decode(dest, r.URL.Query()); err != nil {
+		log.Printf("failed to read query params with error: %v\n", err)
 		return err
 	}
-
 	return nil
 }

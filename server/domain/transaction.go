@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/LeonLow97/go-clean-architecture/dto"
+	"github.com/LeonLow97/go-clean-architecture/utils/pagination"
 )
 
 type Transaction struct {
@@ -25,7 +26,7 @@ type Transaction struct {
 
 type TransactionUsecase interface {
 	CreateTransaction(ctx context.Context, req dto.CreateTransactionRequest, userID int) error
-	GetTransactions(ctx context.Context, userID int) (*[]Transaction, error)
+	GetTransactions(ctx context.Context, userID int, paginator *pagination.Paginator) (*[]Transaction, error)
 }
 
 type TransactionRepository interface {
@@ -33,5 +34,7 @@ type TransactionRepository interface {
 	CheckValidityOfSenderIDAndWalletID(ctx context.Context, userID, walletID int) (bool, string, error) // TODO: move to wallet repository?
 
 	InsertTransaction(ctx context.Context, tx *sql.Tx, userID int, transaction Transaction) error
-	GetTransactions(ctx context.Context, userID int) (*[]Transaction, error)
+
+	GetTotalTransactionsCount(ctx context.Context, userID int, paginator *pagination.Paginator) error
+	GetTransactions(ctx context.Context, userID int, paginator *pagination.Paginator) (*[]Transaction, error)
 }

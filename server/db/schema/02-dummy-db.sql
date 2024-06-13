@@ -34,3 +34,37 @@ VALUES
 INSERT INTO wallet_balances (amount, currency, wallet_id, user_id)
 VALUES
 (10000, 'AUD', 1, 1);
+
+-- Inserting dummy data for testing pagination
+INSERT INTO transactions (user_id, sender_id, beneficiary_id, source_of_transfer, source_amount, source_currency, destination_amount, destination_currency, status, created_at)
+VALUES
+(1, 1, 2, 'Bank Transfer', 100.00, 'SGD', 70.00, 'USD', 'Successful', '2022-01-01 10:00:00'),
+(1, 1, 2, 'Credit Card', 500.00, 'SGD', 350.00, 'USD', 'Pending', '2022-01-02 12:00:00'),
+(1, 1, 2, 'PayPal', 200.00, 'SGD', 140.00, 'USD', 'Failed', '2022-01-03 14:00:00'),
+(1, 1, 2, 'Bank Transfer', 800.00, 'SGD', 560.00, 'USD', 'Successful', '2022-01-04 16:00:00'),
+(1, 1, 2, 'Credit Card', 300.00, 'SGD', 210.00, 'USD', 'Pending', '2022-01-05 18:00:00'),
+(1, 1, 2, 'Bank Transfer', 400.00, 'SGD', 280.00, 'USD', 'Successful', '2022-01-06 20:00:00'),
+(1, 1, 2, 'PayPal', 600.00, 'SGD', 420.00, 'USD', 'Failed', '2022-01-07 22:00:00'),
+(1, 1, 2, 'Credit Card', 900.00, 'SGD', 630.00, 'USD', 'Pending', '2022-01-08 00:00:00'),
+(1, 1, 2, 'Bank Transfer', 700.00, 'SGD', 490.00, 'USD', 'Successful', '2022-01-09 02:00:00'),
+(1, 1, 2, 'Bank Transfer', 950.00, 'SGD', 665.00, 'USD', 'Successful', '2022-01-10 04:00:00'),
+(1, 1, 2, 'PayPal', 250.00, 'SGD', 175.00, 'USD', 'Failed', '2022-01-11 06:00:00'),
+(1, 1, 2, 'Credit Card', 750.00, 'SGD', 525.00, 'USD', 'Pending', '2022-01-12 08:00:00'),
+(1, 1, 2, 'Bank Transfer', 650.00, 'SGD', 455.00, 'USD', 'Successful', '2022-01-13 10:00:00'),
+(1, 1, 2, 'Bank Transfer', 900.00, 'SGD', 630.00, 'USD', 'Successful', '2022-01-14 12:00:00'),
+(1, 1, 2, 'PayPal', 800.00, 'SGD', 560.00, 'USD', 'Failed', '2022-01-15 14:00:00'),
+(1, 1, 2, 'Credit Card', 950.00, 'SGD', 665.00, 'USD', 'Pending', '2022-01-16 16:00:00'),
+(1, 1, 2, 'Bank Transfer', 700.00, 'SGD', 490.00, 'USD', 'Successful', '2022-01-17 18:00:00'),
+(1, 1, 2, 'Bank Transfer', 500.00, 'SGD', 350.00, 'USD', 'Successful', '2022-01-18 20:00:00'),
+(1, 1, 2, 'PayPal', 650.00, 'SGD', 455.00, 'USD', 'Failed', '2022-01-19 22:00:00'),
+(1, 1, 2, 'Credit Card', 800.00, 'SGD', 560.00, 'USD', 'Pending', '2022-01-20 00:00:00'),
+(1, 1, 2, 'Bank Transfer', 950.00, 'SGD', 665.00, 'USD', 'Successful', '2022-01-21 02:00:00'),
+(1, 1, 2, 'PayPal', 750.00, 'SGD', 525.00, 'USD', 'Failed', '2022-01-22 04:00:00'),
+(1, 1, 2, 'Credit Card', 600.00, 'SGD', 420.00, 'USD', 'Pending', '2022-01-23 06:00:00'),
+(1, 1, 2, 'Bank Transfer', 400.00, 'SGD', 280.00, 'USD', 'Successful', '2022-01-24 08:00:00'),
+(1, 1, 2, 'Bank Transfer', 250.00, 'SGD', 175.00, 'USD', 'Successful', '2022-01-25 10:00:00'),
+(1, 1, 2, 'PayPal', 900.00, 'SGD', 630.00, 'USD', 'Failed', '2022-01-26 12:00:00'),
+(1, 1, 2, 'Credit Card', 700.00, 'SGD', 490.00, 'USD', 'Pending', '2022-01-27 14:00:00'),
+(1, 1, 2, 'Bank Transfer', 650.00, 'SGD', 455.00, 'USD', 'Successful', '2022-01-28 16:00:00'),
+(1, 1, 2, 'Bank Transfer', 500.00, 'SGD', 350.00, 'USD', 'Successful', '2022-01-29 18:00:00'),
+(1, 1, 2, 'PayPal', 800.00, 'SGD', 560.00, 'USD', 'Failed', '2022-01-30 20:00:00');

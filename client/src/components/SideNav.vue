@@ -5,7 +5,8 @@
     <ul class="flex cursor-pointer flex-col">
       <router-link :to="{ name: 'Home' }">
         <li
-          class="grid grid-cols-3 px-12 py-4 transition hover:bg-blue-500 hover:text-white"
+          class="grid items-center justify-center px-12 py-4 transition hover:bg-blue-500 hover:text-white"
+          :class="props.openSideNav ? 'grid-cols-3' : ''"
         >
           <svg-icon type="mdi" :path="mdiHomeAccount" /><span
             :class="props.openSideNav ? '' : 'hidden'"
@@ -15,7 +16,8 @@
       </router-link>
       <router-link :to="{ name: 'Balances' }">
         <li
-          class="grid grid-cols-3 px-12 py-4 transition hover:bg-blue-500 hover:text-white"
+          class="grid items-center justify-center px-12 py-4 transition hover:bg-blue-500 hover:text-white"
+          :class="props.openSideNav ? 'grid-cols-3' : ''"
         >
           <svg-icon type="mdi" :path="mdiWallet" /><span
             :class="props.openSideNav ? '' : 'hidden'"
@@ -25,7 +27,8 @@
       </router-link>
       <router-link :to="{ name: 'Beneficiary' }">
         <li
-          class="grid grid-cols-3 px-12 py-4 transition hover:bg-blue-500 hover:text-white"
+          class="grid items-center justify-center px-12 py-4 transition hover:bg-blue-500 hover:text-white"
+          :class="props.openSideNav ? 'grid-cols-3' : ''"
         >
           <svg-icon type="mdi" :path="mdiAccountGroup" /><span
             :class="props.openSideNav ? '' : 'hidden'"
@@ -35,7 +38,8 @@
       </router-link>
       <router-link :to="{ name: 'Wallets' }">
         <li
-          class="grid grid-cols-3 px-12 py-4 transition hover:bg-blue-500 hover:text-white"
+          class="grid items-center justify-center px-12 py-4 transition hover:bg-blue-500 hover:text-white"
+          :class="props.openSideNav ? 'grid-cols-3' : ''"
         >
           <svg-icon type="mdi" :path="mdiCash" /><span
             :class="props.openSideNav ? '' : 'hidden'"
@@ -45,7 +49,8 @@
       </router-link>
       <router-link :to="{ name: 'Transactions' }">
         <li
-          class="grid grid-cols-3 px-12 py-4 transition hover:bg-blue-500 hover:text-white"
+          class="grid items-center justify-center px-12 py-4 transition hover:bg-blue-500 hover:text-white"
+          :class="props.openSideNav ? 'grid-cols-3' : ''"
         >
           <svg-icon type="mdi" :path="mdiListBoxOutline" /><span
             :class="props.openSideNav ? '' : 'hidden'"

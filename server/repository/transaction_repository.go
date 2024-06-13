@@ -7,6 +7,7 @@ import (
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
 	"github.com/LeonLow97/go-clean-architecture/exception"
+	"github.com/LeonLow97/go-clean-architecture/utils/pagination"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -92,7 +93,7 @@ func (r *transactionRepository) InsertTransaction(ctx context.Context, tx *sql.T
 	return err
 }
 
-func (r *transactionRepository) GetTransactions(ctx context.Context, userID int) (*[]domain.Transaction, error) {
+func (r *transactionRepository) GetTransactions(ctx context.Context, userID int, paginator *pagination.Paginator) (*[]domain.Transaction, error) {
 	query := `
 		SELECT
 			sender.username 			AS sender_username,
@@ -111,12 +112,16 @@ func (r *transactionRepository) GetTransactions(ctx context.Context, userID int)
 			ON t.sender_id = sender.id
 		JOIN users AS beneficiary
 			ON t.beneficiary_id = beneficiary.id
-		WHERE t.user_id = $1
-		ORDER BY created_at DESC;
+		WHERE t.user_id = ?
+		ORDER BY created_at DESC
+		LIMIT ?
+		OFFSET ?;
 	`
 
+	args := []interface{}{userID, paginator.Limit(), paginator.Offset()}
+
 	var transactions []domain.Transaction
-	if err := r.db.SelectContext(ctx, &transactions, query, userID); err != nil {
+	if err := r.db.SelectContext(ctx, &transactions, r.db.Rebind(query), args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, exception.ErrNoTransactionsFound
 		}
@@ -124,4 +129,18 @@ func (r *transactionRepository) GetTransactions(ctx context.Context, userID int)
 	}
 
 	return &transactions, nil
+}
+
+func (r *transactionRepository) GetTotalTransactionsCount(ctx context.Context, userID int, paginator *pagination.Paginator) error {
+	query := `
+		SELECT COUNT(1)
+		FROM transactions t
+		JOIN users AS sender
+			ON t.sender_id = sender.id
+		JOIN users AS beneficiary
+			ON t.beneficiary_id = beneficiary.id
+		WHERE t.user_id = $1
+	`
+
+	return r.db.QueryRowContext(ctx, query, userID).Scan(&paginator.TotalRecords)
 }

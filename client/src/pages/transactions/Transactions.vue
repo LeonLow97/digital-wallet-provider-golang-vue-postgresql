@@ -255,10 +255,10 @@ const getTransactions = async () => {
 
       if (headers) {
         pagination.value = {
-          page: parseInt(headers["x-page"]) || NaN,
-          pageSize: parseInt(headers["x-page-size"]) || NaN,
-          totalRecords: parseInt(headers["x-total"]) || NaN,
-          totalPages: parseInt(headers["x-total-pages"]) || NaN,
+          page: parseInt(headers["x-page"]) || 1,
+          pageSize: parseInt(headers["x-page-size"]) || 1,
+          totalRecords: parseInt(headers["x-total"]) || 1,
+          totalPages: parseInt(headers["x-total-pages"]) || 1,
           hasPreviousPage: headers["x-has-previous-page"] === "true",
           hasNextPage: headers["x-has-next-page"] === "true",
         };

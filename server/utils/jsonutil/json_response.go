@@ -117,6 +117,10 @@ func ErrorJSON(w http.ResponseWriter, errMessage string, status ...int) error {
 
 // SetPaginatorHeaders sets the paginator details in the response headers
 func SetPaginatorHeaders(w http.ResponseWriter, paginator *pagination.Paginator) {
+	if paginator.Page > paginator.TotalPages() {
+		paginator.Page = paginator.TotalPages()
+	}
+
 	w.Header().Set(headers.XTotal, strconv.FormatInt(paginator.TotalRecords, 10))
 	w.Header().Set(headers.XTotalPages, strconv.FormatInt(paginator.TotalPages(), 10))
 	w.Header().Set(headers.XPage, strconv.FormatInt(paginator.Page, 10))

@@ -111,7 +111,7 @@
 
     <div class="mb-4 flex items-center justify-between">
       <div class="text-sm text-slate-700 dark:text-slate-300">
-        Showing {{ pagination.pageSize }} of
+        Showing {{ showingRecordsComputation }} of
         {{ pagination.totalRecords }} records.
       </div>
       <div class="flex">
@@ -193,6 +193,15 @@ onMounted(() => {
   }
 
   getTransactions();
+});
+
+const showingRecordsComputation = computed(() => {
+  let recordsComputation = pagination.value.pageSize * pagination.value.page;
+
+  if (recordsComputation > pagination.value.totalRecords!) {
+    return pagination.value.totalRecords;
+  }
+  return recordsComputation;
 });
 
 const computedPageNumbers = computed(() => {

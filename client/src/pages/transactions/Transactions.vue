@@ -4,7 +4,7 @@
       <h1 class="text-xl font-bold tracking-wider">Transactions</h1>
       <div class="flex">
         <button
-          class="mr-4 flex items-center gap-1 rounded-2xl px-4 py-2 text-xs uppercase transition hover:bg-slate-100"
+          class="mr-4 flex items-center gap-1 rounded-2xl px-4 py-2 text-xs uppercase transition hover:bg-slate-100 dark:hover:bg-slate-700"
           :disabled="!pagination.hasPreviousPage"
           @click="handlePageNumberClick(pagination.page - 1)"
           :class="
@@ -22,8 +22,8 @@
             class="rounded-lg px-4 py-2 text-sm transition"
             :class="
               pageNumber !== pagination.page
-                ? 'text-black hover:bg-slate-200'
-                : 'bg-slate-900 text-white hover:bg-slate-700'
+                ? 'text-black hover:bg-slate-200 dark:text-white dark:hover:bg-slate-700'
+                : 'bg-slate-900 text-white hover:bg-slate-700 dark:bg-slate-200 dark:text-slate-700'
             "
             @click="handlePageNumberClick(pageNumber)"
           >
@@ -31,7 +31,7 @@
           </button>
         </div>
         <button
-          class="ml-4 flex items-center gap-1 rounded-2xl px-4 py-2 text-xs uppercase hover:bg-gray-100"
+          class="ml-4 flex items-center gap-1 rounded-2xl px-4 py-2 text-xs uppercase hover:bg-gray-100 dark:hover:bg-slate-700"
           :disabled="!pagination.hasNextPage"
           :class="
             !pagination.hasNextPage ? 'cursor-not-allowed text-gray-400' : ''
@@ -110,13 +110,13 @@
     </div>
 
     <div class="mb-4 flex items-center justify-between">
-      <div class="text-sm text-slate-700">
+      <div class="text-sm text-slate-700 dark:text-slate-300">
         Showing {{ pagination.pageSize }} of
         {{ pagination.totalRecords }} records.
       </div>
       <div class="flex">
         <button
-          class="mr-4 flex items-center gap-1 rounded-2xl px-4 py-2 text-xs uppercase transition hover:bg-slate-100"
+          class="mr-4 flex items-center gap-1 rounded-2xl px-4 py-2 text-xs uppercase transition hover:bg-slate-100 dark:hover:bg-slate-700"
           :disabled="!pagination.hasPreviousPage"
           @click="handlePageNumberClick(pagination.page - 1)"
           :class="
@@ -134,8 +134,8 @@
             class="rounded-lg px-4 py-2 text-sm transition"
             :class="
               pageNumber !== pagination.page
-                ? 'text-black hover:bg-slate-200'
-                : 'bg-slate-900 text-white hover:bg-slate-700'
+                ? 'text-black hover:bg-slate-200 dark:text-white dark:hover:bg-slate-700'
+                : 'bg-slate-900 text-white hover:bg-slate-700 dark:bg-slate-200 dark:text-slate-700'
             "
             @click="handlePageNumberClick(pageNumber)"
           >
@@ -143,7 +143,7 @@
           </button>
         </div>
         <button
-          class="ml-4 flex items-center gap-1 rounded-2xl px-4 py-2 text-xs uppercase hover:bg-gray-100"
+          class="ml-4 flex items-center gap-1 rounded-2xl px-4 py-2 text-xs uppercase hover:bg-gray-100 dark:hover:bg-slate-700"
           :disabled="!pagination.hasNextPage"
           :class="
             !pagination.hasNextPage ? 'cursor-not-allowed text-gray-400' : ''
@@ -231,12 +231,12 @@ const handlePageNumberClick = async (pageNumber: number) => {
 
 const transactionCssTextColor = (status: string) => {
   switch (status?.toLowerCase()) {
-    case "successful":
-      return "text-green-500";
+    case "success":
+      return "text-green-500 dark:text-green-400";
     case "failed":
-      return "text-red-500";
+      return "text-red-500 dark:text-red-400";
     default:
-      return "text-blue-500";
+      return "text-orange-500 text-orange-400";
   }
 };
 

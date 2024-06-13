@@ -3,7 +3,11 @@
     class="mr-8 h-screen border-r-2 border-gray-200 py-2 dark:border-gray-500"
   >
     <ul class="flex cursor-pointer flex-col">
-      <router-link :to="{ name: 'Home' }">
+      <router-link
+        :to="{ name: 'Home' }"
+        active-class="active"
+        class="nav-link"
+      >
         <li
           class="grid items-center justify-center px-12 py-4 transition hover:bg-blue-500 hover:text-white"
           :class="props.openSideNav ? 'grid-cols-3' : ''"
@@ -14,7 +18,11 @@
           >
         </li>
       </router-link>
-      <router-link :to="{ name: 'Balances' }">
+      <router-link
+        :to="{ name: 'Balances' }"
+        active-class="active"
+        class="nav-link"
+      >
         <li
           class="grid items-center justify-center px-12 py-4 transition hover:bg-blue-500 hover:text-white"
           :class="props.openSideNav ? 'grid-cols-3' : ''"
@@ -25,7 +33,11 @@
           >
         </li>
       </router-link>
-      <router-link :to="{ name: 'Beneficiary' }">
+      <router-link
+        :to="{ name: 'Beneficiary' }"
+        active-class="active"
+        class="nav-link"
+      >
         <li
           class="grid items-center justify-center px-12 py-4 transition hover:bg-blue-500 hover:text-white"
           :class="props.openSideNav ? 'grid-cols-3' : ''"
@@ -36,7 +48,11 @@
           >
         </li>
       </router-link>
-      <router-link :to="{ name: 'Wallets' }">
+      <router-link
+        :to="{ name: 'Wallets' }"
+        active-class="active"
+        class="nav-link"
+      >
         <li
           class="grid items-center justify-center px-12 py-4 transition hover:bg-blue-500 hover:text-white"
           :class="props.openSideNav ? 'grid-cols-3' : ''"
@@ -47,7 +63,11 @@
           >
         </li>
       </router-link>
-      <router-link :to="{ name: 'Transactions' }">
+      <router-link
+        :to="{ name: 'Transactions' }"
+        active-class="active"
+        class="nav-link"
+      >
         <li
           class="grid items-center justify-center px-12 py-4 transition hover:bg-blue-500 hover:text-white"
           :class="props.openSideNav ? 'grid-cols-3' : ''"
@@ -76,3 +96,10 @@ const props = defineProps<{
   openSideNav: boolean;
 }>();
 </script>
+
+<style scoped>
+.nav-link.active {
+  background-color: #1d4ed8; /* Tailwind's bg-blue-900 */
+  color: white;
+}
+</style>

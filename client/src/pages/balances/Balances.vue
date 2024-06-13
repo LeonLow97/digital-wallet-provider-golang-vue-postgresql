@@ -3,19 +3,19 @@
     <h1 class="text-xl font-bold tracking-wider">Balances</h1>
     <div class="flex gap-8">
       <action-button
+        text="Currency Exchange"
+        class="rounded-lg bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-300 dark:hover:bg-blue-700"
+        @click="handleCurrencyExchange()"
+      />
+      <action-button
         text="Deposit"
-        class="rounded-lg bg-green-500 px-4 py-2 text-center text-white transition hover:bg-green-400"
+        class="rounded-lg bg-slate-700 px-4 py-2 text-center text-white transition hover:bg-slate-500 dark:bg-slate-600 dark:hover:bg-slate-700"
         @click="handleDeposit()"
       />
       <action-button
         text="Withdraw"
-        class="rounded-lg bg-pink-500 px-4 py-2 text-center text-white transition hover:bg-pink-400"
+        class="rounded-lg border border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300"
         @click="handleWithdraw()"
-      />
-      <action-button
-        text="Currency Exchange"
-        class="rounded-lg bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
-        @click="handleCurrencyExchange()"
       />
     </div>
   </div>

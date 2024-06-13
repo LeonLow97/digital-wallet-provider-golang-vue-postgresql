@@ -1,5 +1,5 @@
 <template>
-  <button>{{ text }}</button>
+  <button class="shadow-md transition">{{ text }}</button>
 </template>
 
 <script lang="ts" setup>

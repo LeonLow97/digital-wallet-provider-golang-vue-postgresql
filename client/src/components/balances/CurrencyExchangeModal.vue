@@ -61,7 +61,7 @@
             class="col-span-3"
           />
           <select
-            class="text-md rounded-md border border-none px-4 py-3 text-center shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:bg-gray-800"
+            class="text-md rounded-md border border-slate-300 px-4 py-3 text-center shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:border-none dark:bg-gray-800"
             v-model.trim="selectedToCurrency"
             :class="showAmountToReceive ? 'col-span-1' : 'col-span-2'"
           >
@@ -108,7 +108,7 @@
         <div class="mt-8 flex justify-end gap-4">
           <action-button
             @click="closeModal"
-            class="mb-4 inline-block rounded-lg border dark:text-blue-300 dark:border-blue-300 dark:hover:text-blue-500 dark:hover:border-blue-500 border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300"
+            class="mb-4 inline-block rounded-lg border border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300 dark:border-blue-300 dark:text-blue-300 dark:hover:border-blue-500 dark:hover:text-blue-500"
             text="Close"
           />
           <action-button

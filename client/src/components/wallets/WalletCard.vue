@@ -35,10 +35,10 @@ const cardClass = computed(() => {
     "cursor-pointer rounded-lg border border-none p-6 shadow-lg dark:text-black";
 
   const typeClassMapping: Record<string, string> = {
-    personal: "bg-purple-100 shadow-lg",
-    savings: "bg-yellow-100 shadow-lg",
-    investment: "bg-blue-100 shadow-lg",
-    business: "bg-red-100 shadow-lg",
+    personal: "shadow-lg dark:bg-slate-700 dark:text-slate-300",
+    savings: "shadow-lg dark:bg-slate-700 dark:text-slate-300",
+    investment: "shadow-lg dark:bg-slate-700 dark:text-slate-300",
+    business: "shadow-lg dark:bg-slate-700 dark:text-slate-300",
   };
 
   if (props.type in typeClassMapping) {

@@ -8,12 +8,12 @@
       >
       <div>
         <action-button
-          class="mr-8 rounded-lg border border-none bg-green-500 px-8 py-2 text-center text-white transition hover:bg-green-400"
+          class="mr-8 rounded-lg border border-none bg-slate-700 px-8 py-2 text-center text-white transition hover:bg-slate-500"
           text="Deposit"
           @click="handleDeposit"
         />
         <action-button
-          class="rounded-lg border border-none bg-pink-600 px-8 py-2 text-center text-white transition hover:bg-pink-400"
+          class="rounded-lg border border-blue-500 px-8 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300"
           text="Withdraw"
           @click="handleWithdraw"
         />

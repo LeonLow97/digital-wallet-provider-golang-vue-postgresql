@@ -16,12 +16,20 @@
     </div>
     <div class="pr-8">
       <ul class="flex">
-        <router-link :to="{ name: 'UserProfile' }" class="w-full">
+        <router-link
+          :to="{ name: 'UserProfile' }"
+          active-class="active"
+          class="nav-link w-full"
+        >
           <li class="flex w-full px-6 py-5 transition hover:bg-blue-500">
             <svg-icon type="mdi" :path="mdiAccount" />
           </li>
         </router-link>
-        <router-link :to="{ name: 'Settings' }" class="w-full">
+        <router-link
+          :to="{ name: 'Settings' }"
+          active-class="active"
+          class="nav-link w-full"
+        >
           <li class="flex w-full px-6 py-5 transition hover:bg-blue-500">
             <svg-icon type="mdi" :path="mdiCogOutline" />
           </li>
@@ -82,3 +90,10 @@ const toggleSideNav = () => {
   emits("toggleSideNav", openSideNav.value);
 };
 </script>
+
+<style scoped>
+.nav-link.active {
+  background-color: #1d4ed8; /* Tailwind's bg-blue-900 */
+  color: white;
+}
+</style>

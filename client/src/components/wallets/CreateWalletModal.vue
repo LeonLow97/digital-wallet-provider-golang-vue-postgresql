@@ -15,7 +15,7 @@
             >Wallet Type:</label
           >
           <select
-            class="w-full rounded-md bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:bg-gray-800 dark:text-gray-300"
+            class="w-full rounded-md border border-slate-300 bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:border-none dark:bg-gray-800 dark:text-gray-300"
             v-model.trim="selectedWalletTypeId"
           >
             <option disabled value="0">Select Wallet Type</option>
@@ -36,7 +36,7 @@
         >
           <text-input v-model.number="item.amount!" placeholder="Amount" />
           <select
-            class="w-1/3 rounded-md bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:bg-gray-800 dark:text-gray-300"
+            class="w-1/3 rounded-md border border-slate-300 bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:border-none dark:bg-gray-800 dark:text-gray-300"
             v-model.trim="item.currency"
           >
             <option disabled value="">Select Currency</option>
@@ -60,7 +60,7 @@
         <div class="mt-4 flex justify-end gap-4">
           <action-button
             @click="closeModal"
-            class="mb-4 inline-block rounded-lg border border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300"
+            class="mb-4 inline-block rounded-lg border border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300 dark:border-blue-300 dark:text-blue-300 dark:hover:border-blue-500 dark:hover:text-blue-500"
             text="Close"
           />
           <action-button

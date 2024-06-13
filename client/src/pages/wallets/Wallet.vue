@@ -2,22 +2,22 @@
   <div class="mt-2 flex items-center justify-between">
     <router-link
       :to="{ name: 'Wallets' }"
-      class="tracking-wider text-blue-600 underline underline-offset-8 hover:text-blue-300 dark:text-blue-300 dark:hover:text-blue-600"
+      class="tracking-wider text-blue-600 underline underline-offset-8 transition hover:text-blue-300 dark:text-blue-300 dark:hover:text-blue-600"
       >&larr; Back to Wallets</router-link
     >
     <div>
       <action-button
-        class="mr-8 rounded-lg border border-none bg-blue-500 px-8 py-2 text-center text-white transition hover:bg-blue-400"
+        class="mr-8 rounded-lg bg-blue-500 px-8 py-2 text-center text-white transition hover:bg-blue-300 dark:hover:bg-blue-700"
         text="Make a Transfer"
         @click="handleTransfer"
       />
       <action-button
-        class="mr-8 rounded-lg border border-none bg-green-500 px-8 py-2 text-center text-white transition hover:bg-green-400"
+        class="mr-8 rounded-lg bg-slate-700 px-8 py-2 text-center text-white transition hover:bg-slate-500 dark:bg-slate-600 dark:hover:bg-slate-700"
         text="Top Up Wallet"
         @click="handleWalletExchanges('Top Up')"
       />
       <action-button
-        class="rounded-lg border border-none bg-pink-600 px-8 py-2 text-center text-white transition hover:bg-pink-500"
+        class="0 rounded-lg border border-blue-500 px-8 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300 dark:border-blue-300 dark:text-blue-300 dark:hover:border-blue-500 dark:hover:text-blue-500"
         text="Cash Out to Main Balance"
         @click="handleWalletExchanges('Cash Out')"
       />

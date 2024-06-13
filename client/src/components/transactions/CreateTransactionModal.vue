@@ -20,7 +20,7 @@
             placeholder="Source Amount"
           />
           <select
-            class="w-1/4 rounded-md bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:bg-gray-800 dark:text-gray-300"
+            class="w-1/4 rounded-md border border-slate-300 bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:border-none dark:bg-gray-800 dark:text-gray-300"
             v-model.trim="selectedCurrency"
           >
             <option disabled value="">Select Currency for Transfer</option>
@@ -42,7 +42,7 @@
           >Select Beneficiary:</label
         >
         <select
-          class="w-full rounded-md bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:bg-gray-800 dark:text-gray-300"
+          class="w-full rounded-md border border-slate-300 bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:border-none dark:bg-gray-800 dark:text-gray-300"
           v-model.trim="selectedBeneficiary"
         >
           <option

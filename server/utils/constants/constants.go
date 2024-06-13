@@ -10,9 +10,9 @@ const JWT_COOKIE = "mw-token"
 
 // Transaction Status
 const (
-	SUBMITTED = "SUBMITTED"
-	PENDING   = "PENDING"
-	COMPLETED = "COMPLETED"
+	FAILED  = "FAILED"
+	PENDING = "PENDING"
+	SUCCESS = "SUCCESS"
 )
 
 // Assumption: Depending on the user's mobile country code, the user

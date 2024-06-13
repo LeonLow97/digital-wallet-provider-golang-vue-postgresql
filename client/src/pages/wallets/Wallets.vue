@@ -51,7 +51,9 @@ const getWallets = async () => {
   try {
     const { data, status } = await GET_WALLETS();
 
-    wallets.value = data;
+    if (status === 200) {
+      wallets.value = data;
+    }
   } catch (error: any) {
     toastStore.ERROR_TOAST(error?.response.data.message);
   }

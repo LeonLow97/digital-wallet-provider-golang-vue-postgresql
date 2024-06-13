@@ -19,7 +19,7 @@
       <label for="mobileNumber">Mobile Number:</label>
       <div class="flex gap-4">
         <select
-          class="rounded-md dark:bg-gray-800 dark:text-gray-300 bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+          class="rounded-md border border-slate-300 bg-white px-4 py-2 text-center text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:border-none dark:bg-gray-800 dark:text-gray-300"
           v-model.trim="mobileCountryCode"
         >
           <option value="+65">+ 65</option>

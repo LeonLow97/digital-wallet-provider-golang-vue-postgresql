@@ -17,7 +17,7 @@
 import { ref } from "vue";
 import TextInput from "../TextInput.vue";
 import ActionButton from "../ActionButton.vue";
-import type { VERIFY_MFA_REQUEST } from "@/types/user";
+import type { VerifyMfaRequest } from "@/types/user";
 import { VERIFY_MFA } from "@/api/user";
 import { useToastStore } from "@/stores/toast";
 
@@ -35,7 +35,7 @@ const emit = defineEmits(["mfaVerified"]);
 
 const handleVerifyMFA = async (email: string) => {
   try {
-    const body: VERIFY_MFA_REQUEST = {
+    const body: VerifyMfaRequest = {
       email,
       mfa_code: mfaCode.value,
     };

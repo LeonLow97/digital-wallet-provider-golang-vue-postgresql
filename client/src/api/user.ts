@@ -1,17 +1,17 @@
 import axios from "axios";
 import type {
   User,
-  LOGIN_REQUEST,
-  SIGNUP_REQUEST,
-  UPDATE_USER_REQUEST,
-  CHANGE_PASSWORD_REQUEST,
-  SEND_PASSWORD_RESET_EMAIL_REQUEST,
-  PASSWORD_RESET_REQUEST,
-  LOGIN_RESPONSE,
-  CONFIGURE_MFA_REQUEST,
-  VERIFY_MFA_REQUEST,
+  LoginRequest,
+  SignUpRequest,
+  UpdateUserRequest,
+  ChangePasswordRequest,
+  SendPasswordResetEmailRequest,
+  PasswordResetRequest,
+  LoginResponse,
+  ConfigureMfaRequest,
+  VerifyMfaRequest,
 } from "@/types/user";
-import type { GENERIC_STATUS_RESPONSE } from "@/types/generic";
+import type { HttpStatusResponse } from "@/types/generic";
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
 
@@ -27,7 +27,7 @@ const VERIFY_MFA_URL = `${API_URL}/verify-mfa`;
 const ME_URL = `${API_URL}/users/me`;
 const UPDATE_USER_URL = `${API_URL}/users/profile`;
 
-export const LOGIN = async (body: LOGIN_REQUEST): Promise<LOGIN_RESPONSE> => {
+export const LOGIN = async (body: LoginRequest): Promise<LoginResponse> => {
   const { data, status } = await axios.post<User>(
     LOGIN_URL,
     JSON.stringify(body),
@@ -39,7 +39,7 @@ export const LOGIN = async (body: LOGIN_REQUEST): Promise<LOGIN_RESPONSE> => {
   return { data, status };
 };
 
-export const LOGOUT = async (): Promise<GENERIC_STATUS_RESPONSE> => {
+export const LOGOUT = async (): Promise<HttpStatusResponse> => {
   const { status } = await axios.post(LOGOUT_URL, `{}`, {
     withCredentials: true,
   });
@@ -48,8 +48,8 @@ export const LOGOUT = async (): Promise<GENERIC_STATUS_RESPONSE> => {
 };
 
 export const SIGNUP = async (
-  body: SIGNUP_REQUEST,
-): Promise<GENERIC_STATUS_RESPONSE> => {
+  body: SignUpRequest,
+): Promise<HttpStatusResponse> => {
   const { status } = await axios.post(SIGNUP_URL, JSON.stringify(body), {
     withCredentials: true,
   });
@@ -58,8 +58,8 @@ export const SIGNUP = async (
 };
 
 export const CHANGE_PASSWORD = async (
-  body: CHANGE_PASSWORD_REQUEST,
-): Promise<GENERIC_STATUS_RESPONSE> => {
+  body: ChangePasswordRequest,
+): Promise<HttpStatusResponse> => {
   const { status } = await axios.patch(
     CHANGE_PASSWORD_URL,
     JSON.stringify(body),
@@ -72,8 +72,8 @@ export const CHANGE_PASSWORD = async (
 };
 
 export const PASSWORD_RESET = async (
-  body: PASSWORD_RESET_REQUEST,
-): Promise<GENERIC_STATUS_RESPONSE> => {
+  body: PasswordResetRequest,
+): Promise<HttpStatusResponse> => {
   const { status } = await axios.patch(
     PASSWORD_RESET_URL,
     JSON.stringify(body),
@@ -84,8 +84,8 @@ export const PASSWORD_RESET = async (
 };
 
 export const SEND_PASSWORD_RESET_EMAIL = async (
-  body: SEND_PASSWORD_RESET_EMAIL_REQUEST,
-): Promise<GENERIC_STATUS_RESPONSE> => {
+  body: SendPasswordResetEmailRequest,
+): Promise<HttpStatusResponse> => {
   const { status } = await axios.post(
     PASSWORD_RESET_SEND_EMAIL_URL,
     JSON.stringify(body),
@@ -102,8 +102,8 @@ export const GET_USER = async () => {
 };
 
 export const UPDATE_USER = async (
-  body: UPDATE_USER_REQUEST,
-): Promise<GENERIC_STATUS_RESPONSE> => {
+  body: UpdateUserRequest,
+): Promise<HttpStatusResponse> => {
   const { status } = await axios.put(UPDATE_USER_URL, JSON.stringify(body), {
     withCredentials: true,
   });
@@ -112,8 +112,8 @@ export const UPDATE_USER = async (
 };
 
 export const CONFIGURE_MFA = async (
-  body: CONFIGURE_MFA_REQUEST,
-): Promise<GENERIC_STATUS_RESPONSE> => {
+  body: ConfigureMfaRequest,
+): Promise<HttpStatusResponse> => {
   const { status } = await axios.post(CONFIGURE_MFA_URL, JSON.stringify(body), {
     withCredentials: true,
   });
@@ -122,8 +122,8 @@ export const CONFIGURE_MFA = async (
 };
 
 export const VERIFY_MFA = async (
-  body: VERIFY_MFA_REQUEST,
-): Promise<GENERIC_STATUS_RESPONSE> => {
+  body: VerifyMfaRequest,
+): Promise<HttpStatusResponse> => {
   const { status } = await axios.post(VERIFY_MFA_URL, JSON.stringify(body), {
     withCredentials: true,
   });

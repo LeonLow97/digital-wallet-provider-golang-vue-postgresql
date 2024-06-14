@@ -60,8 +60,8 @@ import { computed, ref, watch } from "vue";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { DEPOSIT, WITHDRAW } from "@/api/balances";
-import type { DEPOSIT_REQUEST, WITHDRAW_REQUEST } from "@/types/balances";
-import type { GENERIC_STATUS_RESPONSE } from "@/types/generic";
+import type { DepositRequest, WithdrawRequest } from "@/types/balances";
+import type { HttpStatusResponse } from "@/types/generic";
 import { useToastStore } from "@/stores/toast";
 
 const props = defineProps<{
@@ -129,12 +129,12 @@ const finalBalance = computed(() => {
 
 const handleSubmit = async () => {
   try {
-    const body: DEPOSIT_REQUEST = {
+    const body: DepositRequest = {
       amount: amount.value!,
       currency: currency.value!,
     };
 
-    let response: GENERIC_STATUS_RESPONSE;
+    let response: HttpStatusResponse;
     if (props.actionType?.trim().toLowerCase() === "deposit") {
       response = await DEPOSIT(body);
     } else {

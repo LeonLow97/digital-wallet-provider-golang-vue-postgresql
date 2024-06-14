@@ -8,17 +8,17 @@ export interface User {
   mobileNumber: string;
 }
 
-export interface LOGIN_REQUEST {
+export interface LoginRequest {
   email: string;
   password: string;
 }
 
-export interface LOGIN_RESPONSE {
-  data: LOGIN_RESPONSE_DATA;
+export interface LoginResponse {
+  data: LoginResponseData;
   status: number;
 }
 
-interface LOGIN_RESPONSE_DATA {
+interface LoginResponseData {
   firstName: string;
   lastName: string;
   email: string;
@@ -27,15 +27,15 @@ interface LOGIN_RESPONSE_DATA {
   mobileCountryCode: string;
   mobileNumber: string;
   isMfaConfigured?: boolean;
-  mfaConfig?: MFA_CONFIG;
+  mfaConfig?: MfaConfig;
 }
 
-interface MFA_CONFIG {
+interface MfaConfig {
   secret: string;
   url: string;
 }
 
-export interface SIGNUP_REQUEST {
+export interface SignUpRequest {
   first_name: string | null;
   last_name: string | null;
   username: string;
@@ -45,21 +45,21 @@ export interface SIGNUP_REQUEST {
   mobile_number: string;
 }
 
-export interface CHANGE_PASSWORD_REQUEST {
+export interface ChangePasswordRequest {
   current_password: string;
   new_password: string;
 }
 
-export interface SEND_PASSWORD_RESET_EMAIL_REQUEST {
+export interface SendPasswordResetEmailRequest {
   email: string;
 }
 
-export interface PASSWORD_RESET_REQUEST {
+export interface PasswordResetRequest {
   token: string;
   password: string;
 }
 
-export interface UPDATE_USER_REQUEST {
+export interface UpdateUserRequest {
   first_name: string | null;
   last_name: string | null;
   username: string;
@@ -68,13 +68,13 @@ export interface UPDATE_USER_REQUEST {
   mobile_number: string;
 }
 
-export interface CONFIGURE_MFA_REQUEST {
+export interface ConfigureMfaRequest {
   email: string;
   secret: string;
   mfa_code: string;
 }
 
-export interface VERIFY_MFA_REQUEST {
+export interface VerifyMfaRequest {
   email: string;
   mfa_code: string;
 }

@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { APIResponse, GENERIC_STATUS_RESPONSE } from "@/types/generic";
+import type { ApiResponse, HttpStatusResponse } from "@/types/generic";
 import type {
   Wallet,
   CreateWalletRequest,
@@ -15,7 +15,7 @@ const GET_WALLET_TYPES_URL = `${API_URL}/wallet/types`;
 const CREATE_WALLET_URL = `${API_URL}/wallet`;
 const UPDATE_WALLET_URL = `${API_URL}/wallet/update/`;
 
-export const GET_WALLETS = async (): Promise<APIResponse<Wallet[]>> => {
+export const GET_WALLETS = async (): Promise<ApiResponse<Wallet[]>> => {
   const { data, status } = await axios.get<Wallet[]>(GET_WALLETS_URL, {
     withCredentials: true,
   });
@@ -25,7 +25,7 @@ export const GET_WALLETS = async (): Promise<APIResponse<Wallet[]>> => {
 
 export const GET_WALLET = async (
   paramId: number,
-): Promise<APIResponse<Wallet>> => {
+): Promise<ApiResponse<Wallet>> => {
   const { data, status } = await axios.get<Wallet>(GET_WALLET_URL + paramId, {
     withCredentials: true,
   });
@@ -34,7 +34,7 @@ export const GET_WALLET = async (
 };
 
 export const GET_WALLET_TYPES = async (): Promise<
-  APIResponse<GetWalletTypesResponse[]>
+  ApiResponse<GetWalletTypesResponse[]>
 > => {
   const { data, status } = await axios.get<GetWalletTypesResponse[]>(
     GET_WALLET_TYPES_URL,
@@ -46,8 +46,8 @@ export const GET_WALLET_TYPES = async (): Promise<
 
 export const CREATE_WALLET = async (
   body: CreateWalletRequest,
-): Promise<GENERIC_STATUS_RESPONSE> => {
-  const { status } = await axios.post<GENERIC_STATUS_RESPONSE>(
+): Promise<HttpStatusResponse> => {
+  const { status } = await axios.post<HttpStatusResponse>(
     CREATE_WALLET_URL,
     body,
     { withCredentials: true },
@@ -60,8 +60,8 @@ export const UPDATE_WALLET = async (
   walletId: number,
   operation: string,
   body: WalletExchangesRequest,
-): Promise<GENERIC_STATUS_RESPONSE> => {
-  const { status } = await axios.put<GENERIC_STATUS_RESPONSE>(
+): Promise<HttpStatusResponse> => {
+  const { status } = await axios.put<HttpStatusResponse>(
     `${UPDATE_WALLET_URL}/${walletId}/${operation}`,
     body,
     { withCredentials: true },

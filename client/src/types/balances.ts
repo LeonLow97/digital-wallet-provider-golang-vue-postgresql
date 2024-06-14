@@ -32,17 +32,17 @@ export interface GetBalanceHistoryResponse {
   balanceHistory: BalanceHistory[];
 }
 
-export interface DEPOSIT_REQUEST {
+export interface DepositRequest {
   amount: number;
   currency: string;
 }
 
-export interface WITHDRAW_REQUEST {
+export interface WithdrawRequest {
   amount: number;
   currency: string;
 }
 
-export interface CURRENCY_EXCHANGE_REQUEST {
+export interface CurrencyExchangeRequest {
   from_amount: number;
   to_currency: string;
 }

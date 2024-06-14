@@ -12,7 +12,7 @@
         <div class="flex justify-end gap-4">
           <action-button
             @click="closeModal"
-            class="mb-4 inline-block rounded-lg dark:hover:text-blue-500 dark:hover:border-blue-500 dark:text-blue-300 dark:border-blue-300 border border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300"
+            class="mb-4 inline-block rounded-lg border border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300 dark:border-blue-300 dark:text-blue-300 dark:hover:border-blue-500 dark:hover:text-blue-500"
             text="No"
           />
           <action-button
@@ -30,7 +30,7 @@ import { ref, watch } from "vue";
 import Modal from "@/components/Modal.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { DELETE_BENEFICIARY } from "@/api/beneficiary";
-import type { DELETE_BENEFICIARY_REQUEST } from "@/types/beneficiary";
+import type { DeleteBeneficiaryRequest } from "@/types/beneficiary";
 import { useToastStore } from "@/stores/toast";
 
 const toastStore = useToastStore();
@@ -59,7 +59,7 @@ const closeModal = () => {
 
 const handleSubmit = async () => {
   try {
-    const body: DELETE_BENEFICIARY_REQUEST = {
+    const body: DeleteBeneficiaryRequest = {
       is_deleted: props.actionDelete ? 1 : 0,
       beneficiary_id: props.beneficiaryId,
     };

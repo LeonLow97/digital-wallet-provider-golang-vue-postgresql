@@ -50,7 +50,7 @@ import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import type { User } from "@/types/user";
 import { UPDATE_USER } from "@/api/user";
-import type { UPDATE_USER_REQUEST } from "@/types/user";
+import type { UpdateUserRequest } from "@/types/user";
 import { useToastStore } from "@/stores/toast";
 
 const toastStore = useToastStore();
@@ -75,7 +75,7 @@ onMounted(async () => {
 
 const handleSaveChanges = async () => {
   try {
-    const req: UPDATE_USER_REQUEST = {
+    const req: UpdateUserRequest = {
       first_name: firstName.value === "" ? null : firstName.value,
       last_name: lastName.value === "" ? null : lastName.value,
       username: username.value,

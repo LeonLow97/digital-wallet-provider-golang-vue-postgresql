@@ -4,41 +4,63 @@
       <h1 class="text-xl font-bold tracking-wider">Transactions</h1>
       <div class="flex">
         <button
-          class="mr-4 flex items-center gap-1 rounded-2xl px-4 py-2 text-xs uppercase transition hover:bg-slate-100 dark:hover:bg-slate-700"
+          class="flex items-center gap-1 rounded-2xl p-2 text-xs uppercase transition hover:bg-slate-100 dark:hover:bg-slate-700"
+          :disabled="!pagination.hasPreviousPage"
+          @click="handlePageNumberClick(1)"
+          :class="
+            !pagination.hasPreviousPage
+              ? 'cursor-not-allowed text-gray-400 dark:text-gray-600'
+              : ''
+          "
+        >
+          <svg-icon type="mdi" class="h-5" :path="mdiArrowCollapseLeft" />
+        </button>
+        <button
+          class="mr-4 flex items-center gap-1 rounded-2xl p-2 text-xs uppercase transition hover:bg-slate-100 dark:hover:bg-slate-700"
           :disabled="!pagination.hasPreviousPage"
           @click="handlePageNumberClick(pagination.page - 1)"
           :class="
             !pagination.hasPreviousPage
-              ? 'cursor-not-allowed text-gray-400'
+              ? 'cursor-not-allowed text-gray-400 dark:text-gray-600'
               : ''
           "
         >
-          <svg-icon class="h-4" type="mdi" :path="mdiArrowLeft" /> Previous
+          <svg-icon type="mdi" :path="mdiChevronLeft" />
         </button>
         <div class="flex gap-1">
           <button
             v-for="pageNumber in computedPageNumbers"
             :key="pageNumber?.toString()"
             class="rounded-lg px-4 py-2 text-sm transition"
-            :class="
-              pageNumber !== pagination.page
-                ? 'text-black hover:bg-slate-200 dark:text-white dark:hover:bg-slate-700'
-                : 'bg-slate-900 text-white hover:bg-slate-700 dark:bg-slate-200 dark:text-slate-700'
-            "
+            :class="dynamicPaginationClassNames(pageNumber)"
             @click="handlePageNumberClick(pageNumber)"
           >
             {{ pageNumber }}
           </button>
         </div>
         <button
-          class="ml-4 flex items-center gap-1 rounded-2xl px-4 py-2 text-xs uppercase hover:bg-gray-100 dark:hover:bg-slate-700"
+          class="ml-4 flex items-center gap-1 rounded-2xl p-2 text-xs uppercase hover:bg-gray-100 dark:hover:bg-slate-700"
           :disabled="!pagination.hasNextPage"
           :class="
-            !pagination.hasNextPage ? 'cursor-not-allowed text-gray-400' : ''
+            !pagination.hasNextPage
+              ? 'cursor-not-allowed text-gray-400 dark:text-gray-600'
+              : ''
           "
           @click="handlePageNumberClick(pagination.page + 1)"
         >
-          Next <svg-icon class="h-4" type="mdi" :path="mdiArrowRight" />
+          <svg-icon type="mdi" :path="mdiChevronRight" />
+        </button>
+        <button
+          class="flex items-center gap-1 rounded-2xl p-2 text-xs uppercase hover:bg-gray-100 dark:hover:bg-slate-700"
+          :disabled="!pagination.hasNextPage"
+          :class="
+            !pagination.hasNextPage
+              ? 'cursor-not-allowed text-gray-400 dark:text-gray-600'
+              : ''
+          "
+          @click="handlePageNumberClick(pagination.totalPages!)"
+        >
+          <svg-icon class="h-5" type="mdi" :path="mdiArrowCollapseRight" />
         </button>
       </div>
     </div>
@@ -49,14 +71,10 @@
       >
         <thead>
           <tr class="bg-gray-200 text-sm leading-normal dark:bg-gray-700">
-            <th class="px-6 py-3 text-center">Sender Username</th>
-            <th class="px-6 py-3 text-center">Sender Mobile</th>
-            <th class="px-6 py-3 text-center">Beneficiary Username</th>
-            <th class="px-6 py-3 text-center">Beneficiary Mobile</th>
+            <th class="px-6 py-3 text-center">Sender</th>
+            <th class="px-6 py-3 text-center">Beneficiary</th>
             <th class="px-6 py-3 text-center">Source Amount</th>
-            <th class="px-6 py-3 text-center">Source Currency</th>
             <th class="px-6 py-3 text-center">Destination Amount</th>
-            <th class="px-6 py-3 text-center">Destination Currency</th>
             <th class="px-6 py-3 text-center">Source of Transfer</th>
             <th class="px-6 py-3 text-center">Status</th>
             <th class="px-6 py-3 text-center">Created At</th>
@@ -69,27 +87,21 @@
             class="border-b border-gray-200 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-600"
           >
             <td class="px-6 py-3 text-center">
-              {{ transaction.sender_username }}
+              {{ transaction.sender_username }}&nbsp;({{
+                transaction.sender_mobile_number
+              }})
             </td>
             <td class="px-6 py-3 text-center">
-              {{ transaction.sender_mobile_number }}
-            </td>
-            <td class="px-6 py-3 text-center">
-              {{ transaction.beneficiary_username }}
-            </td>
-            <td class="px-6 py-3 text-center">
-              {{ transaction.beneficiary_mobile_number }}
+              {{ transaction.beneficiary_username }}&nbsp;({{
+                transaction.beneficiary_mobile_number
+              }})
             </td>
             <td class="px-6 py-3 text-center">
               {{ transaction.source_amount }}
-            </td>
-            <td class="px-6 py-3 text-center">
               {{ transaction.source_currency }}
             </td>
             <td class="px-6 py-3 text-center">
               {{ transaction.destination_amount }}
-            </td>
-            <td class="px-6 py-3 text-center">
               {{ transaction.destination_currency }}
             </td>
             <td class="px-6 py-3 text-center">
@@ -114,43 +126,66 @@
         Showing {{ showingRecordsComputation }} of
         {{ pagination.totalRecords }} records.
       </div>
+
       <div class="flex">
         <button
-          class="mr-4 flex items-center gap-1 rounded-2xl px-4 py-2 text-xs uppercase transition hover:bg-slate-100 dark:hover:bg-slate-700"
+          class="flex items-center gap-1 rounded-2xl p-2 text-xs uppercase transition hover:bg-slate-100 dark:hover:bg-slate-700"
+          :disabled="!pagination.hasPreviousPage"
+          @click="handlePageNumberClick(1)"
+          :class="
+            !pagination.hasPreviousPage
+              ? 'cursor-not-allowed text-gray-400 dark:text-gray-600'
+              : ''
+          "
+        >
+          <svg-icon type="mdi" class="h-5" :path="mdiArrowCollapseLeft" />
+        </button>
+        <button
+          class="mr-4 flex items-center gap-1 rounded-2xl p-2 text-xs uppercase transition hover:bg-slate-100 dark:hover:bg-slate-700"
           :disabled="!pagination.hasPreviousPage"
           @click="handlePageNumberClick(pagination.page - 1)"
           :class="
             !pagination.hasPreviousPage
-              ? 'cursor-not-allowed text-gray-400'
+              ? 'cursor-not-allowed text-gray-400 dark:text-gray-600'
               : ''
           "
         >
-          <svg-icon class="h-4" type="mdi" :path="mdiArrowLeft" /> Previous
+          <svg-icon type="mdi" :path="mdiChevronLeft" />
         </button>
         <div class="flex gap-1">
           <button
             v-for="pageNumber in computedPageNumbers"
             :key="pageNumber?.toString()"
             class="rounded-lg px-4 py-2 text-sm transition"
-            :class="
-              pageNumber !== pagination.page
-                ? 'text-black hover:bg-slate-200 dark:text-white dark:hover:bg-slate-700'
-                : 'bg-slate-900 text-white hover:bg-slate-700 dark:bg-slate-200 dark:text-slate-700'
-            "
+            :class="dynamicPaginationClassNames(pageNumber)"
             @click="handlePageNumberClick(pageNumber)"
           >
             {{ pageNumber }}
           </button>
         </div>
         <button
-          class="ml-4 flex items-center gap-1 rounded-2xl px-4 py-2 text-xs uppercase hover:bg-gray-100 dark:hover:bg-slate-700"
+          class="ml-4 flex items-center gap-1 rounded-2xl p-2 text-xs uppercase hover:bg-gray-100 dark:hover:bg-slate-700"
           :disabled="!pagination.hasNextPage"
           :class="
-            !pagination.hasNextPage ? 'cursor-not-allowed text-gray-400' : ''
+            !pagination.hasNextPage
+              ? 'cursor-not-allowed text-gray-400 dark:text-gray-600'
+              : ''
           "
           @click="handlePageNumberClick(pagination.page + 1)"
         >
-          Next <svg-icon class="h-4" type="mdi" :path="mdiArrowRight" />
+          <svg-icon type="mdi" :path="mdiChevronRight" />
+        </button>
+        <button
+          class="flex items-center gap-1 rounded-2xl p-2 text-xs uppercase hover:bg-gray-100 dark:hover:bg-slate-700"
+          :disabled="!pagination.hasNextPage"
+          :class="
+            !pagination.hasNextPage
+              ? 'cursor-not-allowed text-gray-400 dark:text-gray-600'
+              : ''
+          "
+          @click="handlePageNumberClick(pagination.totalPages!)"
+        >
+          <svg-icon class="h-5" type="mdi" :path="mdiArrowCollapseRight" />
         </button>
       </div>
     </div>
@@ -163,13 +198,20 @@ import type { Transaction } from "@/types/transactions";
 import { computed, onMounted, ref } from "vue";
 import { useToastStore } from "@/stores/toast";
 import { useRoute, useRouter } from "vue-router";
-import type { PAGINATION } from "@/types/generic";
-import { mdiArrowLeft, mdiArrowRight } from "@mdi/js";
+import type { Pagination } from "@/types/generic";
+import {
+  mdiArrowLeft,
+  mdiArrowRight,
+  mdiArrowCollapseLeft,
+  mdiArrowCollapseRight,
+  mdiChevronLeft,
+  mdiChevronRight,
+} from "@mdi/js";
 import SvgIcon from "@jamescoyle/vue-icon";
 
 const toastStore = useToastStore();
 const transactions = ref<Transaction[]>([]);
-const pagination = ref<PAGINATION>({
+const pagination = ref<Pagination>({
   page: 1,
   pageSize: 10,
   totalRecords: 0,
@@ -213,19 +255,42 @@ const computedPageNumbers = computed(() => {
 
   if (start < 1) {
     start = 1;
+    end = start + 4;
+  }
+
+  if (end > totalPages!) {
+    end = totalPages!;
+    start = end - 4;
+    if (start < 1) {
+      start = 1;
+    }
   }
 
   const pageNumbers: number[] = [];
-  for (let i = start; i < end + 1; i++) {
-    if (totalPages && i <= totalPages) {
-      pageNumbers.push(i);
-    }
+  for (let i = start; i <= end; i++) {
+    pageNumbers.push(i);
   }
 
   return pageNumbers;
 });
 
+const dynamicPaginationClassNames = (pageNumber: number) => {
+  if (pageNumber === 0) {
+    return "text-black dark:text-white";
+  }
+
+  if (pageNumber !== pagination.value.page) {
+    return "text-black hover:bg-slate-200 dark:text-white dark:hover:bg-slate-700";
+  }
+
+  return "bg-slate-900 text-white hover:bg-slate-700 dark:bg-slate-200 dark:text-slate-700";
+};
+
 const handlePageNumberClick = async (pageNumber: number) => {
+  if (pageNumber === 0) {
+    return;
+  }
+
   await router.replace({
     path: route.path,
     query: {
@@ -252,7 +317,7 @@ const transactionCssTextColor = (status: string) => {
 const getTransactions = async () => {
   try {
     // retrieve url params
-    const queryParams: PAGINATION = {
+    const queryParams: Pagination = {
       page: parseInt(route.query?.page as string) || 1,
       pageSize: parseInt(route.query?.pageSize as string) || 10,
     };

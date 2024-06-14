@@ -22,7 +22,7 @@ func NewBalanceRepository(db *sqlx.DB) domain.BalanceRepository {
 }
 
 func (r *balanceRepository) GetBalanceHistory(ctx context.Context, userID, balanceID int) (*[]dto.BalanceHistory, error) {
-	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
 	query := `
@@ -33,16 +33,18 @@ func (r *balanceRepository) GetBalanceHistory(ctx context.Context, userID, balan
 
 	var balanceHistory []dto.BalanceHistory
 	if err := r.db.SelectContext(ctx, &balanceHistory, query, userID, balanceID); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, exception.ErrBalanceHistoryNotFound
-		}
 		return nil, err
 	}
+
+	if len(balanceHistory) == 0 {
+		return nil, exception.ErrBalanceHistoryNotFound
+	}
+
 	return &balanceHistory, nil
 }
 
-func (r *balanceRepository) GetBalances(ctx context.Context, tx *sql.Tx, userID int) ([]domain.Balance, error) {
-	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+func (r *balanceRepository) GetBalances(ctx context.Context, tx *sqlx.Tx, userID int) ([]domain.Balance, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
 	query := `
@@ -52,28 +54,18 @@ func (r *balanceRepository) GetBalances(ctx context.Context, tx *sql.Tx, userID 
 	`
 
 	var balances []domain.Balance
-	rows, err := tx.QueryContext(ctx, query, userID)
-	if err != nil {
+	if err := tx.SelectContext(ctx, &balances, query, userID); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var balance domain.Balance
-		if err := rows.Scan(&balance.ID, &balance.Balance, &balance.Currency, &balance.CreatedAt, &balance.UpdatedAt); err != nil {
-			return nil, err
-		}
-		balances = append(balances, balance)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
+	if len(balances) == 0 {
+		return nil, exception.ErrBalancesNotFound
 	}
 
 	return balances, nil
 }
 
-func (r *balanceRepository) GetBalance(ctx context.Context, userID int, currency string) (*domain.Balance, error) {
+func (r *balanceRepository) GetBalance(ctx context.Context, tx *sqlx.Tx, userID int, currency string) (*domain.Balance, error) {
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
@@ -84,20 +76,20 @@ func (r *balanceRepository) GetBalance(ctx context.Context, userID int, currency
 	`
 
 	var balance domain.Balance
-	err := r.db.QueryRowContext(ctx, query, userID, currency).Scan(
-		&balance.ID,
-		&balance.Balance,
-		&balance.Currency,
-		&balance.UserID,
-		&balance.CreatedAt,
-		&balance.UpdatedAt,
-	)
+	var err error
+	if tx == nil {
+		err = r.db.GetContext(ctx, &balance, query, userID, currency)
+	} else {
+		err = tx.GetContext(ctx, &balance, query, userID, currency)
+	}
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, exception.ErrBalanceNotFound
 		}
 		return nil, err
 	}
+
 	return &balance, nil
 }
 
@@ -116,38 +108,14 @@ func (r *balanceRepository) GetUserBalanceCurrencies(ctx context.Context, userID
 		return nil, err
 	}
 
+	if len(balanceCurrencies) == 0 {
+		return nil, exception.ErrUserCurrenciesNotFound
+	}
+
 	return &balanceCurrencies, nil
 }
 
-func (r *balanceRepository) GetBalanceTx(ctx context.Context, tx *sql.Tx, userID int, currency string) (*domain.Balance, error) {
-	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
-	defer cancel()
-
-	query := `
-		SELECT id, balance, currency, user_id, created_at, updated_at
-		FROM balances
-		WHERE user_id = $1 AND currency = $2;
-	`
-
-	var balance domain.Balance
-	err := tx.QueryRowContext(ctx, query, userID, currency).Scan(
-		&balance.ID,
-		&balance.Balance,
-		&balance.Currency,
-		&balance.UserID,
-		&balance.CreatedAt,
-		&balance.UpdatedAt,
-	)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, exception.ErrBalanceNotFound
-		}
-		return nil, err
-	}
-	return &balance, nil
-}
-
-func (r *balanceRepository) GetBalanceById(ctx context.Context, userID int, balanceId int) (*domain.Balance, error) {
+func (r *balanceRepository) GetBalanceByID(ctx context.Context, userID int, balanceID int) (*domain.Balance, error) {
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
@@ -158,24 +126,17 @@ func (r *balanceRepository) GetBalanceById(ctx context.Context, userID int, bala
 	`
 
 	var balance domain.Balance
-	err := r.db.QueryRowContext(ctx, query, userID, balanceId).Scan(
-		&balance.ID,
-		&balance.Balance,
-		&balance.Currency,
-		&balance.UserID,
-		&balance.CreatedAt,
-		&balance.UpdatedAt,
-	)
-	if err != nil {
+	if err := r.db.GetContext(ctx, &balance, query, userID, balanceID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, exception.ErrBalanceNotFound
 		}
 		return nil, err
 	}
+
 	return &balance, nil
 }
 
-func (r *balanceRepository) CreateBalance(ctx context.Context, tx *sql.Tx, balance *domain.Balance) error {
+func (r *balanceRepository) CreateBalance(ctx context.Context, tx *sqlx.Tx, balance *domain.Balance) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
@@ -184,39 +145,47 @@ func (r *balanceRepository) CreateBalance(ctx context.Context, tx *sql.Tx, balan
 		VALUES ($1, $2, $3);
 	`
 
-	_, err := tx.ExecContext(ctx, query,
+	if _, err := tx.ExecContext(ctx, query,
 		balance.Balance,
 		balance.Currency,
 		balance.UserID,
-	)
-	if err != nil {
+	); err != nil {
 		return err
 	}
+
 	return nil
 }
 
-func (r *balanceRepository) UpdateBalance(ctx context.Context, tx *sql.Tx, balance *domain.Balance) error {
+func (r *balanceRepository) UpdateBalance(ctx context.Context, tx *sqlx.Tx, balance *domain.Balance) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
-	query := `
+	querySelect := `
+		SELECT * FROM balances
+		WHERE
+			user_id = $1 AND currency = $2
+		FOR UPDATE;
+	`
+
+	queryUpdate := `
 		UPDATE balances
 		SET balance = $1, updated_at = NOW()
 		WHERE user_id = $2 AND currency = $3;
 	`
 
-	_, err := tx.ExecContext(ctx, query,
-		balance.Balance,
-		balance.UserID,
-		balance.Currency,
-	)
-	if err != nil {
+	// locking the row for main balance
+	if _, err := tx.ExecContext(ctx, querySelect, balance.UserID, balance.Currency); err != nil {
 		return err
 	}
+
+	if _, err := tx.ExecContext(ctx, queryUpdate, balance.Balance, balance.UserID, balance.Currency); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (r *balanceRepository) UpdateBalances(ctx context.Context, tx *sql.Tx, userID int, finalBalancesMap map[string]float64) error {
+func (r *balanceRepository) UpdateBalances(ctx context.Context, tx *sqlx.Tx, userID int, finalBalancesMap map[string]float64) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
@@ -228,8 +197,7 @@ func (r *balanceRepository) UpdateBalances(ctx context.Context, tx *sql.Tx, user
 			DO UPDATE SET balance = EXCLUDED.balance;
 		`
 
-		_, err := tx.ExecContext(ctx, query, userID, currency, newBalance)
-		if err != nil {
+		if _, err := tx.ExecContext(ctx, query, userID, currency, newBalance); err != nil {
 			return err
 		}
 	}
@@ -237,7 +205,7 @@ func (r *balanceRepository) UpdateBalances(ctx context.Context, tx *sql.Tx, user
 	return nil
 }
 
-func (r *balanceRepository) CreateBalanceHistory(ctx context.Context, tx *sql.Tx, balance *domain.Balance, depositedBalance float64, balanceType string) error {
+func (r *balanceRepository) CreateBalanceHistory(ctx context.Context, tx *sqlx.Tx, balance *domain.Balance, depositedBalance float64, balanceType string) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
@@ -246,15 +214,15 @@ func (r *balanceRepository) CreateBalanceHistory(ctx context.Context, tx *sql.Tx
 		VALUES ($1, $2, $3, $4, $5);
 	`
 
-	_, err := tx.ExecContext(ctx, query,
+	if _, err := tx.ExecContext(ctx, query,
 		depositedBalance,
 		balance.Currency,
 		balanceType,
 		balance.UserID,
 		balance.ID,
-	)
-	if err != nil {
+	); err != nil {
 		return err
 	}
+
 	return nil
 }

@@ -86,7 +86,7 @@ import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/user";
 import { useToastStore } from "@/stores/toast";
 
-import type { User, LOGIN_REQUEST } from "@/types/user";
+import type { User, LoginRequest } from "@/types/user";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import VerifyMfa from "@/components/auth/VerifyMfa.vue";
@@ -124,7 +124,7 @@ onMounted(async () => {
 
 const handleLogin = async () => {
   try {
-    const body: LOGIN_REQUEST = {
+    const body: LoginRequest = {
       email: email.value,
       password: password.value,
     };

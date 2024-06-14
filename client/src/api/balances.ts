@@ -1,17 +1,17 @@
 import axios from "axios";
-import type { APIResponse } from "@/types/generic";
+import type { ApiResponse } from "@/types/generic";
 import type {
   GetBalanceResponse,
   GetBalancesResponse,
   GetBalanceHistoryResponse,
   GetUserBalanceCurrenciesResponse,
-  DEPOSIT_REQUEST,
-  WITHDRAW_REQUEST,
-  CURRENCY_EXCHANGE_REQUEST,
+  DepositRequest,
+  WithdrawRequest,
+  CurrencyExchangeRequest,
   PreviewExchangeRequest,
   PreviewExchangeResponse,
 } from "@/types/balances";
-import type { GENERIC_STATUS_RESPONSE } from "@/types/generic";
+import type { HttpStatusResponse } from "@/types/generic";
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
 
@@ -25,7 +25,7 @@ const CURRENCY_EXCHANGE_URL = `${API_URL}/balances/currency-exchange`;
 const PREVIEW_EXCHANGE_URL = `${API_URL}/balances/preview-exchange`;
 
 export const GET_USER_BALANCE_CURRENCIES = async (): Promise<
-  APIResponse<GetUserBalanceCurrenciesResponse[]>
+  ApiResponse<GetUserBalanceCurrenciesResponse[]>
 > => {
   const { data, status } = await axios.get<GetUserBalanceCurrenciesResponse[]>(
     GET_USER_BALANCE_CURRENCIES_URL,
@@ -38,7 +38,7 @@ export const GET_USER_BALANCE_CURRENCIES = async (): Promise<
 };
 
 export const GET_BALANCES = async (): Promise<
-  APIResponse<GetBalancesResponse>
+  ApiResponse<GetBalancesResponse>
 > => {
   const { data, status } = await axios.get<GetBalancesResponse>(
     GET_BALANCES_URL,
@@ -52,7 +52,7 @@ export const GET_BALANCES = async (): Promise<
 
 export const GET_BALANCE = async (
   balanceId: number,
-): Promise<APIResponse<GetBalanceResponse>> => {
+): Promise<ApiResponse<GetBalanceResponse>> => {
   const { data, status } = await axios.get<GetBalanceResponse>(
     GET_BALANCE_URL + balanceId,
     {
@@ -65,7 +65,7 @@ export const GET_BALANCE = async (
 
 export const GET_BALANCE_HISTORY = async (
   balanceId: number,
-): Promise<APIResponse<GetBalanceHistoryResponse>> => {
+): Promise<ApiResponse<GetBalanceHistoryResponse>> => {
   const { data, status } = await axios.get<GetBalanceHistoryResponse>(
     GET_BALANCE_HISTORY_URL + balanceId,
     { withCredentials: true },
@@ -75,8 +75,8 @@ export const GET_BALANCE_HISTORY = async (
 };
 
 export const DEPOSIT = async (
-  body: DEPOSIT_REQUEST,
-): Promise<GENERIC_STATUS_RESPONSE> => {
+  body: DepositRequest,
+): Promise<HttpStatusResponse> => {
   const { status } = await axios.post(DEPOSIT_URL, JSON.stringify(body), {
     withCredentials: true,
   });
@@ -85,8 +85,8 @@ export const DEPOSIT = async (
 };
 
 export const WITHDRAW = async (
-  body: WITHDRAW_REQUEST,
-): Promise<GENERIC_STATUS_RESPONSE> => {
+  body: WithdrawRequest,
+): Promise<HttpStatusResponse> => {
   const { status } = await axios.post(WITHDRAW_URL, JSON.stringify(body), {
     withCredentials: true,
   });
@@ -95,8 +95,8 @@ export const WITHDRAW = async (
 };
 
 export const CURRENCY_EXCHANGE = async (
-  body: CURRENCY_EXCHANGE_REQUEST,
-): Promise<GENERIC_STATUS_RESPONSE> => {
+  body: CurrencyExchangeRequest,
+): Promise<HttpStatusResponse> => {
   const { status } = await axios.patch(
     CURRENCY_EXCHANGE_URL,
     JSON.stringify(body),
@@ -108,7 +108,7 @@ export const CURRENCY_EXCHANGE = async (
 
 export const PREVIEW_EXCHANGE = async (
   body: PreviewExchangeRequest,
-): Promise<APIResponse<PreviewExchangeResponse>> => {
+): Promise<ApiResponse<PreviewExchangeResponse>> => {
   const { data, status } = await axios.post<PreviewExchangeResponse>(
     PREVIEW_EXCHANGE_URL,
     body,

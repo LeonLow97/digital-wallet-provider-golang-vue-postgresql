@@ -90,7 +90,7 @@ import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { onMounted, ref, watch } from "vue";
 import { GET_BENEFICIARIES } from "@/api/beneficiary";
-import type { GET_BENEFICIARY_RESPONSE } from "@/types/beneficiary";
+import type { GetBeneficiaryResponse } from "@/types/beneficiary";
 import type { CreateTransactionRequest } from "@/types/transactions";
 import { CREATE_TRANSACTION } from "@/api/transactions";
 import { useToastStore } from "@/stores/toast";
@@ -102,7 +102,7 @@ const props = defineProps<{
 }>();
 const toastStore = useToastStore();
 const isModalOpen = ref<boolean>(false);
-const beneficiaries = ref<GET_BENEFICIARY_RESPONSE[]>([]);
+const beneficiaries = ref<GetBeneficiaryResponse[]>([]);
 const selectedCurrency = ref("");
 const selectedBeneficiary = ref<{
   mobileCountryCode: string;

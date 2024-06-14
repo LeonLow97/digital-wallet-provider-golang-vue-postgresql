@@ -74,7 +74,7 @@ import SvgIcon from "@jamescoyle/vue-icon";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { SIGNUP } from "@/api/user";
-import type { SIGNUP_REQUEST } from "@/types/user";
+import type { SignUpRequest } from "@/types/user";
 import { useToastStore } from "@/stores/toast";
 
 // Data Fields
@@ -96,7 +96,7 @@ const togglePasswordVisibility = () => {
 
 const handleSubmit = async () => {
   try {
-    const body: SIGNUP_REQUEST = {
+    const body: SignUpRequest = {
       first_name: firstName.value === "" ? null : firstName.value,
       last_name: lastName.value === "" ? null : lastName.value,
       username: username.value,

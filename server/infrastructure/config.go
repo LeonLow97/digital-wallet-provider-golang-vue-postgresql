@@ -15,44 +15,33 @@ var (
 	MODE_PRODUCTION    = "production"
 )
 
-type Environment struct {
-	Mode        string `mapstructure:"mode"`
-	BackendURL  string `mapstructure:"backend_url"`
-	FrontendURL string `mapstructure:"frontend_url"`
-}
-
-type JWTConfig struct {
-	Secret string `mapstructure:"secret"`
-	Issuer string `mapstructure:"issuer"`
-}
-
-type SMTPConfig struct {
-	Username string `mapstructure:"username"`
-	Password string `mapstructure:"password"`
-	Host     string `mapstructure:"host"`
-	Port     int    `mapstructure:"port"`
-}
-
-type TOTPConfig struct {
-	Issuer        string `mapstructure:"issuer"`
-	EncryptionKey string `mapstructure:"encryption_key"`
-}
-
-type CSRFConfig struct {
-	Key string `mapstructure:"key"`
-}
-
 type Config struct {
-	Env  Environment `mapstructure:"environment"`
-	JWT  JWTConfig   `mapstructure:"jwt"`
-	SMTP SMTPConfig  `mapstructure:"smtp"`
-	TOTP TOTPConfig  `mapstructure:"totp"`
-	CSRF CSRFConfig  `mapstructure:"csrf"`
+	Env struct {
+		Mode        string `mapstructure:"mode"`
+		BackendURL  string `mapstructure:"backend_url"`
+		FrontendURL string `mapstructure:"frontend_url"`
+	} `mapstructure:"environment"`
+	JWT struct {
+		Secret string `mapstructure:"secret"`
+		Issuer string `mapstructure:"issuer"`
+	} `mapstructure:"jwt"`
+	SMTP struct {
+		Username string `mapstructure:"username"`
+		Password string `mapstructure:"password"`
+		Host     string `mapstructure:"host"`
+		Port     int    `mapstructure:"port"`
+	} `mapstructure:"smtp"`
+	TOTP struct {
+		Issuer        string `mapstructure:"issuer"`
+		EncryptionKey string `mapstructure:"encryption_key"`
+	} `mapstructure:"totp"`
+	CSRF struct {
+		Key string `mapstructure:"key"`
+	} `mapstructure:"csrf"`
 }
 
 func LoadConfig() (*Config, error) {
 	viper.SetDefault("mode", MODE_DEVELOPMENT)
-
 	viper.SetConfigName("development")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./config")

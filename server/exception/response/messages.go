@@ -37,11 +37,15 @@ var (
 
 	ErrInsufficientFundsForWithdrawalFromWallet = "Unable to withdraw as the specified amount is higher than the amount in the wallet. Please reduce the amount."
 	ErrInsufficientFundsForDepositToWallet      = "Unable to deposit because the account balance is lower than the specified amount. Please top up your balance."
+
+	ErrNoWalletBalancesFound = "No wallet balances found. Please top up."
+	ErrWalletTypesNotFound   = "No wallet types found."
 )
 
 // Balance
 var (
-	ErrBalanceNotFound                = "Balance not found. Please deposit to create a new balance."
+	ErrBalanceNotFound = "Balance not found. Please deposit to create a new balance."
+
 	ErrBalanceHistoryNotFound         = "Balance History not found. Please deposit to create a new balance."
 	ErrInsufficientFundsForWithdrawal = "The specified amount for withdrawal is more than the current balance amount. Please lower the withdrawal amount."
 	ErrWalletBalanceNotFound          = "Wallet Balance not found."
@@ -50,6 +54,8 @@ var (
 
 	ErrDepositCurrencyNotAllowed  = "Deposit Currency is not allowed."
 	ErrWithdrawCurrencyNotAllowed = "Withdraw Currency is not allowed."
+
+	ErrUserCurrenciesNotFound = "User currencies not found. Please inform system administrator."
 )
 
 // Beneficiary

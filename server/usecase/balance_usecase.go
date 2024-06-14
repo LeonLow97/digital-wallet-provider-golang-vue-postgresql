@@ -42,7 +42,7 @@ func (uc *balanceUsecase) GetBalanceHistory(ctx context.Context, userID int, bal
 }
 
 func (uc *balanceUsecase) GetBalance(ctx context.Context, userID int, balanceID int) (*dto.GetBalanceResponse, error) {
-	balance, err := uc.balanceRepository.GetBalanceById(ctx, userID, balanceID)
+	balance, err := uc.balanceRepository.GetBalanceByID(ctx, userID, balanceID)
 	if err != nil {
 		log.Printf("failed to get balance for user id %d with error: %v\n", userID, err)
 		return nil, err
@@ -61,7 +61,7 @@ func (uc *balanceUsecase) GetBalance(ctx context.Context, userID int, balanceID 
 
 func (uc *balanceUsecase) GetBalances(ctx context.Context, userID int) (*dto.GetBalancesResponse, error) {
 	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
-	tx, err := uc.dbConn.BeginTx(ctx, nil)
+	tx, err := uc.dbConn.BeginTxx(ctx, nil)
 	if err != nil {
 		log.Printf("failed to begin sql transaction with error: %v\n", err)
 		return nil, err
@@ -120,7 +120,7 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) e
 	// a successful retrieval, and req.Balance represents the received amount.
 
 	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
-	tx, err := uc.dbConn.BeginTx(ctx, nil)
+	tx, err := uc.dbConn.BeginTxx(ctx, nil)
 	if err != nil {
 		log.Printf("failed to begin sql transaction with error: %v\n", err)
 		return err
@@ -152,7 +152,7 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) e
 		return exception.ErrDepositCurrencyNotAllowed
 	}
 
-	currentBalance, err := uc.balanceRepository.GetBalanceTx(ctx, tx, req.UserID, req.Currency)
+	currentBalance, err := uc.balanceRepository.GetBalance(ctx, tx, req.UserID, req.Currency)
 	if err != nil {
 		log.Printf("failed to get one balance for user id %d with error: %v\n", req.UserID, err)
 		return err
@@ -201,7 +201,7 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 	// update the user's balance via Apache Kafka to mitigate potential failures.
 
 	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
-	tx, err := uc.dbConn.BeginTx(ctx, nil)
+	tx, err := uc.dbConn.BeginTxx(ctx, nil)
 	if err != nil {
 		log.Printf("failed to begin sql transaction with error: %v\n", err)
 		return err
@@ -233,7 +233,7 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 		return exception.ErrWithdrawCurrencyNotAllowed
 	}
 
-	currentBalance, err := uc.balanceRepository.GetBalanceTx(ctx, tx, req.UserID, req.Currency)
+	currentBalance, err := uc.balanceRepository.GetBalance(ctx, tx, req.UserID, req.Currency)
 	if err != nil {
 		log.Printf("failed to get one balance for user id %d with error: %v\n", req.UserID, err)
 		return err
@@ -266,7 +266,7 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 
 func (uc *balanceUsecase) CurrencyExchange(ctx context.Context, userID int, req dto.CurrencyExchangeRequest) error {
 	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
-	tx, err := uc.dbConn.BeginTx(ctx, nil)
+	tx, err := uc.dbConn.BeginTxx(ctx, nil)
 	if err != nil {
 		log.Printf("failed to begin sql transaction with error: %v\n", err)
 		return err

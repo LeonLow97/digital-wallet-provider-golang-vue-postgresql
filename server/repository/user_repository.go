@@ -25,25 +25,14 @@ func (r *userRepository) GetUserByID(ctx context.Context, userID int) (*domain.U
 	defer cancel()
 
 	query := `
-		SELECT id, first_name, last_name, email, username, password, mobile_country_code, mobile_number, active, admin
+		SELECT id, first_name, last_name, email, username, password, 
+			mobile_country_code, mobile_number, active, admin
 		FROM users 
 		WHERE id = $1;
 	`
 
 	var user domain.User
-	err := r.db.QueryRowContext(ctx, query, userID).Scan(
-		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.Email,
-		&user.Username,
-		&user.Password,
-		&user.MobileCountryCode,
-		&user.MobileNumber,
-		&user.Active,
-		&user.Admin,
-	)
-	if err != nil {
+	if err := r.db.GetContext(ctx, &user, query, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, exception.ErrUserNotFound
 		}
@@ -58,26 +47,14 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*dom
 	defer cancel()
 
 	query := `
-		SELECT id, first_name, last_name, email, username, password, mobile_country_code, mobile_number, active, admin, is_mfa_configured
+		SELECT id, first_name, last_name, email, username, password, 
+			mobile_country_code, mobile_number, active, admin, is_mfa_configured
 		FROM users 
 		WHERE email = $1;
 	`
 
 	var user domain.User
-	err := r.db.QueryRowContext(ctx, query, email).Scan(
-		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.Email,
-		&user.Username,
-		&user.Password,
-		&user.MobileCountryCode,
-		&user.MobileNumber,
-		&user.Active,
-		&user.Admin,
-		&user.IsMFAConfigured,
-	)
-	if err != nil {
+	if err := r.db.GetContext(ctx, &user, query, email); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, exception.ErrUserNotFound
 		}
@@ -98,15 +75,7 @@ func (r *userRepository) GetUserByEmailOrMobileNumber(ctx context.Context, email
 	`
 
 	var user domain.User
-	err := r.db.QueryRowContext(ctx, query, email, mobileNumber).Scan(
-		&user.ID,
-		&user.Email,
-		&user.Username,
-		&user.Password,
-		&user.Active,
-		&user.Admin,
-	)
-	if err != nil {
+	if err := r.db.GetContext(ctx, &user, query, email, mobileNumber); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, exception.ErrUserNotFound
 		}
@@ -126,7 +95,7 @@ func (r *userRepository) InsertUser(ctx context.Context, user *domain.User) erro
 		($1, $2, $3, $4, $5, $6, $7);
 	`
 
-	_, err := r.db.ExecContext(ctx, query,
+	if _, err := r.db.ExecContext(ctx, query,
 		user.FirstName,
 		user.LastName,
 		user.Email,
@@ -134,9 +103,11 @@ func (r *userRepository) InsertUser(ctx context.Context, user *domain.User) erro
 		user.Password,
 		user.MobileCountryCode,
 		user.MobileNumber,
-	)
+	); err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }
 
 func (r *userRepository) GetUserAndBalanceByMobileNumber(ctx context.Context, mobileNumber string) (*domain.User, error) {
@@ -160,18 +131,7 @@ func (r *userRepository) GetUserAndBalanceByMobileNumber(ctx context.Context, mo
 	`
 
 	var user domain.User
-	err := r.db.QueryRowContext(ctx, query, mobileNumber).Scan(
-		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.Username,
-		&user.Email,
-		&user.MobileNumber,
-		&user.Active,
-		&user.Balance,
-	)
-
-	if err != nil {
+	if err := r.db.GetContext(ctx, &user, query, mobileNumber); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, exception.ErrUserAndWalletAssociationNotFound
 		}
@@ -229,6 +189,9 @@ func (r *userRepository) ChangePassword(ctx context.Context, hashedPassword stri
 }
 
 func (r *userRepository) InsertUserTOTPSecret(ctx context.Context, totpConfig domain.TOTPConfiguration) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*15)
+	defer cancel()
+
 	query := `
 		INSERT INTO user_totp_secrets (user_id, totp_encrypted_secret)
 		VALUES ($1, $2);
@@ -242,6 +205,9 @@ func (r *userRepository) InsertUserTOTPSecret(ctx context.Context, totpConfig do
 }
 
 func (r *userRepository) UpdateIsMFAConfigured(ctx context.Context, userID int, mfaConfigured bool) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*15)
+	defer cancel()
+
 	query := `
 		UPDATE users
 		SET is_mfa_configured = $1
@@ -256,6 +222,9 @@ func (r *userRepository) UpdateIsMFAConfigured(ctx context.Context, userID int, 
 }
 
 func (r *userRepository) GetUserTOTPSecretCount(ctx context.Context, userID int) (int, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*15)
+	defer cancel()
+
 	query := `
 		SELECT COUNT(totp_encrypted_secret)
 		FROM user_totp_secrets
@@ -271,6 +240,9 @@ func (r *userRepository) GetUserTOTPSecretCount(ctx context.Context, userID int)
 }
 
 func (r *userRepository) GetUserTOTPSecret(ctx context.Context, userID int) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*15)
+	defer cancel()
+
 	query := `
 		SELECT totp_encrypted_secret
 		FROM user_totp_secrets

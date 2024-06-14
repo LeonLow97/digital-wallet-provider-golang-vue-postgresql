@@ -1,16 +1,16 @@
 import type { RawAxiosResponseHeaders, AxiosResponseHeaders } from "axios";
 
-export interface APIResponse<T> {
+export interface ApiResponse<T> {
   data: T;
   headers?: RawAxiosResponseHeaders | AxiosResponseHeaders;
   status: number;
 }
 
-export interface GENERIC_STATUS_RESPONSE {
+export interface HttpStatusResponse {
   status: number;
 }
 
-export interface PAGINATION {
+export interface Pagination {
   page: number;
   pageSize: number;
   totalRecords?: number;

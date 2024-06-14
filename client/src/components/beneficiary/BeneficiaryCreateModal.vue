@@ -49,7 +49,7 @@ import Modal from "@/components/Modal.vue";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { CREATE_BENEFICIARY } from "@/api/beneficiary";
-import type { CREATE_BENEFICIARY_REQUEST } from "@/types/beneficiary";
+import type { CreateBeneficiaryRequest } from "@/types/beneficiary";
 import { useToastStore } from "@/stores/toast";
 
 const toastStore = useToastStore();
@@ -78,7 +78,7 @@ const closeModal = () => {
 
 const handleSubmit = async () => {
   try {
-    const body: CREATE_BENEFICIARY_REQUEST = {
+    const body: CreateBeneficiaryRequest = {
       mobile_country_code: mobileCountryCode.value,
       mobile_number: mobileNumber.value,
     };

@@ -76,11 +76,14 @@
           </select>
         </div>
 
-        <div class="mt-8 flex justify-center">
+        <div
+          class="mt-6 flex justify-center"
+          :class="exchangeCalculated ? 'mb-6' : 'mb-4'"
+        >
           <action-button
             type="button"
             @click="handleExchangeCalculation"
-            class="mb-8 inline-block rounded-lg bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
+            class="inline-block rounded-lg bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
             text="Calculate Exchange"
           />
         </div>
@@ -105,7 +108,10 @@
           </div>
         </div>
 
-        <div class="mt-8 flex justify-end gap-4">
+        <div
+          class="flex justify-end gap-4"
+          :class="exchangeCalculated ? 'mt-6' : ''"
+        >
           <action-button
             @click="closeModal"
             class="mb-4 inline-block rounded-lg border border-blue-500 px-4 py-2 text-center text-blue-500 transition hover:border-blue-300 hover:text-blue-300 dark:border-blue-300 dark:text-blue-300 dark:hover:border-blue-500 dark:hover:text-blue-500"
@@ -135,7 +141,7 @@ import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { CURRENCY_EXCHANGE, PREVIEW_EXCHANGE } from "@/api/balances";
 import type {
-  CURRENCY_EXCHANGE_REQUEST,
+  CurrencyExchangeRequest,
   PreviewExchangeRequest,
   PreviewExchangeResponse,
 } from "@/types/balances";
@@ -185,7 +191,7 @@ const handleSubmit = async () => {
       return;
     }
 
-    const body: CURRENCY_EXCHANGE_REQUEST = {
+    const body: CurrencyExchangeRequest = {
       from_amount: fromAmount.value!,
       to_currency: selectedToCurrency.value,
     };

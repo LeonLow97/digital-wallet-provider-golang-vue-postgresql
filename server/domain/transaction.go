@@ -2,10 +2,10 @@ package domain
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/LeonLow97/go-clean-architecture/dto"
 	"github.com/LeonLow97/go-clean-architecture/utils/pagination"
+	"github.com/jmoiron/sqlx"
 )
 
 type Transaction struct {
@@ -33,7 +33,7 @@ type TransactionRepository interface {
 	CheckLinkageOfSenderAndBeneficiaryByMobileNumber(ctx context.Context, userID int, mobileCountryCode, mobileNumber string) (int, bool, bool, error)
 	CheckValidityOfSenderIDAndWalletID(ctx context.Context, userID, walletID int) (bool, string, error) // TODO: move to wallet repository?
 
-	InsertTransaction(ctx context.Context, tx *sql.Tx, userID int, transaction Transaction) error
+	InsertTransaction(ctx context.Context, tx *sqlx.Tx, userID int, transaction Transaction) error
 
 	GetTotalTransactionsCount(ctx context.Context, userID int, paginator *pagination.Paginator) error
 	GetTransactions(ctx context.Context, userID int, paginator *pagination.Paginator) (*[]Transaction, error)

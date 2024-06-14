@@ -111,7 +111,7 @@
 <script lang="ts" setup>
 import ActionButton from "@/components/ActionButton.vue";
 import { GET_BENEFICIARIES } from "@/api/beneficiary";
-import type { GET_BENEFICIARY_RESPONSE } from "@/types/beneficiary";
+import type { GetBeneficiaryResponse } from "@/types/beneficiary";
 import { onMounted, ref, computed } from "vue";
 import BeneficiaryCreateModal from "@/components/beneficiary/BeneficiaryCreateModal.vue";
 import BeneficiaryDeleteModal from "@/components/beneficiary/BeneficiaryDeleteModal.vue";
@@ -120,7 +120,7 @@ import SvgIcon from "@jamescoyle/vue-icon";
 import { useToastStore } from "@/stores/toast";
 
 const toastStore = useToastStore();
-const beneficiaries = ref<GET_BENEFICIARY_RESPONSE[]>([]);
+const beneficiaries = ref<GetBeneficiaryResponse[]>([]);
 const deleteBeneficiaryId = ref<number>(0);
 
 const openCreateBeneficiaryModal = ref(false);
@@ -135,11 +135,11 @@ const filterBeneficiaries = computed(() => {
   if (beneficiaries.value) {
     if (showDeletedBeneficiaries.value) {
       return beneficiaries?.value.filter(
-        (beneficiary: GET_BENEFICIARY_RESPONSE) => beneficiary.isDeleted === 1,
+        (beneficiary: GetBeneficiaryResponse) => beneficiary.isDeleted === 1,
       );
     }
     return beneficiaries?.value.filter(
-      (beneficiary: GET_BENEFICIARY_RESPONSE) => beneficiary.isDeleted === 0,
+      (beneficiary: GetBeneficiaryResponse) => beneficiary.isDeleted === 0,
     );
   }
 });
@@ -158,9 +158,7 @@ const handleCreateBeneficiary = async () => {
   openCreateBeneficiaryModal.value = true;
 };
 
-const handleDeleteBeneficiary = async (
-  beneficiary: GET_BENEFICIARY_RESPONSE,
-) => {
+const handleDeleteBeneficiary = async (beneficiary: GetBeneficiaryResponse) => {
   openDeleteBeneficiaryModal.value = true;
   deleteBeneficiaryId.value = beneficiary.beneficiaryID;
 };

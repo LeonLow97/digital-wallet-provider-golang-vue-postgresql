@@ -85,7 +85,7 @@ import { onMounted, ref } from "vue";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import Modal from "@/components/Modal.vue";
-import type { CHANGE_PASSWORD_REQUEST } from "@/types/user";
+import type { ChangePasswordRequest } from "@/types/user";
 import { CHANGE_PASSWORD } from "@/api/user";
 import { useToastStore } from "@/stores/toast";
 
@@ -138,7 +138,7 @@ const handleSubmit = async () => {
   }
 
   try {
-    const body: CHANGE_PASSWORD_REQUEST = {
+    const body: ChangePasswordRequest = {
       current_password: currentPassword.value,
       new_password: confirmPassword.value,
     };

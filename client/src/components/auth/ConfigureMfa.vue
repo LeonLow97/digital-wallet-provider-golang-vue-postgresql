@@ -85,7 +85,7 @@ import QrcodeVue from "qrcode.vue";
 import type { Level, RenderAs } from "qrcode.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import TextInput from "../TextInput.vue";
-import type { CONFIGURE_MFA_REQUEST } from "@/types/user";
+import type { ConfigureMfaRequest } from "@/types/user";
 import { CONFIGURE_MFA } from "@/api/user";
 import { useToastStore } from "@/stores/toast";
 
@@ -113,7 +113,7 @@ const emit = defineEmits(["mfaConfigured"]);
 
 const handleConfigureMFA = async (email: string, secret: string) => {
   try {
-    const body: CONFIGURE_MFA_REQUEST = {
+    const body: ConfigureMfaRequest = {
       email,
       secret,
       mfa_code: mfaCode.value,

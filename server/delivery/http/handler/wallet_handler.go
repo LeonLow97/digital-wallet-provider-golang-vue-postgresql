@@ -47,6 +47,8 @@ func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, exception.ErrNoWalletFound):
 			jsonutil.ErrorJSON(w, apiErr.ErrNoWalletFound, http.StatusNotFound)
+		case errors.Is(err, exception.ErrWalletBalancesNotFound):
+			jsonutil.ErrorJSON(w, apiErr.ErrNoWalletBalancesFound, http.StatusNotFound)
 		default:
 			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
@@ -71,6 +73,8 @@ func (h *WalletHandler) GetWallets(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, exception.ErrNoWalletsFound):
 			jsonutil.ErrorJSON(w, apiErr.ErrNoWalletsFound, http.StatusNotFound)
+		case errors.Is(err, exception.ErrWalletBalancesNotFound):
+			jsonutil.ErrorJSON(w, apiErr.ErrNoWalletBalancesFound, http.StatusNotFound)
 		default:
 			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
 		}
@@ -85,9 +89,15 @@ func (h *WalletHandler) GetWalletTypes(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.walletUseCase.GetWalletTypes(ctx)
 	if err != nil {
-		jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		switch {
+		case errors.Is(err, exception.ErrWalletTypesNotFound):
+			jsonutil.ErrorJSON(w, apiErr.ErrWalletTypesNotFound, http.StatusNotFound)
+		default:
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		}
 		return
 	}
+
 	jsonutil.WriteJSON(w, http.StatusOK, resp)
 }
 
@@ -182,6 +192,8 @@ func (h *WalletHandler) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, exception.ErrNoWalletFound):
 			jsonutil.ErrorJSON(w, apiErr.ErrUnauthorized, http.StatusUnauthorized)
+		case errors.Is(err, exception.ErrWalletBalancesNotFound):
+			jsonutil.ErrorJSON(w, apiErr.ErrNoWalletBalancesFound, http.StatusNotFound)
 		case errors.Is(err, exception.ErrBalanceNotFound):
 			jsonutil.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrInsufficientFunds):

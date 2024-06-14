@@ -99,7 +99,7 @@ func (h *BalanceHandler) GetBalances(w http.ResponseWriter, r *http.Request) {
 	balances, err := h.balanceUsecase.GetBalances(ctx, userID)
 	if err != nil {
 		switch {
-		case errors.Is(err, exception.ErrBalanceNotFound):
+		case errors.Is(err, exception.ErrBalancesNotFound):
 			jsonutil.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
 		default:
 			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
@@ -122,7 +122,12 @@ func (h *BalanceHandler) GetUserBalanceCurrencies(w http.ResponseWriter, r *http
 
 	resp, err := h.balanceUsecase.GetUserBalanceCurrencies(ctx, userID)
 	if err != nil {
-		jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		switch {
+		case errors.Is(err, exception.ErrUserCurrenciesNotFound):
+			jsonutil.ErrorJSON(w, apiErr.ErrUserCurrenciesNotFound, http.StatusNotFound)
+		default:
+			jsonutil.ErrorJSON(w, apiErr.ErrInternalServerError, http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -238,6 +243,8 @@ func (h *BalanceHandler) CurrencyExchange(w http.ResponseWriter, r *http.Request
 
 	if err := h.balanceUsecase.CurrencyExchange(ctx, userID, req); err != nil {
 		switch {
+		case errors.Is(err, exception.ErrBalancesNotFound):
+			jsonutil.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
 		case errors.Is(err, exception.ErrInsufficientFundsForCurrencyExchange):
 			jsonutil.ErrorJSON(w, apiErr.ErrInsufficientFundsForCurrencyExchange, http.StatusBadRequest)
 		default:

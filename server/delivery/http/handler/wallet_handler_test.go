@@ -35,6 +35,7 @@ func TestWalletHandler_GetWallet(t *testing.T) {
 		GivenUserIDWithContext    int
 		WalletUsecaseReturnValues mocks.WalletUsecaseReturnValues
 		ExpectedStatus            int
+		ExpectedErrorResponse     string
 	}
 
 	testCases := []testCase{
@@ -52,7 +53,17 @@ func TestWalletHandler_GetWallet(t *testing.T) {
 			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
 				GetWallet: []interface{}{nil, exception.ErrNoWalletFound},
 			},
-			ExpectedStatus: http.StatusNotFound,
+			ExpectedStatus:        http.StatusNotFound,
+			ExpectedErrorResponse: `{"status":404,"message":"Wallet not found."}`,
+		},
+		{
+			Title:                  "ReturnsError_NoWalletBalancesFound",
+			GivenUserIDWithContext: 1,
+			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
+				GetWallet: []interface{}{nil, exception.ErrWalletBalancesNotFound},
+			},
+			ExpectedStatus:        http.StatusNotFound,
+			ExpectedErrorResponse: `{"status":404,"message":"No wallet balances found. Please top up."}`,
 		},
 		{
 			Title:                  "ReturnsError_InternalServerError",
@@ -60,17 +71,20 @@ func TestWalletHandler_GetWallet(t *testing.T) {
 			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
 				GetWallet: []interface{}{nil, errors.New("internal server error")},
 			},
-			ExpectedStatus: http.StatusInternalServerError,
+			ExpectedStatus:        http.StatusInternalServerError,
+			ExpectedErrorResponse: `{"status":500,"message":"Internal Server Error"}`,
 		},
 		{
 			Title:                  "ReturnsError_MissingUserIDFromContext",
 			GivenUserIDWithContext: 0,
 			ExpectedStatus:         http.StatusUnauthorized,
+			ExpectedErrorResponse:  `{"status":401,"message":"Unauthorized"}`,
 		},
 		{
 			Title:                  "ReturnsError_MissingWalletIDFromParams",
 			GivenUserIDWithContext: 1,
 			ExpectedStatus:         http.StatusBadRequest,
+			ExpectedErrorResponse:  `{"status":400,"message":"Bad Request"}`,
 		},
 	}
 
@@ -100,6 +114,9 @@ func TestWalletHandler_GetWallet(t *testing.T) {
 
 			require.Equal(t, tc.ExpectedStatus, rr.Code)
 
+			if strings.HasPrefix(tc.Title, "ReturnsError") {
+				require.Equal(t, tc.ExpectedErrorResponse, rr.Body.String())
+			}
 		})
 	}
 }
@@ -112,6 +129,7 @@ func TestWalletHandler_GetWallets(t *testing.T) {
 		GivenUserIDWithContext    int
 		WalletUsecaseReturnValues mocks.WalletUsecaseReturnValues
 		ExpectedStatus            int
+		ExpectedErrorResponse     string
 	}
 
 	testCases := []testCase{
@@ -129,7 +147,17 @@ func TestWalletHandler_GetWallets(t *testing.T) {
 			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
 				GetWallets: []interface{}{nil, exception.ErrNoWalletsFound},
 			},
-			ExpectedStatus: http.StatusNotFound,
+			ExpectedStatus:        http.StatusNotFound,
+			ExpectedErrorResponse: `{"status":404,"message":"No wallets found."}`,
+		},
+		{
+			Title:                  "ReturnsError_NoWalletBalancesFound",
+			GivenUserIDWithContext: 1,
+			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
+				GetWallets: []interface{}{nil, exception.ErrWalletBalancesNotFound},
+			},
+			ExpectedStatus:        http.StatusNotFound,
+			ExpectedErrorResponse: `{"status":404,"message":"No wallet balances found. Please top up."}`,
 		},
 		{
 			Title:                  "ReturnsError_InternalServerError",
@@ -137,12 +165,14 @@ func TestWalletHandler_GetWallets(t *testing.T) {
 			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
 				GetWallets: []interface{}{nil, errors.New("internal server error")},
 			},
-			ExpectedStatus: http.StatusInternalServerError,
+			ExpectedStatus:        http.StatusInternalServerError,
+			ExpectedErrorResponse: `{"status":500,"message":"Internal Server Error"}`,
 		},
 		{
 			Title:                  "ReturnsError_MissingUserIDFromContext",
 			GivenUserIDWithContext: 0,
 			ExpectedStatus:         http.StatusUnauthorized,
+			ExpectedErrorResponse:  `{"status":401,"message":"Unauthorized"}`,
 		},
 	}
 
@@ -166,6 +196,10 @@ func TestWalletHandler_GetWallets(t *testing.T) {
 			walletHandler.GetWallets(rr, req)
 
 			require.Equal(t, tc.ExpectedStatus, rr.Code)
+
+			if strings.HasPrefix(tc.Title, "ReturnsError") {
+				require.Equal(t, tc.ExpectedErrorResponse, rr.Body.String())
+			}
 		})
 	}
 }
@@ -175,6 +209,7 @@ func TestWalletHandler_GetWalletTypes(t *testing.T) {
 		Title                     string
 		WalletUsecaseReturnValues mocks.WalletUsecaseReturnValues
 		ExpectedStatus            int
+		ExpectedErrorResponse     string
 	}
 
 	testCases := []testCase{
@@ -188,11 +223,20 @@ func TestWalletHandler_GetWalletTypes(t *testing.T) {
 			ExpectedStatus: http.StatusOK,
 		},
 		{
+			Title: "ReturnsError_NoWalletTypesFound",
+			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
+				GetWalletTypes: []interface{}{nil, exception.ErrWalletTypesNotFound},
+			},
+			ExpectedStatus:        http.StatusNotFound,
+			ExpectedErrorResponse: `{"status":404,"message":"No wallet types found."}`,
+		},
+		{
 			Title: "ReturnsError_InternalServerError",
 			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
 				GetWalletTypes: []interface{}{nil, errors.New("internal server error")},
 			},
-			ExpectedStatus: http.StatusInternalServerError,
+			ExpectedStatus:        http.StatusInternalServerError,
+			ExpectedErrorResponse: `{"status":500,"message":"Internal Server Error"}`,
 		},
 	}
 
@@ -213,6 +257,10 @@ func TestWalletHandler_GetWalletTypes(t *testing.T) {
 			walletHandler.GetWalletTypes(rr, req)
 
 			require.Equal(t, tc.ExpectedStatus, rr.Code)
+
+			if strings.HasPrefix(tc.Title, "ReturnsError") {
+				require.Equal(t, tc.ExpectedErrorResponse, rr.Body.String())
+			}
 		})
 	}
 }
@@ -224,7 +272,7 @@ func TestWalletHandler_CreateWallet(t *testing.T) {
 		GivenCreateWalletRequest  string
 		WalletUsecaseReturnValues mocks.WalletUsecaseReturnValues
 		ExpectedStatus            int
-		ExpectedResponseJSON      string
+		ExpectedErrorResponse     string
 	}
 
 	testCases := []testCase{
@@ -241,28 +289,28 @@ func TestWalletHandler_CreateWallet(t *testing.T) {
 			Title:                  "ReturnsError_MissingUserIDFromContext",
 			GivenUserIDWithContext: 0,
 			ExpectedStatus:         http.StatusUnauthorized,
-			ExpectedResponseJSON:   `{"status":401,"message":"Unauthorized"}`,
+			ExpectedErrorResponse:  `{"status":401,"message":"Unauthorized"}`,
 		},
 		{
 			Title:                    "ReturnsError_ReadJSONBody",
 			GivenUserIDWithContext:   1,
 			GivenCreateWalletRequest: ``,
 			ExpectedStatus:           http.StatusBadRequest,
-			ExpectedResponseJSON:     `{"status":400,"message":"Bad Request"}`,
+			ExpectedErrorResponse:    `{"status":400,"message":"Bad Request"}`,
 		},
 		{
 			Title:                    "ReturnsError_WalletTypeID=0",
 			GivenUserIDWithContext:   1,
 			GivenCreateWalletRequest: `{"wallet_type_id":0,"currency_amount":[{"amount":100.0,"currency":"USD"},{"amount":200.0,"currency":"EUR"}]}`,
 			ExpectedStatus:           http.StatusBadRequest,
-			ExpectedResponseJSON:     `{"status":400,"message":"Key: 'CreateWalletRequest.WalletTypeID' Error:Field validation for 'WalletTypeID' failed on the 'required' tag"}`,
+			ExpectedErrorResponse:    `{"status":400,"message":"Key: 'CreateWalletRequest.WalletTypeID' Error:Field validation for 'WalletTypeID' failed on the 'required' tag"}`,
 		},
 		{
 			Title:                    "ReturnsError_MissingCurrencyAmount",
 			GivenUserIDWithContext:   1,
 			GivenCreateWalletRequest: `{"wallet_type_id":0}`,
 			ExpectedStatus:           http.StatusBadRequest,
-			ExpectedResponseJSON:     `{"status":400,"message":"Key: 'CreateWalletRequest.WalletTypeID' Error:Field validation for 'WalletTypeID' failed on the 'required' tag Key: 'CreateWalletRequest.CurrencyAmount' Error:Field validation for 'CurrencyAmount' failed on the 'required' tag"}`,
+			ExpectedErrorResponse:    `{"status":400,"message":"Key: 'CreateWalletRequest.WalletTypeID' Error:Field validation for 'WalletTypeID' failed on the 'required' tag Key: 'CreateWalletRequest.CurrencyAmount' Error:Field validation for 'CurrencyAmount' failed on the 'required' tag"}`,
 		},
 		{
 			Title:                    "ReturnsError_BalanceNotFound",
@@ -271,8 +319,8 @@ func TestWalletHandler_CreateWallet(t *testing.T) {
 			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
 				CreateWallet: []interface{}{exception.ErrBalanceNotFound},
 			},
-			ExpectedStatus:       http.StatusNotFound,
-			ExpectedResponseJSON: `{"status":404,"message":"Balance not found. Please deposit to create a new balance."}`,
+			ExpectedStatus:        http.StatusNotFound,
+			ExpectedErrorResponse: `{"status":404,"message":"Balance not found. Please deposit to create a new balance."}`,
 		},
 		{
 			Title:                    "ReturnsError_WalletTypeInvalid",
@@ -281,8 +329,8 @@ func TestWalletHandler_CreateWallet(t *testing.T) {
 			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
 				CreateWallet: []interface{}{exception.ErrWalletTypeInvalid},
 			},
-			ExpectedStatus:       http.StatusBadRequest,
-			ExpectedResponseJSON: `{"status":400,"message":"Wallet type is invalid. Please try another wallet type."}`,
+			ExpectedStatus:        http.StatusBadRequest,
+			ExpectedErrorResponse: `{"status":400,"message":"Wallet type is invalid. Please try another wallet type."}`,
 		},
 		{
 			Title:                    "ReturnsError_WalletAlreadyExists",
@@ -291,8 +339,8 @@ func TestWalletHandler_CreateWallet(t *testing.T) {
 			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
 				CreateWallet: []interface{}{exception.ErrWalletAlreadyExists},
 			},
-			ExpectedStatus:       http.StatusBadRequest,
-			ExpectedResponseJSON: `{"status":400,"message":"The wallet you are trying to create already exist. Please try again."}`,
+			ExpectedStatus:        http.StatusBadRequest,
+			ExpectedErrorResponse: `{"status":400,"message":"The wallet you are trying to create already exist. Please try again."}`,
 		},
 		{
 			Title:                    "ReturnsError_InsufficientFunds",
@@ -301,8 +349,8 @@ func TestWalletHandler_CreateWallet(t *testing.T) {
 			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
 				CreateWallet: []interface{}{exception.ErrInsufficientFunds},
 			},
-			ExpectedStatus:       http.StatusBadRequest,
-			ExpectedResponseJSON: `{"status":400,"message":"Insufficient funds in account. Please top up."}`,
+			ExpectedStatus:        http.StatusBadRequest,
+			ExpectedErrorResponse: `{"status":400,"message":"Insufficient funds in account. Please top up."}`,
 		},
 		{
 			Title:                    "ReturnsError_InternalServerError",
@@ -311,8 +359,8 @@ func TestWalletHandler_CreateWallet(t *testing.T) {
 			WalletUsecaseReturnValues: mocks.WalletUsecaseReturnValues{
 				CreateWallet: []interface{}{errors.New("internal server error")},
 			},
-			ExpectedStatus:       http.StatusInternalServerError,
-			ExpectedResponseJSON: `{"status":500,"message":"Internal Server Error"}`,
+			ExpectedStatus:        http.StatusInternalServerError,
+			ExpectedErrorResponse: `{"status":500,"message":"Internal Server Error"}`,
 		},
 	}
 
@@ -336,7 +384,11 @@ func TestWalletHandler_CreateWallet(t *testing.T) {
 			walletHandler.CreateWallet(rr, req)
 
 			require.Equal(t, tc.ExpectedStatus, rr.Code)
-			require.Equal(t, tc.ExpectedResponseJSON, rr.Body.String())
+			require.Equal(t, tc.ExpectedErrorResponse, rr.Body.String())
 		})
 	}
+}
+
+func TestWalletHandler_UpdateWallet(t *testing.T) {
+
 }

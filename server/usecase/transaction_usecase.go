@@ -34,7 +34,7 @@ func NewTransactionUsecase(dbConn *sqlx.DB, transactionRepo domain.TransactionRe
 
 func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.CreateTransactionRequest, userID int) error {
 	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
-	tx, err := uc.dbConn.BeginTx(ctx, nil)
+	tx, err := uc.dbConn.BeginTxx(ctx, nil)
 	if err != nil {
 		log.Printf("failed to begin sql transaction with error: %v\n", err)
 		return err
@@ -88,7 +88,7 @@ func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.Cre
 	}
 
 	// retrieve wallet details and wallet balances for sender
-	senderWalletBalances, err := uc.walletRepository.GetWalletBalancesByUserIDAndWalletID(ctx, userID, req.SenderWalletID)
+	senderWalletBalances, err := uc.walletRepository.GetWalletBalancesByUserIDAndWalletID(ctx, nil, userID, req.SenderWalletID)
 	if err != nil {
 		log.Printf("failed to retrieve wallet balances for user id %d and wallet id %d with error %v\n", userID, req.SenderWalletID, err)
 		return err

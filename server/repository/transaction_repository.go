@@ -22,6 +22,9 @@ func NewTransactionRepository(db *sqlx.DB) domain.TransactionRepository {
 }
 
 func (r *transactionRepository) CheckLinkageOfSenderAndBeneficiaryByMobileNumber(ctx context.Context, userID int, mobileCountryCode, mobileNumber string) (int, bool, bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
 	query := `
 		SELECT ub.beneficiary_id, u.active, u.is_mfa_configured
 		FROM user_beneficiary ub
@@ -46,6 +49,9 @@ func (r *transactionRepository) CheckLinkageOfSenderAndBeneficiaryByMobileNumber
 }
 
 func (r *transactionRepository) CheckValidityOfSenderIDAndWalletID(ctx context.Context, userID, walletID int) (bool, string, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
 	query := `
 		SELECT EXISTS (
 			SELECT 1
@@ -69,7 +75,10 @@ func (r *transactionRepository) CheckValidityOfSenderIDAndWalletID(ctx context.C
 	return validSenderWallet, walletType, nil
 }
 
-func (r *transactionRepository) InsertTransaction(ctx context.Context, tx *sql.Tx, userID int, transaction domain.Transaction) error {
+func (r *transactionRepository) InsertTransaction(ctx context.Context, tx *sqlx.Tx, userID int, transaction domain.Transaction) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
 	query := `
 		INSERT INTO transactions 
 			(user_id, sender_id, beneficiary_id, source_of_transfer, source_amount,
@@ -77,7 +86,7 @@ func (r *transactionRepository) InsertTransaction(ctx context.Context, tx *sql.T
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
 	`
 
-	_, err := tx.ExecContext(ctx, query,
+	if _, err := tx.ExecContext(ctx, query,
 		userID,
 		transaction.SenderID,
 		transaction.BeneficiaryID,
@@ -88,12 +97,17 @@ func (r *transactionRepository) InsertTransaction(ctx context.Context, tx *sql.T
 		transaction.DestinationCurrency,
 		transaction.Status,
 		time.Now(),
-	)
+	); err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }
 
 func (r *transactionRepository) GetTransactions(ctx context.Context, userID int, paginator *pagination.Paginator) (*[]domain.Transaction, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
 	query := `
 		SELECT
 			sender.username 			AS sender_username,
@@ -122,16 +136,20 @@ func (r *transactionRepository) GetTransactions(ctx context.Context, userID int,
 
 	var transactions []domain.Transaction
 	if err := r.db.SelectContext(ctx, &transactions, r.db.Rebind(query), args...); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, exception.ErrNoTransactionsFound
-		}
 		return nil, err
+	}
+
+	if len(transactions) == 0 {
+		return nil, exception.ErrNoTransactionsFound
 	}
 
 	return &transactions, nil
 }
 
 func (r *transactionRepository) GetTotalTransactionsCount(ctx context.Context, userID int, paginator *pagination.Paginator) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
 	query := `
 		SELECT COUNT(1)
 		FROM transactions t

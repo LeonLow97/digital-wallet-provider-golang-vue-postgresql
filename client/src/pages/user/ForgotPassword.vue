@@ -27,7 +27,7 @@ import { ref } from "vue";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { SEND_PASSWORD_RESET_EMAIL } from "@/api/user";
-import type { SEND_PASSWORD_RESET_EMAIL_REQUEST } from "@/types/user";
+import type { SendPasswordResetEmailRequest } from "@/types/user";
 import { useToastStore } from "@/stores/toast";
 
 const toastStore = useToastStore();
@@ -36,7 +36,7 @@ const email = ref("");
 
 const handleSubmit = async () => {
   try {
-    const body: SEND_PASSWORD_RESET_EMAIL_REQUEST = {
+    const body: SendPasswordResetEmailRequest = {
       email: email.value,
     };
 

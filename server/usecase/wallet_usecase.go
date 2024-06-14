@@ -33,7 +33,7 @@ func (uc *walletUsecase) GetWallet(ctx context.Context, userID, walletID int) (*
 	}
 
 	// retrieve wallet balances by user id and wallet id
-	walletBalances, err := uc.walletRepository.GetWalletBalancesByUserIDAndWalletID(ctx, userID, walletID)
+	walletBalances, err := uc.walletRepository.GetWalletBalancesByUserIDAndWalletID(ctx, nil, userID, walletID)
 	if err != nil {
 		log.Printf("failed to get wallet balances for user id %d and wallet id %d with error: %v\n", userID, walletID, err)
 		return nil, err
@@ -49,9 +49,6 @@ func (uc *walletUsecase) GetWallets(ctx context.Context, userID int) (*[]domain.
 	if err != nil {
 		log.Printf("failed to get wallets for user id %d with error: %v\n", userID, err)
 		return nil, err
-	}
-	if len(wallets) == 0 {
-		return nil, exception.ErrNoWalletsFound
 	}
 
 	// retrieve wallet balances by user id
@@ -91,7 +88,7 @@ func (uc *walletUsecase) GetWalletTypes(ctx context.Context) (*[]dto.GetWalletTy
 
 func (uc *walletUsecase) CreateWallet(ctx context.Context, userID int, req dto.CreateWalletRequest) error {
 	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
-	tx, err := uc.dbConn.BeginTx(ctx, nil)
+	tx, err := uc.dbConn.BeginTxx(ctx, nil)
 	if err != nil {
 		log.Printf("failed to begin sql transaction with error: %v\n", err)
 		return err
@@ -199,7 +196,7 @@ func (uc *walletUsecase) CreateWallet(ctx context.Context, userID int, req dto.C
 
 func (uc *walletUsecase) TopUpWallet(ctx context.Context, userID, walletID int, req dto.UpdateWalletRequest) error {
 	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
-	tx, err := uc.dbConn.BeginTx(ctx, nil)
+	tx, err := uc.dbConn.BeginTxx(ctx, nil)
 	if err != nil {
 		log.Printf("failed to begin sql transaction with error: %v\n", err)
 		return err
@@ -242,7 +239,7 @@ func (uc *walletUsecase) TopUpWallet(ctx context.Context, userID, walletID int, 
 	}
 
 	// retrieve main balance and check if sufficient funds
-	walletBalances, err := uc.walletRepository.GetWalletBalancesByUserIDAndWalletID_TX(ctx, tx, userID, walletID)
+	walletBalances, err := uc.walletRepository.GetWalletBalancesByUserIDAndWalletID(ctx, tx, userID, walletID)
 	if err != nil {
 		log.Printf("failed to retrieve all balances for user id %d with error: %v\n", userID, err)
 		return err
@@ -301,7 +298,7 @@ func (uc *walletUsecase) TopUpWallet(ctx context.Context, userID, walletID int, 
 
 func (uc *walletUsecase) CashOutWallet(ctx context.Context, userID, walletID int, req dto.UpdateWalletRequest) error {
 	// Start SQL Transaction, need to lock balance in case use POSTMAN and frontend to update balance at the same time
-	tx, err := uc.dbConn.BeginTx(ctx, nil)
+	tx, err := uc.dbConn.BeginTxx(ctx, nil)
 	if err != nil {
 		log.Printf("failed to begin sql transaction with error: %v\n", err)
 		return err
@@ -344,7 +341,7 @@ func (uc *walletUsecase) CashOutWallet(ctx context.Context, userID, walletID int
 	}
 
 	// retrieve wallet balances by user id and wallet id
-	walletBalances, err := uc.walletRepository.GetWalletBalancesByUserIDAndWalletID_TX(ctx, tx, userID, walletID)
+	walletBalances, err := uc.walletRepository.GetWalletBalancesByUserIDAndWalletID(ctx, tx, userID, walletID)
 	if err != nil {
 		log.Printf("failed to retrieve all balances for user id %d with error: %v\n", userID, err)
 		return err

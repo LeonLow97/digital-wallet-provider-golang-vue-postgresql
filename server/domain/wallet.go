@@ -2,9 +2,9 @@ package domain
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/LeonLow97/go-clean-architecture/dto"
+	"github.com/jmoiron/sqlx"
 )
 
 type Wallet struct {
@@ -37,21 +37,17 @@ type WalletUsecase interface {
 
 type WalletRepository interface {
 	GetWalletByWalletID(ctx context.Context, userID, walletID int) (*Wallet, error)
-	GetWalletByWalletType(ctx context.Context, userID int, walletType string) (*Wallet, error)
 	GetWallets(ctx context.Context, userID int) ([]Wallet, error)
 	GetWalletTypes(ctx context.Context) (*[]dto.GetWalletTypesResponse, error)
 	GetWalletBalancesByUserID(ctx context.Context, userID int) ([]WalletCurrencyAmount, error)
-	GetWalletBalancesByUserIDAndWalletID(ctx context.Context, userID, walletID int) ([]WalletCurrencyAmount, error)
-	GetWalletBalancesByUserIDAndWalletID_TX(ctx context.Context, tx *sql.Tx, userID, walletID int) ([]WalletCurrencyAmount, error)
-	GetAllBalancesByUserID(ctx context.Context, tx *sql.Tx, userID int) ([]Balance, error)
+	GetWalletBalancesByUserIDAndWalletID(ctx context.Context, tx *sqlx.Tx, userID, walletID int) ([]WalletCurrencyAmount, error)
 
 	CheckWalletExistsByWalletTypeID(ctx context.Context, userID, walletTypeID int) (bool, error)
-	CheckWalletExistsByWalletID(ctx context.Context, userID, walletID int) (bool, error)
 	CheckWalletTypeExists(ctx context.Context, WalletTypeID int) (bool, error)
 
-	CreateWallet(ctx context.Context, tx *sql.Tx, wallet *Wallet) (int, error)
-	InsertWalletCurrencyAmount(ctx context.Context, tx *sql.Tx, walletID, userID int, currencyAmount []WalletCurrencyAmount) error
+	CreateWallet(ctx context.Context, tx *sqlx.Tx, wallet *Wallet) (int, error)
+	InsertWalletCurrencyAmount(ctx context.Context, tx *sqlx.Tx, walletID, userID int, currencyAmount []WalletCurrencyAmount) error
 
-	TopUpWalletBalances(ctx context.Context, tx *sql.Tx, userID, walletID int, finalWalletBalancesMap map[string]float64) error
-	CashOutWalletBalances(ctx context.Context, tx *sql.Tx, userID, walletID int, finalWalletBalancesMap map[string]float64) error
+	TopUpWalletBalances(ctx context.Context, tx *sqlx.Tx, userID, walletID int, finalWalletBalancesMap map[string]float64) error
+	CashOutWalletBalances(ctx context.Context, tx *sqlx.Tx, userID, walletID int, finalWalletBalancesMap map[string]float64) error
 }

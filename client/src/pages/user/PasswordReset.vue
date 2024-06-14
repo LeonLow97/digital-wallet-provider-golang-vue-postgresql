@@ -32,7 +32,7 @@ import { ref, onMounted } from "vue";
 import TextInput from "@/components/TextInput.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { PASSWORD_RESET } from "@/api/user";
-import type { PASSWORD_RESET_REQUEST } from "@/types/user";
+import type { PasswordResetRequest } from "@/types/user";
 import { useToastStore } from "@/stores/toast";
 
 const toastStore = useToastStore();
@@ -53,7 +53,7 @@ onMounted(async () => {
 
 const handleSubmit = async () => {
   try {
-    const body: PASSWORD_RESET_REQUEST = {
+    const body: PasswordResetRequest = {
       token: token.value,
       password: password.value,
     };

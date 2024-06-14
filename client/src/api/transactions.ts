@@ -2,9 +2,9 @@ import axios from "axios";
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
 import type {
-  GENERIC_STATUS_RESPONSE,
-  APIResponse,
-  PAGINATION,
+  HttpStatusResponse,
+  ApiResponse,
+  Pagination,
 } from "@/types/generic";
 import type {
   CreateTransactionRequest,
@@ -16,7 +16,7 @@ const GET_TRANSACTIONS_URL = `${API_URL}/transaction/all`;
 
 export const CREATE_TRANSACTION = async (
   body: CreateTransactionRequest,
-): Promise<GENERIC_STATUS_RESPONSE> => {
+): Promise<HttpStatusResponse> => {
   const { status } = await axios.post(
     CREATE_TRANSACTION_URL,
     JSON.stringify(body),
@@ -27,8 +27,8 @@ export const CREATE_TRANSACTION = async (
 };
 
 export const GET_TRANSACTIONS = async (
-  queryParams: PAGINATION,
-): Promise<APIResponse<Transaction[]>> => {
+  queryParams: Pagination,
+): Promise<ApiResponse<Transaction[]>> => {
   const { data, headers, status } = await axios.get(GET_TRANSACTIONS_URL, {
     params: queryParams,
     withCredentials: true,

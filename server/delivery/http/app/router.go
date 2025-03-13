@@ -17,15 +17,13 @@ type Application struct {
 }
 
 func (app Application) CreateRouter() (*mux.Router, error) {
-	baseRouter := mux.NewRouter().StrictSlash(true)           // trim trailing slashes in endpoint
-	baseRouter = baseRouter.PathPrefix("/api/v1").Subrouter() // api versioning v1
+	// Create the base router with API version prefix
+	apiRouter := mux.NewRouter().StrictSlash(true).PathPrefix("/api/v1").Subrouter()
 
 	// standard health check endpoint
-	baseRouter.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	apiRouter.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Healthy!"))
 	}).Methods(http.MethodGet).Name("HEALTH")
-
-	router := baseRouter.PathPrefix("/").Subrouter()
 
 	// Handlers
 	userHandler := handlers.NewUserHandler(app.UserUsecase)
@@ -35,52 +33,47 @@ func (app Application) CreateRouter() (*mux.Router, error) {
 	transactionHandler := handlers.NewTransactionHandler(app.TransactionUsecase)
 
 	// authentication routes
-	router.HandleFunc("/login", userHandler.Login).Methods(http.MethodPost)
-	router.HandleFunc("/signup", userHandler.SignUp).Methods(http.MethodPost)
-	router.HandleFunc("/logout", userHandler.Logout).Methods(http.MethodPost)
-	router.HandleFunc("/change-password", userHandler.ChangePassword).Methods(http.MethodPatch)
-	router.HandleFunc("/configure-mfa", userHandler.ConfigureMFA).Methods(http.MethodPost)
-	router.HandleFunc("/verify-mfa", userHandler.VerifyMFA).Methods(http.MethodPost)
+	apiRouter.HandleFunc("/login", userHandler.Login).Methods(http.MethodPost)
+	apiRouter.HandleFunc("/signup", userHandler.SignUp).Methods(http.MethodPost)
+	apiRouter.HandleFunc("/logout", userHandler.Logout).Methods(http.MethodPost)
+	apiRouter.HandleFunc("/change-password", userHandler.ChangePassword).Methods(http.MethodPatch)
+	apiRouter.HandleFunc("/configure-mfa", userHandler.ConfigureMFA).Methods(http.MethodPost)
+	apiRouter.HandleFunc("/verify-mfa", userHandler.VerifyMFA).Methods(http.MethodPost)
 
 	// password reset routes
-	router.HandleFunc("/password-reset/send", userHandler.SendPasswordResetEmail).Methods(http.MethodPost)
-	router.HandleFunc("/password-reset/reset", userHandler.PasswordReset).Methods(http.MethodPatch)
+	apiRouter.HandleFunc("/password-reset/send", userHandler.SendPasswordResetEmail).Methods(http.MethodPost)
+	apiRouter.HandleFunc("/password-reset/reset", userHandler.PasswordReset).Methods(http.MethodPatch)
 
 	// user routes
-	userRouter := router.PathPrefix("/users").Subrouter()
-	userRouter.HandleFunc("/profile", userHandler.UpdateUser).Methods(http.MethodPut)
-	userRouter.HandleFunc("/me", userHandler.GetUserDetail).Methods(http.MethodGet)
+	apiRouter.HandleFunc("/users/profile", userHandler.UpdateUser).Methods(http.MethodPut)
+	apiRouter.HandleFunc("/users/me", userHandler.GetUserDetail).Methods(http.MethodGet)
 
 	// balance routes
-	balanceRouter := router.PathPrefix("/balances").Subrouter()
-	balanceRouter.HandleFunc("", balanceHandler.GetBalances).Methods(http.MethodGet)
-	balanceRouter.HandleFunc("/{id:[0-9]+}", balanceHandler.GetBalance).Methods(http.MethodGet)
-	balanceRouter.HandleFunc("/history/{id:[0-9]+}", balanceHandler.GetBalanceHistory).Methods(http.MethodGet)
-	balanceRouter.HandleFunc("/currencies", balanceHandler.GetUserBalanceCurrencies).Methods(http.MethodGet)
-	balanceRouter.HandleFunc("/deposit", balanceHandler.Deposit).Methods(http.MethodPost)
-	balanceRouter.HandleFunc("/withdraw", balanceHandler.Withdraw).Methods(http.MethodPost)
-	balanceRouter.HandleFunc("/currency-exchange", balanceHandler.CurrencyExchange).Methods(http.MethodPatch)
-	balanceRouter.HandleFunc("/preview-exchange", balanceHandler.PreviewExchange).Methods(http.MethodPost)
+	apiRouter.HandleFunc("/balances", balanceHandler.GetBalances).Methods(http.MethodGet)
+	apiRouter.HandleFunc("/balances/{id:[0-9]+}", balanceHandler.GetBalance).Methods(http.MethodGet)
+	apiRouter.HandleFunc("/balances/history/{id:[0-9]+}", balanceHandler.GetBalanceHistory).Methods(http.MethodGet)
+	apiRouter.HandleFunc("/balances/currencies", balanceHandler.GetUserBalanceCurrencies).Methods(http.MethodGet)
+	apiRouter.HandleFunc("/balances/deposit", balanceHandler.Deposit).Methods(http.MethodPost)
+	apiRouter.HandleFunc("/balances/withdraw", balanceHandler.Withdraw).Methods(http.MethodPost)
+	apiRouter.HandleFunc("/balances/currency-exchange", balanceHandler.CurrencyExchange).Methods(http.MethodPatch)
+	apiRouter.HandleFunc("/balances/preview-exchange", balanceHandler.PreviewExchange).Methods(http.MethodPost)
 
 	// beneficiary routes
-	beneficiaryRouter := router.PathPrefix("/beneficiary").Subrouter()
-	beneficiaryRouter.HandleFunc("", beneficiaryHandler.CreateBeneficiary).Methods(http.MethodPost)
-	beneficiaryRouter.HandleFunc("", beneficiaryHandler.UpdateBeneficiary).Methods(http.MethodPut)
-	beneficiaryRouter.HandleFunc("/{id:[0-9]+}", beneficiaryHandler.GetBeneficiary).Methods(http.MethodGet)
-	beneficiaryRouter.HandleFunc("", beneficiaryHandler.GetBeneficiaries).Methods(http.MethodGet)
+	apiRouter.HandleFunc("/beneficiary", beneficiaryHandler.CreateBeneficiary).Methods(http.MethodPost)
+	apiRouter.HandleFunc("/beneficiary", beneficiaryHandler.UpdateBeneficiary).Methods(http.MethodPut)
+	apiRouter.HandleFunc("/beneficiary/{id:[0-9]+}", beneficiaryHandler.GetBeneficiary).Methods(http.MethodGet)
+	apiRouter.HandleFunc("/beneficiary", beneficiaryHandler.GetBeneficiaries).Methods(http.MethodGet)
 
 	// wallet routes
-	walletRouter := router.PathPrefix("/wallet").Subrouter()
-	walletRouter.HandleFunc("/{id:[0-9]+}", walletHandler.GetWallet).Methods(http.MethodGet)
-	walletRouter.HandleFunc("/all", walletHandler.GetWallets).Methods(http.MethodGet)
-	walletRouter.HandleFunc("/types", walletHandler.GetWalletTypes).Methods(http.MethodGet)
-	walletRouter.HandleFunc("", walletHandler.CreateWallet).Methods(http.MethodPost)
-	walletRouter.HandleFunc("/update/{id:[0-9]+}/{operation}", walletHandler.UpdateWallet).Methods(http.MethodPut)
+	apiRouter.HandleFunc("/wallet/{id:[0-9]+}", walletHandler.GetWallet).Methods(http.MethodGet)
+	apiRouter.HandleFunc("/wallet/all", walletHandler.GetWallets).Methods(http.MethodGet)
+	apiRouter.HandleFunc("/wallet/types", walletHandler.GetWalletTypes).Methods(http.MethodGet)
+	apiRouter.HandleFunc("/wallet", walletHandler.CreateWallet).Methods(http.MethodPost)
+	apiRouter.HandleFunc("/wallet/update/{id:[0-9]+}/{operation}", walletHandler.UpdateWallet).Methods(http.MethodPut)
 
 	// transaction routes
-	transactionRouter := router.PathPrefix("/transaction").Subrouter()
-	transactionRouter.HandleFunc("", transactionHandler.CreateTransaction).Methods(http.MethodPost)
-	transactionRouter.HandleFunc("/all", transactionHandler.GetTransactions).Methods(http.MethodGet)
+	apiRouter.HandleFunc("/transaction", transactionHandler.CreateTransaction).Methods(http.MethodPost)
+	apiRouter.HandleFunc("/transaction/all", transactionHandler.GetTransactions).Methods(http.MethodGet)
 
-	return baseRouter, nil
+	return apiRouter, nil
 }

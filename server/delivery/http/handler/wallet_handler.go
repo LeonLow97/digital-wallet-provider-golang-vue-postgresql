@@ -195,7 +195,7 @@ func (h *WalletHandler) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, exception.ErrWalletBalancesNotFound):
 			jsonutil.ErrorJSON(w, apiErr.ErrNoWalletBalancesFound, http.StatusNotFound)
 		case errors.Is(err, exception.ErrBalanceNotFound):
-			jsonutil.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusBadRequest)
+			jsonutil.ErrorJSON(w, apiErr.ErrBalanceNotFound, http.StatusNotFound)
 		case errors.Is(err, exception.ErrInsufficientFunds):
 			jsonutil.ErrorJSON(w, apiErr.ErrInsufficientFundsInAccount, http.StatusBadRequest)
 		case errors.Is(err, exception.ErrInsufficientFundsForWithdrawal):

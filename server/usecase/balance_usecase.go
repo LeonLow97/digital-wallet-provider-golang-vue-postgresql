@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/LeonLow97/go-clean-architecture/domain"
@@ -149,7 +148,8 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) e
 		return err
 	}
 	if constants.CountryCodeToCurrencyMap[user.MobileCountryCode] != req.Currency {
-		return exception.ErrDepositCurrencyNotAllowed
+		err = exception.ErrDepositCurrencyNotAllowed
+		return err
 	}
 
 	currentBalance, err := uc.balanceRepository.GetBalance(ctx, tx, req.UserID, req.Currency)
@@ -164,7 +164,7 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) e
 	if currentBalance != nil {
 		currentBalance.Balance += req.Balance
 
-		if err := uc.balanceRepository.UpdateBalance(ctx, tx, currentBalance); err != nil {
+		if err = uc.balanceRepository.UpdateBalance(ctx, tx, currentBalance); err != nil {
 			return err
 		}
 		updatedBalance = currentBalance
@@ -176,7 +176,7 @@ func (uc *balanceUsecase) Deposit(ctx context.Context, req dto.DepositRequest) e
 			UserID:   req.UserID,
 		}
 		// user does not have this balance, insert the balance
-		if err := uc.balanceRepository.CreateBalance(ctx, tx, updatedBalance); err != nil {
+		if err = uc.balanceRepository.CreateBalance(ctx, tx, updatedBalance); err != nil {
 			return err
 		}
 	}
@@ -230,7 +230,8 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 		return err
 	}
 	if constants.CountryCodeToCurrencyMap[user.MobileCountryCode] != req.Currency {
-		return exception.ErrWithdrawCurrencyNotAllowed
+		err = exception.ErrWithdrawCurrencyNotAllowed
+		return err
 	}
 
 	currentBalance, err := uc.balanceRepository.GetBalance(ctx, tx, req.UserID, req.Currency)
@@ -245,11 +246,12 @@ func (uc *balanceUsecase) Withdraw(ctx context.Context, req dto.WithdrawRequest)
 
 	if currentBalance != nil {
 		currentBalance.Balance -= req.Balance
-		if err := uc.balanceRepository.UpdateBalance(ctx, tx, currentBalance); err != nil {
+		if err = uc.balanceRepository.UpdateBalance(ctx, tx, currentBalance); err != nil {
 			return err
 		}
 	} else {
-		return exception.ErrBalanceNotFound
+		err = exception.ErrBalanceNotFound
+		return err
 	}
 
 	defer func() {
@@ -311,8 +313,10 @@ func (uc *balanceUsecase) CurrencyExchange(ctx context.Context, userID int, req 
 	// retrieve converted amount and profit
 	profit, convertedAmount := utils.CalculateConversionDetails(req.FromAmount, fromCurrency, req.ToCurrency)
 
-	// TODO: add profit into creator's account balance
-	fmt.Println("Adding into creator's account balance", profit)
+	if err = uc.balanceRepository.LogCreatorProfit(ctx, tx, profit, fromCurrency); err != nil {
+		log.Printf("failed to log creator profit with error %v\n", err)
+		return err
+	}
 
 	// retrieve main balance and check if sufficient funds
 	allBalances, err := uc.balanceRepository.GetBalances(ctx, tx, userID)
@@ -338,7 +342,8 @@ func (uc *balanceUsecase) CurrencyExchange(ctx context.Context, userID int, req 
 	// check if user has sufficient primary balance to perform currency exchange
 	if req.FromAmount > allBalancesMap[fromCurrency] {
 		log.Printf("user %d has insufficient balance to perform currency exchange", userID)
-		return exception.ErrInsufficientFundsForCurrencyExchange
+		err = exception.ErrInsufficientFundsForCurrencyExchange
+		return err
 	}
 
 	finalBalancesMap := make(map[string]float64)
@@ -353,7 +358,7 @@ func (uc *balanceUsecase) CurrencyExchange(ctx context.Context, userID int, req 
 	}
 
 	// update user balances
-	if err := uc.balanceRepository.UpdateBalances(ctx, tx, userID, finalBalancesMap); err != nil {
+	if err = uc.balanceRepository.UpdateBalances(ctx, tx, userID, finalBalancesMap); err != nil {
 		log.Printf("failed to update balances for user id %d with error: %v\n", userID, err)
 		return err
 	}
@@ -364,7 +369,7 @@ func (uc *balanceUsecase) CurrencyExchange(ctx context.Context, userID int, req 
 		Currency: fromCurrency,
 		UserID:   userID,
 	}
-	if err := uc.balanceRepository.CreateBalanceHistory(ctx, tx, transferFromBalanceHistory, req.FromAmount, "exchange"); err != nil {
+	if err = uc.balanceRepository.CreateBalanceHistory(ctx, tx, transferFromBalanceHistory, req.FromAmount, "exchange"); err != nil {
 		log.Printf("failed to create balance history for 'transferFrom' for user id %d with error: %v\n", userID, err)
 		return err
 	}
@@ -375,7 +380,7 @@ func (uc *balanceUsecase) CurrencyExchange(ctx context.Context, userID int, req 
 		Currency: req.ToCurrency,
 		UserID:   userID,
 	}
-	if err := uc.balanceRepository.CreateBalanceHistory(ctx, tx, transferToBalanceHistory, convertedAmount, "exchange"); err != nil {
+	if err = uc.balanceRepository.CreateBalanceHistory(ctx, tx, transferToBalanceHistory, convertedAmount, "exchange"); err != nil {
 		log.Printf("failed to create balance history for 'transferTo' for user id %d with error: %v\n", userID, err)
 		return err
 	}

@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"errors"
 	"log"
+	"os"
 
 	"github.com/spf13/viper"
 )
@@ -16,11 +17,14 @@ var (
 )
 
 type Config struct {
-	Env struct {
-		Mode        string `mapstructure:"mode"`
-		BackendURL  string `mapstructure:"backend_url"`
+	Mode   string `mapstructure:"mode"`
+	Server struct {
+		Port       int    `mapstructure:"port"`
+		BackendURL string `mapstructure:"backend_url"`
+	} `mapstructure:"server"`
+	Frontend struct {
 		FrontendURL string `mapstructure:"frontend_url"`
-	} `mapstructure:"environment"`
+	} `mapstructure:"frontend"`
 	JWT struct {
 		Secret string `mapstructure:"secret"`
 		Issuer string `mapstructure:"issuer"`
@@ -38,13 +42,31 @@ type Config struct {
 	CSRF struct {
 		Key string `mapstructure:"key"`
 	} `mapstructure:"csrf"`
+	Postgres struct {
+		PostgresUser     string `mapstructure:"postgres_user"`
+		PostgresPassword string `mapstructure:"postgres_password"`
+		PostgresHost     string `mapstructure:"postgres_host"`
+		PostgresPort     int    `mapstructure:"postgres_port"`
+		PostgresDB       string `mapstructure:"postgres_db"`
+	} `mapstructure:"postgres"`
+	Redis struct {
+		RedisHost string `mapstructure:"redis_host"`
+		RedisPort int    `mapstructure:"redis_port"`
+	} `mapstructure:"redis"`
 }
 
 func LoadConfig() (*Config, error) {
-	viper.SetDefault("mode", MODE_DEVELOPMENT)
-	viper.SetConfigName("development")
+	mode := os.Getenv("MODE")
+	if mode == "" {
+		mode = "development"
+	}
+
+	viper.SetConfigName(mode)
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./config")
+
+	// inject environment variables to override matching keys in configuration files (.yaml)
+	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {

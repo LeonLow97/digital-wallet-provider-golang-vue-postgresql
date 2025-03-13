@@ -64,16 +64,19 @@ func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.Cre
 		return err
 	}
 	if !isBeneficiaryActive {
-		return exception.ErrBeneficiaryIsInactive
+		err = exception.ErrBeneficiaryIsInactive
+		return err
 	}
 	if !isMFAConfigured {
-		return exception.ErrBeneficiaryMFANotConfigured
+		err = exception.ErrBeneficiaryMFANotConfigured
+		return err
 	}
 
 	// check if sender id is equal to beneficiary id
 	if userID == beneficiaryID {
 		log.Println("sender id cannot be equal to beneficiary id when performing transaction")
-		return exception.ErrUserIDEqualBeneficiaryID
+		err = exception.ErrUserIDEqualBeneficiaryID
+		return err
 	}
 
 	// check if sender wallet id is linked to user id
@@ -84,7 +87,8 @@ func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.Cre
 	}
 	if !isValidSenderWallet {
 		log.Println("sender wallet is invalid, forbid request")
-		return exception.ErrSenderWalletInvalid
+		err = exception.ErrSenderWalletInvalid
+		return err
 	}
 
 	// retrieve wallet details and wallet balances for sender
@@ -104,7 +108,8 @@ func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.Cre
 	// TODO: allow internal transfer in same wallet
 	// check if sender wallet balance if sufficient for transfer
 	if senderWalletBalancesMap[req.SourceCurrency] < req.SourceAmount {
-		return exception.ErrInsufficientFundsInWallet
+		err = exception.ErrInsufficientFundsInWallet
+		return err
 	}
 
 	// retrieve beneficiary balances by beneficiary ID (equivalent to userID for beneficiary)
@@ -137,23 +142,25 @@ func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.Cre
 		mainDestinationCurrency := constants.CountryCodeToCurrencyMap[req.BeneficiaryMobileCountryCode]
 		profit, transferAmount := utils.CalculateConversionDetails(req.SourceAmount, req.SourceCurrency, mainDestinationCurrency)
 
-		// TODO: Capture profit and add to creator's account
-		fmt.Println("Profit for exchange -->", profit)
-
 		beneficiaryBalancesMap[mainDestinationCurrency] += transferAmount
 
 		finalDestinationAmount = transferAmount
 		finalDestinationCurrency = mainDestinationCurrency
+
+		if err = uc.balanceRepository.LogCreatorProfit(ctx, tx, profit, req.SourceCurrency); err != nil {
+			log.Printf("failed to log creator profit with error %v\n", err)
+			return err
+		}
 	}
 
 	// update sender wallet balances
-	if err := uc.walletRepository.CashOutWalletBalances(ctx, tx, userID, req.SenderWalletID, finalSenderWalletBalancesMap); err != nil {
+	if err = uc.walletRepository.CashOutWalletBalances(ctx, tx, userID, req.SenderWalletID, finalSenderWalletBalancesMap); err != nil {
 		log.Printf("failed to cash out wallet balances for sender id %d with error: %v\n", userID, err)
 		return err
 	}
 
 	// update beneficiary balances
-	if err := uc.balanceRepository.UpdateBalances(ctx, tx, beneficiaryID, beneficiaryBalancesMap); err != nil {
+	if err = uc.balanceRepository.UpdateBalances(ctx, tx, beneficiaryID, beneficiaryBalancesMap); err != nil {
 		log.Printf("failed to update beneficiary id %d balances with error: %v\n", beneficiaryID, err)
 		return err
 	}
@@ -180,14 +187,14 @@ func (uc *transactionUsecase) CreateTransaction(ctx context.Context, req dto.Cre
 
 	// create transaction for sender
 	transactionEntity.SourceOfTransfer = walletName
-	if err := uc.transactionRepository.InsertTransaction(ctx, tx, userID, *transactionEntity); err != nil {
+	if err = uc.transactionRepository.InsertTransaction(ctx, tx, userID, *transactionEntity); err != nil {
 		log.Printf("failed to create transaction for sender ID %d with error: %v\n", userID, err)
 		return err
 	}
 
 	// create transaction for beneficiary
 	transactionEntity.SourceOfTransfer = fmt.Sprintf("Main Balance %s", finalDestinationCurrency)
-	if err := uc.transactionRepository.InsertTransaction(ctx, tx, beneficiaryID, *transactionEntity); err != nil {
+	if err = uc.transactionRepository.InsertTransaction(ctx, tx, beneficiaryID, *transactionEntity); err != nil {
 		log.Printf("failed to create transaction for beneficiary ID %d with error: %v\n", beneficiaryID, err)
 		return err
 	}

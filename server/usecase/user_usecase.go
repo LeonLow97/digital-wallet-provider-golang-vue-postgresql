@@ -289,7 +289,7 @@ func (uc *userUsecase) SendPasswordResetEmail(ctx context.Context, req dto.SendP
 	}
 
 	// construct reset url with authentication token
-	resetUrl := fmt.Sprintf("%s/#/password-reset/%s", uc.cfg.Env.FrontendURL, authToken)
+	resetUrl := fmt.Sprintf("%s/#/password-reset/%s", uc.cfg.Frontend.FrontendURL, authToken)
 	emailBody := strings.Replace(utils.PasswordResetEmailBody, "{{.ResetURL}}", resetUrl, 1)
 
 	// using 2 goroutines to send email and store authentication token in redis

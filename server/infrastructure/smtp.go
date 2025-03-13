@@ -26,7 +26,7 @@ func (s *SMTPClient) SendEmail(ctx context.Context, senderEmail, senderName stri
 	smtpPort := s.cfg.SMTP.Port
 
 	var smtpAuth smtp.Auth
-	if s.cfg.Env.Mode == "development" {
+	if s.cfg.Mode == "development" {
 		smtpAuth = nil
 	} else {
 		smtpAuth = smtp.PlainAuth("", smtpUsername, smtpPassword, smtpHost)

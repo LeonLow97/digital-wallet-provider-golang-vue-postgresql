@@ -71,7 +71,7 @@
         class="mt-8 text-center"
       />
       <action-button
-        class="mb-4 mt-4 rounded-lg border bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
+        class="mb-4 mt-4 rounded-lg bg-blue-500 px-4 py-2 text-center text-white transition hover:bg-blue-400"
         text="Verify MFA"
         @click="handleConfigureMFA(email, secret)"
       />

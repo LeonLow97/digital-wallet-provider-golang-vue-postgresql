@@ -117,7 +117,8 @@ func (uc *walletUsecase) CreateWallet(ctx context.Context, userID int, req dto.C
 		return err
 	}
 	if walletExists {
-		return exception.ErrWalletAlreadyExists
+		err = exception.ErrWalletAlreadyExists
+		return err
 	}
 
 	// check if wallet type id is valid
@@ -127,7 +128,8 @@ func (uc *walletUsecase) CreateWallet(ctx context.Context, userID int, req dto.C
 		return err
 	}
 	if !walletTypeExists {
-		return exception.ErrWalletTypeInvalid
+		err = exception.ErrWalletTypeInvalid
+		return err
 	}
 
 	// retrieve main balance and check if sufficient funds
@@ -151,11 +153,13 @@ func (uc *walletUsecase) CreateWallet(ctx context.Context, userID int, req dto.C
 		if currentBalance, found := allBalancesMap[a.Currency]; !found {
 			// user does not have a balance in this currency
 			log.Printf("user %d does not have a balance in this currency\n", userID)
-			return exception.ErrBalanceNotFound
+			err = exception.ErrBalanceNotFound
+			return err
 		} else {
 			if currentBalance < a.Amount {
 				log.Printf("user %d has insufficient funds to top up wallet\n", userID)
-				return exception.ErrInsufficientFunds
+				err = exception.ErrInsufficientFunds
+				return err
 			}
 
 			currencyAmount = append(currencyAmount, domain.WalletCurrencyAmount{
@@ -169,7 +173,7 @@ func (uc *walletUsecase) CreateWallet(ctx context.Context, userID int, req dto.C
 	}
 
 	// update user balances
-	if err := uc.balanceRepository.UpdateBalances(ctx, tx, userID, finalBalancesMap); err != nil {
+	if err = uc.balanceRepository.UpdateBalances(ctx, tx, userID, finalBalancesMap); err != nil {
 		log.Printf("failed to update balances for user id %d with error: %v\n", userID, err)
 		return err
 	}
@@ -186,7 +190,7 @@ func (uc *walletUsecase) CreateWallet(ctx context.Context, userID int, req dto.C
 	}
 
 	// insert amount and currency for the wallet
-	if err := uc.walletRepository.InsertWalletCurrencyAmount(ctx, tx, walletID, userID, currencyAmount); err != nil {
+	if err = uc.walletRepository.InsertWalletCurrencyAmount(ctx, tx, walletID, userID, currencyAmount); err != nil {
 		log.Printf("failed to insert wallet currency amount for user id %d with error: %v\n", userID, err)
 		return err
 	}
@@ -259,11 +263,13 @@ func (uc *walletUsecase) TopUpWallet(ctx context.Context, userID, walletID int, 
 		if currentBalance, found := allBalancesMap[a.Currency]; !found {
 			// user does not have a balance in this currency
 			log.Printf("user %d does not have a balance in this currency\n", userID)
-			return exception.ErrBalanceNotFound
+			err = exception.ErrBalanceNotFound
+			return err
 		} else {
 			if currentBalance < a.Amount {
 				log.Printf("user %d has insufficient funds to top up wallet\n", userID)
-				return exception.ErrInsufficientFunds
+				err = exception.ErrInsufficientFunds
+				return err
 			}
 
 			finalBalance := allBalancesMap[a.Currency] - a.Amount
@@ -275,20 +281,18 @@ func (uc *walletUsecase) TopUpWallet(ctx context.Context, userID, walletID int, 
 			if walletAmount, found := walletBalancesMap[a.Currency]; found {
 				finalWalletBalance := walletAmount + a.Amount
 				finalWalletBalancesMap[a.Currency] = finalWalletBalance
-			} else {
-				finalWalletBalancesMap[a.Currency] = a.Amount
 			}
 		}
 	}
 
 	// update user balances
-	if err := uc.balanceRepository.UpdateBalances(ctx, tx, userID, finalBalancesMap); err != nil {
+	if err = uc.balanceRepository.UpdateBalances(ctx, tx, userID, finalBalancesMap); err != nil {
 		log.Printf("failed to update balances for user id %d with error: %v\n", userID, err)
 		return err
 	}
 
 	// update wallet balances
-	if err := uc.walletRepository.TopUpWalletBalances(ctx, tx, userID, walletID, finalWalletBalancesMap); err != nil {
+	if err = uc.walletRepository.TopUpWalletBalances(ctx, tx, userID, walletID, finalWalletBalancesMap); err != nil {
 		log.Printf("failed to top up wallet balances for user id %d with error: %v\n", userID, err)
 		return err
 	}
@@ -361,11 +365,13 @@ func (uc *walletUsecase) CashOutWallet(ctx context.Context, userID, walletID int
 		if walletAmount, found := walletBalancesMap[ca.Currency]; !found {
 			// user does not have this currency in the wallet
 			log.Printf("user %d does not have this currency in the wallet\n", userID)
-			return exception.ErrWalletBalanceNotFound
+			err = exception.ErrWalletBalanceNotFound
+			return err
 		} else {
 			if ca.Amount > walletAmount {
 				log.Printf("user %d has insufficient funds in wallet for currency %s\n", userID, ca.Currency)
-				return exception.ErrInsufficientFundsForWithdrawal
+				err = exception.ErrInsufficientFundsForWithdrawal
+				return err
 			}
 
 			finalBalance := allBalancesMap[ca.Currency] + ca.Amount
@@ -383,13 +389,13 @@ func (uc *walletUsecase) CashOutWallet(ctx context.Context, userID, walletID int
 	}
 
 	// update user balances
-	if err := uc.balanceRepository.UpdateBalances(ctx, tx, userID, finalBalancesMap); err != nil {
+	if err = uc.balanceRepository.UpdateBalances(ctx, tx, userID, finalBalancesMap); err != nil {
 		log.Printf("failed to update balances for user id %d with error: %v\n", userID, err)
 		return err
 	}
 
 	// update wallet balances
-	if err := uc.walletRepository.CashOutWalletBalances(ctx, tx, userID, walletID, finalWalletBalancesMap); err != nil {
+	if err = uc.walletRepository.CashOutWalletBalances(ctx, tx, userID, walletID, finalWalletBalancesMap); err != nil {
 		log.Printf("failed to cash out wallet balances for user id %d with error: %v\n", userID, err)
 		return err
 	}

@@ -46,6 +46,8 @@ var spreads = map[string]map[string]float64{
 	},
 }
 
+var spreadPercentage = 0.02
+
 func CalculateConversionDetails(transferAmount float64, fromCurrency, toCurrency string) (float64, float64) {
 	// Calculate pegged rate (because exchange rates are hardcoded)
 	peggedRate := exchangeRates[fromCurrency][toCurrency]
@@ -54,23 +56,23 @@ func CalculateConversionDetails(transferAmount float64, fromCurrency, toCurrency
 	conversionAmount := transferAmount * peggedRate
 
 	// Calculate profit after adding the spread
-	profit := conversionAmount * spreads[fromCurrency][toCurrency]
+	profit := transferAmount * spreads[fromCurrency][toCurrency] * spreadPercentage
 
 	// Calculate the beneficiary received value
-	beneficiaryAmount := conversionAmount - profit
+	beneficiaryAmount := conversionAmount - profit/peggedRate
 
 	return profit, beneficiaryAmount
 }
 
 func CalculateFromAmount(beneficiaryAmount float64, toCurrency, fromCurrency string) float64 {
 	// Calculate the conversion amount
-	conversionAmount := beneficiaryAmount / (1 - spreads[fromCurrency][toCurrency])
+	conversionAmount := beneficiaryAmount / (1 - spreads[fromCurrency][toCurrency]*spreadPercentage)
 
 	// Calculate the transfer amount
 	transferAmount := conversionAmount / exchangeRates[fromCurrency][toCurrency]
 
 	// Calculate the profit
-	// profit := conversionAmount - beneficiaryAmount
+	profit := transferAmount * spreads[fromCurrency][toCurrency] * spreadPercentage
 
-	return transferAmount
+	return transferAmount + profit
 }

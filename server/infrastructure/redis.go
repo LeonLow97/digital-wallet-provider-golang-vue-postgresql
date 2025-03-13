@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -44,10 +43,10 @@ type RedisClientImpl struct {
 }
 
 // NewRedisClient creates a new instance of RedisClientImpl
-func NewRedisClient() RedisClient {
-	redisHost := os.Getenv("REDIS_HOST")
-	redisPort := os.Getenv("REDIS_PORT")
-	redisAddr := fmt.Sprintf("%s:%s", redisHost, redisPort)
+func NewRedisClient(cfg *Config) RedisClient {
+	redisHost := cfg.Redis.RedisHost
+	redisPort := cfg.Redis.RedisPort
+	redisAddr := fmt.Sprintf("%s:%d", redisHost, redisPort)
 
 	// initialize redis client
 	redisClient := redis.NewClient(&redis.Options{

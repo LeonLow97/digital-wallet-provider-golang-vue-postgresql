@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 
 	"github.com/jackc/pgx/v5"
@@ -14,13 +13,13 @@ type PostgresConn struct {
 	*sqlx.DB
 }
 
-func NewPostgresConn() (*PostgresConn, error) {
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		os.Getenv("POSTGRES_USER"),
-		os.Getenv("POSTGRES_PASSWORD"),
-		os.Getenv("POSTGRES_HOST"),
-		os.Getenv("POSTGRES_PORT"),
-		os.Getenv("POSTGRES_DB"),
+func NewPostgresConn(cfg *Config) (*PostgresConn, error) {
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		cfg.Postgres.PostgresUser,
+		cfg.Postgres.PostgresPassword,
+		cfg.Postgres.PostgresHost,
+		cfg.Postgres.PostgresPort,
+		cfg.Postgres.PostgresDB,
 	)
 
 	connConfig, err := pgx.ParseConfig(dsn)

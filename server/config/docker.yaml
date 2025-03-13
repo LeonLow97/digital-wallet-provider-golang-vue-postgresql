@@ -1,4 +1,4 @@
-mode: 'development'
+mode: 'docker'
 
 server:
   backend_url: 'http://localhost:8080'
@@ -14,7 +14,7 @@ jwt:
 smtp:
   username: ''
   password: ''
-  host: 'localhost'
+  host: 'host.docker.internal'
   port: 1025
 
 totp:
@@ -32,5 +32,5 @@ postgres:
   postgres_db: mydb
 
 redis:
-  redis_host: localhost
+  redis_host: redis-server
   redis_port: 6379

@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS wallets (
 
 CREATE TABLE IF NOT EXISTS wallet_balances (
     id SERIAL PRIMARY KEY,
-    amount DECIMAL(20,2) NOT NULL,
+    amount NUMERIC(20,2) NOT NULL,
     currency CHAR(3) NOT NULL,
     wallet_id INT NOT NULL REFERENCES wallets(id) ON DELETE CASCADE,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS wallet_balances (
 
 CREATE TABLE IF NOT EXISTS balances (
     id SERIAL PRIMARY KEY,
-    balance DECIMAL(20,2) NOT NULL,
+    balance NUMERIC(20,2) NOT NULL,
     currency CHAR(3) NOT NULL,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS balances (
 
 CREATE TABLE IF NOT EXISTS balances_history (
     id SERIAL PRIMARY KEY,
-    amount DECIMAL(20,2) NOT NULL,
+    amount NUMERIC(20,2) NOT NULL,
     currency CHAR(3) NOT NULL,
     type VARCHAR(8) NOT NULL,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -82,10 +82,19 @@ CREATE TABLE IF NOT EXISTS transactions (
     sender_id INT NOT NULL REFERENCES users(id),
     beneficiary_id INT NOT NULL REFERENCES users(id),
     source_of_transfer VARCHAR(255) NOT NULL,
-    source_amount DECIMAL(20,2) NOT NULL,
+    source_amount NUMERIC(20,2) NOT NULL,
     source_currency CHAR(3) NOT NULL,
-    destination_amount DECIMAL(20,2) NOT NULL,
+    destination_amount NUMERIC(20,2) NOT NULL,
     destination_currency CHAR(3) NOT NULL,
     status VARCHAR(50) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS creator_profit (
+    id SERIAL PRIMARY KEY,
+    amount NUMERIC (20, 2) NOT NULL,
+    currency CHAR(3) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    UNIQUE(currency)
 );

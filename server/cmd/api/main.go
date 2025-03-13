@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/LeonLow97/go-clean-architecture/delivery/http/app"
 	"github.com/LeonLow97/go-clean-architecture/delivery/http/middleware"
@@ -16,8 +15,14 @@ import (
 )
 
 func main() {
+	// loading config file
+	cfg, err := infrastructure.LoadConfig()
+	if err != nil {
+		log.Fatalln("error loading config file", err)
+	}
+
 	// connecting to Postgres
-	conn, err := infrastructure.NewPostgresConn()
+	conn, err := infrastructure.NewPostgresConn(cfg)
 	if err != nil {
 		log.Fatalln("error connecting to db", err)
 	}
@@ -25,18 +30,12 @@ func main() {
 	dbConn := conn.DB
 
 	// connecting to Redis
-	redisClient := infrastructure.NewRedisClient()
+	redisClient := infrastructure.NewRedisClient(cfg)
 	defer func() {
 		if err := redisClient.Close(); err != nil {
 			log.Fatalln("error closing redis client", err)
 		}
 	}()
-
-	// loading config file
-	cfg, err := infrastructure.LoadConfig()
-	if err != nil {
-		log.Fatalln("error loading config file", err)
-	}
 
 	// setting up SMTP instance
 	smtpClient := infrastructure.NewSMTPInstance(cfg)
@@ -94,7 +93,7 @@ func main() {
 	// Create CORS options
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins: []string{
-			cfg.Env.FrontendURL,
+			cfg.Frontend.FrontendURL,
 		},
 		AllowCredentials: true,
 		AllowedMethods: []string{
@@ -137,9 +136,9 @@ func main() {
 	})
 	wrappedRouter := corsHandler.Handler(router)
 
-	port := os.Getenv("SERVICE_PORT")
+	port := cfg.Server.Port
 	log.Println("Server is running on port", port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), wrappedRouter); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), wrappedRouter); err != nil {
 		log.Fatalf("Failed to listen to server with error: %v\n", err)
 	}
 }

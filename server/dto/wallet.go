@@ -16,7 +16,7 @@ type CreateWalletRequest struct {
 }
 
 type CurrencyAmount struct {
-	Amount   float64 `json:"amount" db:"amount" validate:"required,gte=0"`
+	Amount   float64 `json:"amount" db:"amount" validate:"required,gt=0"`
 	Currency string  `json:"currency" db:"currency" validate:"required,min=0,max=3"`
 }
 
@@ -57,7 +57,7 @@ type WalletValidation struct {
 }
 
 type UpdateWalletRequest struct {
-	CurrencyAmount []CurrencyAmount `json:"currency_amount" validate:"required"`
+	CurrencyAmount []CurrencyAmount `json:"currency_amount" validate:"required,dive"`
 }
 
 func (req *UpdateWalletRequest) TopUpWalletSanitize() {

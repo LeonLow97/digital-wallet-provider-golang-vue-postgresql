@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS creator_profit (
+    id SERIAL PRIMARY KEY,
+    amount NUMERIC (20, 2) NOT NULL,
+    currency CHAR(3) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    UNIQUE(id, currency)
+);
+ 

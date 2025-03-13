@@ -226,3 +226,21 @@ func (r *balanceRepository) CreateBalanceHistory(ctx context.Context, tx *sqlx.T
 
 	return nil
 }
+
+func (uc *balanceRepository) LogCreatorProfit(ctx context.Context, tx *sqlx.Tx, profit float64, currency string) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
+	query := `
+		INSERT INTO creator_profit (amount, currency)
+		VALUES ($1, $2)
+		ON CONFLICT (currency) DO
+		UPDATE SET
+			amount = creator_profit.amount + EXCLUDED.amount,
+			currency = EXCLUDED.currency,
+			updated_at = NOW();
+	`
+
+	_, err := tx.ExecContext(ctx, query, profit, currency)
+	return err
+}

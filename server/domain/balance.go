@@ -39,4 +39,6 @@ type BalanceRepository interface {
 
 	UpdateBalance(ctx context.Context, tx *sqlx.Tx, balance *Balance) error
 	UpdateBalances(ctx context.Context, tx *sqlx.Tx, userID int, finalBalancesMap map[string]float64) error
+
+	LogCreatorProfit(ctx context.Context, tx *sqlx.Tx, profit float64, currency string) error
 }

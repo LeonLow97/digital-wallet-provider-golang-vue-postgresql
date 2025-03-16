@@ -17,17 +17,26 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// SkippedAuthenticationEndpoints is a set of paths to bypass authentication
+var SkippedAuthenticationEndpoints = map[string]struct{}{
+	"/api/v1/login":                {},
+	"/api/v1/password-reset/send":  {},
+	"/api/v1/password-reset/reset": {},
+	"/api/v1/signup":               {},
+	"/api/v1/health":               {},
+	"/api/v1/configure-mfa":        {},
+	"/api/v1/verify-mfa":           {},
+}
+
 type AuthenticationMiddleware struct {
 	cfg         infrastructure.Config
-	skipperFunc SkipperFunc
 	redisClient infrastructure.RedisClient
 	authUsecase domain.UserUsecase
 }
 
-func NewAuthenticationMiddleware(cfg infrastructure.Config, skipperFunc SkipperFunc, redisClient infrastructure.RedisClient, authUsecase domain.UserUsecase) AuthenticationMiddleware {
+func NewAuthenticationMiddleware(cfg infrastructure.Config, redisClient infrastructure.RedisClient, authUsecase domain.UserUsecase) AuthenticationMiddleware {
 	return AuthenticationMiddleware{
 		cfg:         cfg,
-		skipperFunc: skipperFunc,
 		redisClient: redisClient,
 		authUsecase: authUsecase,
 	}
@@ -35,7 +44,7 @@ func NewAuthenticationMiddleware(cfg infrastructure.Config, skipperFunc SkipperF
 
 func (m AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if m.skipperFunc != nil && m.skipperFunc(r) {
+		if _, exists := SkippedAuthenticationEndpoints[r.URL.Path]; exists {
 			next.ServeHTTP(w, r)
 			return
 		}

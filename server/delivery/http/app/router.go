@@ -4,11 +4,15 @@ import (
 	"net/http"
 
 	handlers "github.com/LeonLow97/go-clean-architecture/delivery/http/handler"
+	"github.com/LeonLow97/go-clean-architecture/delivery/http/middleware"
 	"github.com/LeonLow97/go-clean-architecture/domain"
+	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	"github.com/gorilla/mux"
 )
 
 type Application struct {
+	Cfg                *infrastructure.Config
+	RedisClient        infrastructure.RedisClient
 	UserUsecase        domain.UserUsecase
 	BalanceUsecase     domain.BalanceUsecase
 	BeneficiaryUsecase domain.BeneficiaryUsecase
@@ -31,6 +35,12 @@ func (app Application) CreateRouter() (*mux.Router, error) {
 	beneficiaryHandler := handlers.NewBeneficiaryHandler(app.BeneficiaryUsecase)
 	walletHandler := handlers.NewWalletHandler(app.WalletUsecase)
 	transactionHandler := handlers.NewTransactionHandler(app.TransactionUsecase)
+
+	apiRouter.Use(
+		middleware.NewAuthenticationMiddleware(*app.Cfg, app.RedisClient, app.UserUsecase).Middleware,
+		middleware.NewCSRFMiddleware(*app.Cfg, app.RedisClient).Middleware,
+		middleware.NewHeadersMiddleware().Middleware,
+	)
 
 	// authentication routes
 	apiRouter.HandleFunc("/login", userHandler.Login).Methods(http.MethodPost)

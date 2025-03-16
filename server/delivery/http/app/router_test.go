@@ -5,12 +5,15 @@ import (
 	"testing"
 
 	"github.com/LeonLow97/go-clean-architecture/delivery/http/app"
+	"github.com/LeonLow97/go-clean-architecture/infrastructure"
 	mocks "github.com/LeonLow97/go-clean-architecture/mocks/usecase"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateRouter(t *testing.T) {
+	mockConfig := new(infrastructure.Config)
+	mockRedisClient := *new(infrastructure.RedisClient)
 	mockUserUsecase := new(mocks.UserUsecase)
 	mockBalanceUsecase := new(mocks.BalanceUsecase)
 	mockBeneficiaryUsecase := new(mocks.BeneficiaryUsecase)
@@ -18,6 +21,8 @@ func TestCreateRouter(t *testing.T) {
 	mockTransactionUsecase := new(mocks.TransactionUsecase)
 
 	app := app.Application{
+		Cfg:                mockConfig,
+		RedisClient:        mockRedisClient,
 		UserUsecase:        mockUserUsecase,
 		BalanceUsecase:     mockBalanceUsecase,
 		BeneficiaryUsecase: mockBeneficiaryUsecase,

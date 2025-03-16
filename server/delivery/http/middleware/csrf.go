@@ -10,25 +10,32 @@ import (
 	"github.com/LeonLow97/go-clean-architecture/utils/jsonutil"
 )
 
+// SkippedCSRFEndpoints is a set of paths to bypass CSRF token verification
+var SkippedCSRFEndpoints = map[string]struct{}{
+	"/api/v1/login":                {},
+	"/api/v1/password-reset/send":  {},
+	"/api/v1/password-reset/reset": {},
+	"/api/v1/signup":               {},
+	"/api/v1/health":               {},
+	"/api/v1/configure-mfa":        {},
+	"/api/v1/verify-mfa":           {},
+}
+
 type CSRFMiddleware struct {
 	cfg         infrastructure.Config
-	skipperFunc SkipperFunc
 	redisClient infrastructure.RedisClient
 }
 
-func NewCSRFMiddleware(cfg infrastructure.Config, skipperFunc SkipperFunc, redisClient infrastructure.RedisClient) *CSRFMiddleware {
+func NewCSRFMiddleware(cfg infrastructure.Config, redisClient infrastructure.RedisClient) *CSRFMiddleware {
 	return &CSRFMiddleware{
 		cfg:         cfg,
-		skipperFunc: skipperFunc,
 		redisClient: redisClient,
 	}
 }
 
 func (m CSRFMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if (m.skipperFunc != nil && m.skipperFunc(r)) ||
-			(r.Method != http.MethodPost && r.Method != http.MethodPut &&
-				r.Method != http.MethodPatch && r.Method != http.MethodDelete) {
+		if _, exists := SkippedCSRFEndpoints[r.URL.Path]; exists {
 			next.ServeHTTP(w, r)
 			return
 		}

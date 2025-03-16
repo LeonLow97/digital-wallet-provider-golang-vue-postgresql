@@ -3,6 +3,7 @@ module github.com/LeonLow97/go-clean-architecture
 go 1.19
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/go-playground/form v3.1.4+incompatible
 	github.com/go-playground/validator/v10 v10.17.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
@@ -15,11 +16,11 @@ require (
 	github.com/rs/cors v1.11.0
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.8.4
+	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.18.0
 )
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.5.2 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect

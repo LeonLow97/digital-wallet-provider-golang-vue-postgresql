@@ -1,3 +1,12 @@
+# Backend Features
+
+- Cross-Site Request Forgery (CSRF) Token
+- Cross-Origin Resource Sharing (CORS)
+- Session Management with Redis
+- JWT Token for Authentication
+- CSP Directives
+- Request Validation
+
 # Golang Clean Architecture
 
 - [Example 1](https://github.com/Ikhlashmulya/golang-clean-architecture/)

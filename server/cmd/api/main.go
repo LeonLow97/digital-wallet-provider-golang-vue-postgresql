@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/LeonLow97/go-clean-architecture/delivery/http/app"
-	"github.com/LeonLow97/go-clean-architecture/delivery/http/middleware"
 	"github.com/LeonLow97/go-clean-architecture/infrastructure"
+	logger "github.com/LeonLow97/go-clean-architecture/infrastructure/logger"
 	"github.com/LeonLow97/go-clean-architecture/repository"
 	"github.com/LeonLow97/go-clean-architecture/usecase"
 	"github.com/LeonLow97/go-clean-architecture/utils/constants/headers"
@@ -20,6 +20,13 @@ func main() {
 	if err != nil {
 		log.Fatalln("error loading config file", err)
 	}
+
+	l, err := logger.NewZapLogger()
+	if err != nil {
+		log.Fatalln("error loading zap logger", err)
+	}
+	defer l.Sync()
+	l.Info("Hello Test", l.String("error", "Testing error message"))
 
 	// connecting to Postgres
 	conn, err := infrastructure.NewPostgresConn(cfg)
@@ -60,6 +67,8 @@ func main() {
 	transactionUsecase := usecase.NewTransactionUsecase(dbConn, transactionRepo, walletRepo, balanceRepo, userRepo)
 
 	application := &app.Application{
+		Cfg:                cfg,
+		RedisClient:        redisClient,
 		UserUsecase:        userUsecase,
 		BalanceUsecase:     balanceUsecase,
 		BeneficiaryUsecase: beneficiaryUsecase,
@@ -67,28 +76,10 @@ func main() {
 		TransactionUsecase: transactionUsecase,
 	}
 
-	router, err := application.CreateRouter()
+	apiRouter, err := application.CreateRouter()
 	if err != nil {
 		log.Fatalf("failed to create router with error: %v\n", err)
 	}
-
-	// skipping endpoints
-	skipperFunc := middleware.NewSkipperFunc(
-		"/api/v1/login",
-		"/api/v1/password-reset/send",
-		"/api/v1/password-reset/reset",
-		"/api/v1/signup",
-		"/api/v1/health",
-		"/api/v1/configure-mfa",
-		"/api/v1/verify-mfa",
-	)
-
-	router.Use(
-		// TODO: Add SessionMiddleware to inject user object and session details into context
-		middleware.NewAuthenticationMiddleware(*cfg, skipperFunc, redisClient, userUsecase).Middleware,
-		middleware.NewCSRFMiddleware(*cfg, skipperFunc, redisClient).Middleware,
-		middleware.NewHeadersMiddleware().Middleware,
-	)
 
 	// Create CORS options
 	corsHandler := cors.New(cors.Options{
@@ -134,7 +125,7 @@ func main() {
 		OptionsPassthrough: false,
 		Debug:              false,
 	})
-	wrappedRouter := corsHandler.Handler(router)
+	wrappedRouter := corsHandler.Handler(apiRouter)
 
 	port := cfg.Server.Port
 	log.Println("Server is running on port", port)
